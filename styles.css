@@ -26,10 +26,10 @@ body {
   position: absolute; inset: 0;
   background-image: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1920&auto=format&fit=crop");
   background-size: 120% auto;          /* bigger than container so we can pan */
-  background-position: 0% 50%;         /* X will animate 0% -> 100% */
+  background-position: 0% 50%;
   background-repeat: no-repeat;
   filter: saturate(1.05) contrast(1.05) brightness(.95);
-  transform: translateZ(0) scale(1);   /* scale will animate */
+  transform: translateZ(0) scale(1);
   will-change: transform, filter, background-position;
 }
 
