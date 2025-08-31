@@ -2,22 +2,65 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>[gsap/component] ❍ Full Screen Image Zoom on Hover</title>
-  <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
-<link rel="stylesheet" href="./style.css">
+  <title>Untitled</title>
+  <link rel="stylesheet" href="./style.css">
 
 </head>
 <body>
 <!-- partial:index.partial.html -->
-<div id="background-image-container">
-  <img id="background-image" crossorigin="anonymous" alt="">
-</div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GSAP Image Scrub + Scroll Scale</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero" id="hero">
+    <!-- Single image background -->
+    <div class="hero__image" id="heroImage" role="img" aria-label="Hero image"></div>
 
-<div class="container">
-  <div class="projects-container">
-    <!-- Projects will be rendered here by JavaScript -->
-  </div>
-</div>
+    <div class="hero__overlay">
+      <h1 class="hero__title">
+        Image Scrub
+        <span class="hero__tag">Move your mouse ↔︎</span>
+      </h1>
+
+      <div class="hero__progress" aria-hidden="true">
+        <div class="hero__progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="feature" data-scale>
+      <div class="feature__inner">
+        <h2>Section One</h2>
+        <p>Each section scales up and fades in as you scroll.</p>
+      </div>
+    </section>
+    <section class="feature" data-scale>
+      <div class="feature__inner">
+        <h2>Section Two</h2>
+        <p>Tuned easing for a smooth feel.</p>
+      </div>
+    </section>
+    <section class="feature" data-scale>
+      <div class="feature__inner">
+        <h2>Section Three</h2>
+        <p>Works great with any image.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
 <!-- partial -->
   <script  src="./script.js"></script>
 
