@@ -1,43 +1,103 @@
-/* ===== Portfolio Section Styles ===== */
-.projects-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem; /* space between rows */
-  max-width: 800px;
-  margin: 0 auto; /* center on page */
-  padding: 4rem 2rem;
+/* ======== Portfolio Rows (edit me) ======== */
+const projects = [
+  {
+    title: "BRAND",
+    image: "",           // optional: put an image URL here
+    url: ""              // optional: click-through link
+  },
+  {
+    title: "DIGITAL",
+    image: "",           // optional
+    url: ""
+  },
+  {
+    title: "STREETWEAR",
+    image: "",           // optional
+    url: ""
+  }
+];
+
+/* ======== DOM ======== */
+const listContainer = document.querySelector(".projects-container");
+const bgImg = document.getElementById("background-image");
+
+/* Utility: set background image safely */
+function setBackground(src) {
+  if (!bgImg) return;
+  if (!src) {
+    bgImg.removeAttribute("src");
+    bgImg.removeAttribute("style");
+    return;
+  }
+
+  // show the image element if hidden by CSS and set src
+  bgImg.style.opacity = 1;
+  bgImg.src = src;
+
+  // If GSAP exists, add a subtle zoom-in on hover swap
+  if (window.gsap) {
+    gsap.killTweensOf(bgImg);
+    gsap.fromTo(
+      bgImg,
+      { scale: 1.02, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.4, ease: "power2.out" }
+    );
+  }
 }
 
-.project-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.2rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* subtle divider */
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  transition: color 0.3s ease;
+/* Render a single row */
+function createRow(project) {
+  const row = document.createElement(project.url ? "a" : "div");
+  row.className = "project-row";
+  if (project.url) {
+    row.href = project.url;
+    row.target = "_blank";
+    row.rel = "noopener noreferrer";
+  }
+
+  const title = document.createElement("span");
+  title.className = "project-title";
+  title.textContent = project.title.toUpperCase();
+
+  // If your CSS expects a right column (e.g., years), we leave it empty
+  const right = document.createElement("span");
+  right.className = "project-right"; // keeps layout/grid consistent
+
+  row.appendChild(title);
+  row.appendChild(right);
+
+  // Hover/Focus background behavior
+  const show = () => setBackground(project.image || "");
+  const clear = () => setBackground("");
+
+  row.addEventListener("mouseenter", show);
+  row.addEventListener("focus", show);
+  row.addEventListener("mouseleave", clear);
+  row.addEventListener("blur", clear);
+
+  return row;
 }
 
-.project-row:last-child {
-  border-bottom: none; /* no line after the last item */
+/* Clear current list and render all */
+function renderProjects(items) {
+  if (!listContainer) return;
+  listContainer.innerHTML = "";
+  items.forEach(p => listContainer.appendChild(createRow(p)));
 }
 
-.project-title {
-  font-size: 2.5rem;      /* big and bold */
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
+/* Init */
+renderProjects(projects);
 
-.project-right {
-  font-size: 1rem;
-  font-weight: 400;
-  opacity: 0.6; /* lighter, optional placeholder */
-}
+/* Keyboard navigation nicety (up/down to move focus) */
+document.addEventListener("keydown", (e) => {
+  const rows = Array.from(document.querySelectorAll(".project-row"));
+  const i = rows.indexOf(document.activeElement);
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    (rows[i + 1] || rows[0]).focus();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    (rows[i - 1] || rows[rows.length - 1]).focus();
+  }
+});
 
-/* Hover effect */
-.project-row:hover .project-title {
-  color: #ff4d4d; /* change to your brand accent */
-}
