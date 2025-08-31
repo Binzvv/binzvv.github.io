@@ -5,7 +5,6 @@
   const bar  = document.getElementById("progressBar");
 
   // Build a timeline that we "scrub" with mouse position (0 -> 1)
-  // We animate background X pan, subtle scale/rotate, and a slight filter change.
   const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
 
   tl.fromTo(img,
@@ -45,7 +44,7 @@
     handlePoint(t.clientX);
   }, { passive: true });
 
-  // Initialize at center (so it isn't stuck at 0%)
+  // Initialize at center
   setProgress(0.5);
 
   // ---- ScrollScale sections ----
