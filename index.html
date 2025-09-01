@@ -1,50 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>CodePen - A Pen by Binod Tamang</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GSAP Image Scrub + Scroll Scale</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GSAP Draggable Image Cloud</title>
+
+  <!-- Site CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero" id="hero">
-    <div class="hero__image" id="heroImage"></div>
-    <div class="hero__overlay">
-      <h1 class="hero__title">
-        Image Scrub
-        <span class="hero__tag">Move your mouse ↔︎</span>
-      </h1>
-      <div class="hero__progress" aria-hidden="true">
-        <div class="hero__progress-bar" id="progressBar"></div>
-      </div>
-    </div>
-  </header>
+  <div class="wrap">
+    <main class="stage">
+      <div class="bounds" id="bounds">
+        <div class="cloud" id="cloud">
+          <!-- Replace these images anytime -->
+          <div class="drag"><img alt="Mountain lake" src="https://picsum.photos/id/1015/800/600"></div>
+          <div class="drag"><img alt="Dog portrait" src="https://picsum.photos/id/1025/800/600"></div>
+          <div class="drag"><img alt="Desert dunes"  src="https://picsum.photos/id/1003/800/600"></div>
+          <div class="drag"><img alt="Forest road"  src="https://picsum.photos/id/1005/800/600"></div>
+          <div class="drag"><img alt="Cliff and sea" src="https://picsum.photos/id/1035/800/600"></div>
+        </div>
 
-  <main>
-    <section class="feature" data-scale>
-      <div class="feature__inner">
-        <h2>Section One</h2>
-        <p>Each section scales up and fades in as you scroll.</p>
+        <!-- Center hero block -->
+        <div class="hero">
+          <h1>BINZ<br> VV PLAYBOOK</h1>
+          <a href="#" class="btn">Launching soon</a>
+        </div>
       </div>
-    </section>
-    <section class="feature" data-scale>
-      <div class="feature__inner">
-        <h2>Section Two</h2>
-        <p>Tuned easing for a smooth feel.</p>
-      </div>
-    </section>
-    <section class="feature" data-scale>
-      <div class="feature__inner">
-        <h2>Section Three</h2>
-        <p>Works great with any image.</p>
-      </div>
-    </section>
-  </main>
 
-  <!-- GSAP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+      <!-- custom cursor overlay -->
+      <div class="cursor" aria-hidden="true">
+        <div class="dot" id="dot">drag</div>
+      </div>
+    </main>
 
+    <footer>
+      <div>© <span id="year"></span></div>
+      <div>Inspired by a Webflow + GSAP demo.</div>
+    </footer>
+  </div>
+
+  <!-- GSAP + Draggable -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js"></script>
+
+  <!-- Your JS -->
   <script src="script.js"></script>
+</body>
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
 </body>
 </html>

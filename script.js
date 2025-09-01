@@ -1,71 +1,66 @@
-/* GSAP image "scrub" via mouse + scroll scale sections */
-(() => {
-  const hero = document.getElementById("hero");
-  const img  = document.getElementById("heroImage");
-  const bar  = document.getElementById("progressBar");
+// Footer year
+document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Build a timeline that we "scrub" with mouse position (0 -> 1)
-  const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
+const bounds = document.getElementById('bounds');
+const cards  = Array.from(document.querySelectorAll('.drag'));
+const dot    = document.getElementById('dot');
 
-  tl.fromTo(img,
-    {
-      backgroundPositionX: "0%",
-      scale: 1.0,
-      rotate: -1.2,
-      filter: "brightness(0.92) saturate(1.0)"
-    },
-    {
-      backgroundPositionX: "100%",
-      scale: 1.08,
-      rotate: 1.2,
-      filter: "brightness(1.02) saturate(1.15)"
-    }
-  );
+function random(min, max) { return Math.random() * (max - min) + min; }
 
-  // Update progress bar
-  const setProgress = (p) => {
-    const clamped = Math.max(0, Math.min(1, p));
-    tl.progress(clamped);
-    bar.style.width = (clamped * 100).toFixed(3) + "%";
-  };
+// Layout cards roughly around edges
+function layout() {
+  const b = bounds.getBoundingClientRect();
+  const pad = 40;
 
-  // Mouse & touch -> progress
-  const handlePoint = (clientX) => {
-    const rect = hero.getBoundingClientRect();
-    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-    setProgress(x / rect.width);
-  };
+  cards.forEach((el) => {
+    const w = el.getBoundingClientRect().width;
+    const h = w * 3/4;
 
-  hero.addEventListener("mousemove", (e) => handlePoint(e.clientX));
-  hero.addEventListener("pointerdown", (e) => handlePoint(e.clientX));
-  hero.addEventListener("touchmove", (e) => {
-    const t = e.touches?.[0];
-    if (!t) return;
-    handlePoint(t.clientX);
-  }, { passive: true });
+    const edge = Math.random();
+    let x, y;
 
-  // Initialize at center
-  setProgress(0.5);
+    if (edge < 0.25) { x = random(pad, b.width - w - pad); y = pad; }
+    else if (edge < 0.5) { x = random(pad, b.width - w - pad); y = b.height - h - pad; }
+    else if (edge < 0.75) { x = pad; y = random(pad, b.height - h - pad); }
+    else { x = b.width - w - pad; y = random(pad, b.height - h - pad); }
 
-  // ---- ScrollScale sections ----
-  gsap.registerPlugin(ScrollTrigger);
-  gsap.utils.toArray("[data-scale] .feature__inner").forEach((el, i) => {
-    const startScale = 0.94 + i * 0.01;
-    const endScale   = 1.03 + i * 0.02;
-
-    gsap.fromTo(el,
-      { scale: startScale, opacity: 0, y: 18 },
-      {
-        scale: endScale, opacity: 1, y: 0,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 78%",
-          end: "top 20%",
-          scrub: true,
-          fastScrollEnd: true
-        }
-      }
-    );
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el.style.transform = 'rotate(' + random(-8, 8).toFixed(1) + 'deg)';
   });
-})();
+}
+
+layout();
+window.addEventListener('resize', layout);
+
+// Make them draggable
+let z = 10;
+cards.forEach((el) => {
+ Draggable.create(el, {
+  type: 'x,y',
+  bounds: bounds,
+  edgeResistance: 0.65,
+  onPress() {
+    this.target.style.zIndex = ++z;
+    dot.classList.add('grab');
+    dot.textContent = 'drag';
+    // Faster pickup
+    gsap.to(this.target, { scale: 1.2, duration: 0.1, overwrite: true });
+  },
+  onRelease() {
+    dot.classList.remove('grab');
+    dot.textContent = 'drag';
+    // Faster release
+    gsap.to(this.target, { scale: 1, duration: 0.2, ease: "power3.out" });
+  }
+});
+
+
+  el.addEventListener('mouseenter', () => dot.classList.add('hover'));
+  el.addEventListener('mouseleave', () => dot.classList.remove('hover'));
+});
+
+// Cursor follows mouse
+window.addEventListener('mousemove', (e) => {
+  gsap.to(dot, { x: e.clientX, y: e.clientY, duration: 0.15, ease: 'power3.out' });
+});
