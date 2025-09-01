@@ -83,4 +83,45 @@ body {
 .hero .btn {
   margin-top: 24px;
   padding: 12px 24px;
-  font-size: 14p
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: var(--fg);
+  text-decoration: none;
+  pointer-events: auto;
+  transition: background 0.2s ease;
+}
+.hero .btn:hover { background: rgba(255,255,255,0.2); }
+
+/* Footer */
+footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(16px, 4vw, 40px);
+  color: var(--muted);
+  font-size: 14px;
+  user-select: none;
+}
+footer a { color: var(--fg); text-underline-offset: 2px; }
+
+/* Custom cursor */
+.cursor { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+.dot {
+  position: absolute; translate: -50% -50%;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  display: grid; place-items: center;
+  font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg);
+  transition: transform .18s ease;
+}
+.dot.hover { transform: scale(1.08); }
+.dot.grab  { transform: scale(0.9); background: rgba(255,255,255,0.12); }
+
+@media (max-width: 640px) {
+  .dot { display: none; }
+  .drag { width: clamp(120px, 38vw, 260px); }
+}
