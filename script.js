@@ -31,10 +31,10 @@ const CARDS = [
 // World tuning
 // ---------------------------------------------------------------------------
 const R = 10;                       // sphere radius (world units)
-const COPIES = 5;                   // composition repeats around the ring
+const RING_FRAMES = 5;              // ring circumference at LAT0, in frame widths (sets scale only)
 const LAT0 = THREE.MathUtils.degToRad(45);   // latitude of the frame's vertical centre
-// Figma px per radian of arc, chosen so COPIES frames wrap exactly once at LAT0.
-const PX_PER_RAD = (COPIES * FRAME.w) / (2 * Math.PI * Math.cos(LAT0));
+// Figma px per radian of arc: RING_FRAMES frame widths wrap once at LAT0.
+const PX_PER_RAD = (RING_FRAMES * FRAME.w) / (2 * Math.PI * Math.cos(LAT0));
 const UNITS_PER_PX = R / PX_PER_RAD;
 const LAYER_BIAS = 0.004;           // pulls higher Figma layers slightly toward the camera
 
@@ -128,27 +128,26 @@ const materials = CARDS.map((card) => {
   return material;
 });
 
+// One instance of every element; the composition covers part of the ring.
 const tiles = [];
-for (let copy = 0; copy < COPIES; copy++) {
-  CARDS.forEach((card, layer) => {
-    // Each tile gets its own material so brightness/opacity are per tile.
-    const mesh = new THREE.Mesh(geometry, materials[layer].clone());
-    // Rigid and upright: never rotated, always parallel to the screen.
-    mesh.scale.set(card.w * UNITS_PER_PX, card.h * UNITS_PER_PX, 1);
-    const cx = card.x + card.w / 2 + copy * FRAME.w;
-    const cy = card.y + card.h / 2;
-    const tile = {
-      mesh,
-      lon: (2 * Math.PI * cx) / (COPIES * FRAME.w),
-      lat: LAT0 - (cy - FRAME.h / 2) / PX_PER_RAD,
-      radius: R * (1 - layer * LAYER_BIAS),
-      hover: 0,
-    };
-    mesh.userData = { tile, base: materials[layer] };
-    tiles.push(tile);
-    scene.add(mesh);
-  });
-}
+CARDS.forEach((card, layer) => {
+  // Each tile gets its own material so brightness/opacity are per tile.
+  const mesh = new THREE.Mesh(geometry, materials[layer].clone());
+  // Rigid and upright: never rotated, always parallel to the screen.
+  mesh.scale.set(card.w * UNITS_PER_PX, card.h * UNITS_PER_PX, 1);
+  const cx = card.x + card.w / 2;
+  const cy = card.y + card.h / 2;
+  const tile = {
+    mesh,
+    lon: (2 * Math.PI * cx) / (RING_FRAMES * FRAME.w),
+    lat: LAT0 - (cy - FRAME.h / 2) / PX_PER_RAD,
+    radius: R * (1 - layer * LAYER_BIAS),
+    hover: 0,
+  };
+  mesh.userData = { tile, base: materials[layer] };
+  tiles.push(tile);
+  scene.add(mesh);
+});
 
 // Share late-loading textures with every clone.
 function syncMaps() {
