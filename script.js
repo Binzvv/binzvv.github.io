@@ -36,8 +36,7 @@ const LAT0 = THREE.MathUtils.degToRad(45);   // latitude of the frame's vertical
 // Figma px per radian of arc: RING_FRAMES frame widths wrap once at LAT0.
 const PX_PER_RAD = (RING_FRAMES * FRAME.w) / (2 * Math.PI * Math.cos(LAT0));
 const UNITS_PER_PX = R / PX_PER_RAD;
-const BAND_SPREAD = 0.4;            // Figma Y → latitude, compressed so cards form a ring
-const LAYER_BIAS = 0.004;           // pulls higher Figma layers slightly toward the camera
+const LAYER_BIAS = 0.0008;          // tiny per-instance radius offset for stable overlap order
 
 // Camera sits inside the sphere, off-centre; the sphere is tilted so the pole
 // it looks toward (the dark centre) sits near screen centre, with the nearest
@@ -129,28 +128,83 @@ const materials = CARDS.map((card) => {
   return material;
 });
 
-// One instance of every element, each an independent object on the ring:
-// Figma X order sets its slot around the full circumference (evenly spaced),
-// Figma Y its latitude (distance from the dark centre); size stays at ring scale.
-const ringOrder = CARDS.map((c) => c.x + c.w / 2).sort((a, b) => a - b);
-const tiles = [];
-CARDS.forEach((card, layer) => {
+// Field of card instances: every asset once, selected photos repeated 2–3
+// times, scattered organically across three depth layers. Seeded, so the
+// layout is identical on every load.
+function seeded(seed) {
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = seeded(20260925);
+const between = (lo, hi) => lo + (hi - lo) * rand();
+
+// Per layer: latitude offset from LAT0 (negative = outer edges / nearer,
+// positive = toward the dark centre), distance from the sphere centre (× R;
+// beyond 1 sits deeper, so the existing depth fade darkens it) and size.
+const DEPTH_LAYERS = {
+  near: { lat: [-0.32, -0.1], radius: [0.98, 1.0], scale: [1.35, 1.85] },
+  mid: { lat: [-0.12, 0.2], radius: [1.0, 1.08], scale: [0.85, 1.15] },
+  far: { lat: [0.12, 0.4], radius: [1.18, 1.4], scale: [0.6, 0.9] },
+};
+const EXTRA_COPIES = 22;            // repeats on top of the 18 originals (40 total)
+const EXTRA_LAYERS = ['near', 'near', 'mid', 'far', 'far', 'mid', 'far', 'near', 'far', 'mid', 'far'];
+const MIN_REPEAT_GAP = 1.2;         // rad around the ring between copies of one asset
+
+const instances = [];
+
+// Originals: Figma X order spreads them round the ring (jittered, not even);
+// Figma Y picks the layer and where in it they sit.
+const byX = CARDS.map((c, i) => i).sort((i, j) => (CARDS[i].x + CARDS[i].w / 2) - (CARDS[j].x + CARDS[j].w / 2));
+byX.forEach((asset, slot) => {
+  const card = CARDS[asset];
+  const v = (card.y + card.h / 2) / FRAME.h;            // 0 top … 1 bottom of the frame
+  const layer = v > 0.62 ? 'near' : v < 0.3 ? 'far' : 'mid';
+  const [lo, hi] = DEPTH_LAYERS[layer].lat;
+  instances.push({
+    asset,
+    layer,
+    lon: (2 * Math.PI * (slot + between(-0.45, 0.45))) / CARDS.length,
+    lat: hi - (hi - lo) * Math.min(1, Math.max(0, (v - 0.1) / 0.8)) + between(-0.05, 0.05),
+  });
+});
+
+// Repeats: photos only, each asset at most 3 times, kept well apart.
+const photos = CARDS.map((c, i) => i).filter((i) => !CARDS[i].label);
+const repeatPool = [...photos].sort(() => rand() - 0.5);
+while (repeatPool.length < EXTRA_COPIES) repeatPool.push(...[...photos].sort(() => rand() - 0.5).slice(0, EXTRA_COPIES - repeatPool.length));
+const ringGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+repeatPool.slice(0, EXTRA_COPIES).forEach((asset, n) => {
+  const layer = EXTRA_LAYERS[n % EXTRA_LAYERS.length];
+  const siblings = instances.filter((i) => i.asset === asset);
+  let lon = 0;
+  for (let tries = 0; tries < 40; tries++) {
+    lon = between(0, 2 * Math.PI);
+    if (siblings.every((s) => ringGap(s.lon, lon) > MIN_REPEAT_GAP)) break;
+  }
+  instances.push({ asset, layer, lon, lat: between(...DEPTH_LAYERS[layer].lat) });
+});
+
+const tiles = instances.map((inst, n) => {
+  const card = CARDS[inst.asset];
   // Each tile gets its own material so brightness/opacity are per tile.
-  const mesh = new THREE.Mesh(geometry, materials[layer].clone());
+  const mesh = new THREE.Mesh(geometry, materials[inst.asset].clone());
   // Rigid and upright: never rotated, always parallel to the screen.
-  mesh.scale.set(card.w * UNITS_PER_PX, card.h * UNITS_PER_PX, 1);
-  const cx = card.x + card.w / 2;
-  const cy = card.y + card.h / 2;
+  const size = between(...DEPTH_LAYERS[inst.layer].scale) * UNITS_PER_PX;
+  mesh.scale.set(card.w * size, card.h * size, 1);
   const tile = {
     mesh,
-    lon: (2 * Math.PI * ringOrder.indexOf(cx)) / CARDS.length,
-    lat: LAT0 - BAND_SPREAD * (cy - FRAME.h / 2) / PX_PER_RAD,
-    radius: R * (1 - layer * LAYER_BIAS),
+    lon: inst.lon,
+    lat: LAT0 + inst.lat,
+    radius: R * (between(...DEPTH_LAYERS[inst.layer].radius) - n * LAYER_BIAS),
     hover: 0,
   };
-  mesh.userData = { tile, base: materials[layer] };
-  tiles.push(tile);
+  mesh.userData = { tile, base: materials[inst.asset] };
   scene.add(mesh);
+  return tile;
 });
 
 // Share late-loading textures with every clone.
