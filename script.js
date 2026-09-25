@@ -36,6 +36,7 @@ const LAT0 = THREE.MathUtils.degToRad(45);   // latitude of the frame's vertical
 // Figma px per radian of arc: RING_FRAMES frame widths wrap once at LAT0.
 const PX_PER_RAD = (RING_FRAMES * FRAME.w) / (2 * Math.PI * Math.cos(LAT0));
 const UNITS_PER_PX = R / PX_PER_RAD;
+const BAND_SPREAD = 0.4;            // Figma Y → latitude, compressed so cards form a ring
 const LAYER_BIAS = 0.004;           // pulls higher Figma layers slightly toward the camera
 
 // Camera sits inside the sphere, off-centre; the sphere is tilted so the pole
@@ -128,7 +129,10 @@ const materials = CARDS.map((card) => {
   return material;
 });
 
-// One instance of every element; the composition covers part of the ring.
+// One instance of every element, each an independent object on the ring:
+// Figma X order sets its slot around the full circumference (evenly spaced),
+// Figma Y its latitude (distance from the dark centre); size stays at ring scale.
+const ringOrder = CARDS.map((c) => c.x + c.w / 2).sort((a, b) => a - b);
 const tiles = [];
 CARDS.forEach((card, layer) => {
   // Each tile gets its own material so brightness/opacity are per tile.
@@ -139,8 +143,8 @@ CARDS.forEach((card, layer) => {
   const cy = card.y + card.h / 2;
   const tile = {
     mesh,
-    lon: (2 * Math.PI * cx) / (RING_FRAMES * FRAME.w),
-    lat: LAT0 - (cy - FRAME.h / 2) / PX_PER_RAD,
+    lon: (2 * Math.PI * ringOrder.indexOf(cx)) / CARDS.length,
+    lat: LAT0 - BAND_SPREAD * (cy - FRAME.h / 2) / PX_PER_RAD,
     radius: R * (1 - layer * LAYER_BIAS),
     hover: 0,
   };
