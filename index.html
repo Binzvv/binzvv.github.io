@@ -1,62 +1,60 @@
-<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Test</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GSAP Draggable Fan</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Culture Is the Interface</title>
+  <meta name="description" content="An experimental interactive world. Scroll to travel through it, drag the sphere.">
+  <meta name="theme-color" content="#050505">
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="fonts/bodoni-moda-roman.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/bodoni-moda-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/world.css">
+  <script>
+    document.documentElement.classList.add('js');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('reduced');
+  </script>
 </head>
 <body>
-  <div class="wrap">
-    <main class="stage">
-      <div class="bounds" id="bounds">
-        <div class="cloud" id="cloud">
-          <!-- Replace these images anytime -->
-          <div class="drag"><img alt="Mountain lake" src="https://picsum.photos/id/1015/800/600"></div>
-          <div class="drag"><img alt="Dog portrait"    src="https://picsum.photos/id/1025/800/600"></div>
-          <div class="drag"><img alt="Desert dunes"    src="https://picsum.photos/id/1003/800/600"></div>
-          <div class="drag"><img alt="Forest road"     src="https://picsum.photos/id/1005/800/600"></div>
-          <div class="drag"><img alt="Cliff and sea"   src="https://picsum.photos/id/1035/800/600"></div>
-        </div>
+  <canvas id="world" aria-hidden="true"></canvas>
 
-        <!-- Center hero text (optional) -->
-        <div class="hero">
-          <h1>WEBFLOW<br>+ GSAP</h1>
-          <a href="#" class="btn">Learn More</a>
-        </div>
-      </div>
+  <!--
+    The typography is authored here, in CSS, as a flat poster.
+    At boot every character is measured (SplitText) and lifted into the
+    3D world at the exact spot it occupies on screen, then given a depth.
+    If WebGL is unavailable these two compositions stay visible as-is.
+  -->
+  <div class="posters">
+    <h1 class="poster w1" id="w1" aria-label="Culture is the interface">
+      <span class="line l1" data-depth="12" data-weight="440" data-sepx="-0.7" data-sepz="-2">CULTURE</span>
+      <span class="line l2" data-depth="16.5" data-weight="560" data-sepx="1.6" data-sepz="-6">IS THE</span>
+      <span class="line l3" data-depth="9.6" data-weight="860" data-sepx="0.5" data-sepz="3.4">INTER<br class="pbr">FACE</span>
+    </h1>
 
-      <!-- custom cursor overlay -->
-      <div class="cursor" aria-hidden="true">
-        <div class="dot" id="dot">drag</div>
-      </div>
-    </main>
+    <h2 class="poster w2" id="w2" aria-label="Design should misbehave">
+      <span class="line m1" data-depth="17" data-weight="900" data-italic>DESIGN</span>
+      <span class="line m2" data-depth="12.5" data-weight="420" data-italic data-rot="180">SHOULD</span>
+      <span class="line m3" data-depth="11" data-weight="640" data-jitter="1">MIS<br class="pbr">BEHAVE</span>
+    </h2>
 
-    <footer>
-      <div>© <span id="year"></span></div>
-      <div>Inspired by a Webflow + GSAP demo.</div>
-    </footer>
+    <p class="aside" id="aside">An interface is a set of manners.<br>Culture decides what they are.</p>
   </div>
 
-  <!-- GSAP + Draggable -->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js"></script>
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <i class="ring"></i><i class="dot"></i>
+  </div>
 
-  <script src="script.js"></script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
+  <p class="hint" id="hint">Scroll to travel. Drag the sphere.</p>
 
+  <div class="journey" id="journey" aria-hidden="true"></div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/ScrollTrigger.min.js"></script>
+  <script src="vendor/SplitText.min.js"></script>
+  <script src="vendor/lenis.min.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js" } }
+  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

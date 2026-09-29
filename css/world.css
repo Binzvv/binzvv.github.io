@@ -1,0 +1,156 @@
+@font-face {
+  font-family: "Bodoni Moda";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: block;
+  src: url(../fonts/bodoni-moda-roman.woff2) format("woff2");
+}
+@font-face {
+  font-family: "Bodoni Moda";
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: block;
+  src: url(../fonts/bodoni-moda-italic.woff2) format("woff2");
+}
+
+:root {
+  --ink: #050505;
+  --bone: #e9e4d9;
+  --ash: #8d8a83;
+  --kiln: #ff6a1f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--ink); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: "Bodoni Moda", "Didot", "Bodoni 72", serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.gl, html.gl * { cursor: none; }
+}
+
+#world {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100lvh;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.journey { height: 820vh; }
+html.reduced .journey { height: 400vh; }
+
+/* ------------------------------------------------------------------ */
+/* Posters: the art-directed flat layout the 3D world is lifted from.  */
+/* ------------------------------------------------------------------ */
+
+.posters {
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: 100lvh;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  font-weight: 400;
+  line-height: 0.8;
+  white-space: nowrap;
+  font-kerning: normal;
+}
+
+.line { position: absolute; display: block; }
+.line .pbr { display: none; }
+.line .bl { display: inline-block; width: 0; height: 0; vertical-align: baseline; }
+
+.w1 .l1 { font-size: 21.5vw; left: -1.3vw; top: 3vh; letter-spacing: -0.03em; font-weight: 440; }
+.w1 .l2 { font-size: 6.6vw; left: 37vw; top: 41.5vh; letter-spacing: -0.01em; font-weight: 560; }
+.w1 .l3 { font-size: 16.4vw; left: 10.5vw; top: 59vh; letter-spacing: -0.045em; font-weight: 860; }
+
+.w2 { opacity: 0; }
+.w2 .m1 { font-size: 19vw; left: 23vw; top: 5vh; font-style: italic; font-weight: 900; letter-spacing: -0.04em; }
+.w2 .m2 { font-size: 5.6vw; left: 57vw; top: 37vh; font-style: italic; font-weight: 420; letter-spacing: 0.02em; }
+.w2 .m3 { font-size: 16.2vw; left: 1vw; top: 58vh; font-weight: 640; letter-spacing: -0.035em; }
+
+.aside {
+  position: absolute;
+  left: 78.5vw;
+  top: 87vh;
+  font-size: clamp(12px, 0.95vw, 17px);
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--ash);
+  max-width: 24ch;
+}
+
+/* Portrait: a different poster, not a shrunken one. */
+@media (max-aspect-ratio: 4/5) {
+  .w1 .l1 { font-size: 24vw; left: -3vw; top: 9vh; }
+  .w1 .l2 { font-size: 11vw; left: 50vw; top: 31vh; }
+  .line .pbr { display: inline; }
+  .w1 .l3 { font-size: 27vw; left: -2vw; top: 49vh; line-height: 0.84; }
+  .w2 .m1 { font-size: 23vw; left: 3vw; top: 12vh; }
+  .w2 .m2 { font-size: 10vw; left: 70vw; top: 40vh; }
+  .w2 .m3 { font-size: 25vw; left: 2vw; top: 52vh; line-height: 0.84; }
+  .aside { left: 7vw; top: 82vh; font-size: 12px; }
+  .hint { left: 7vw; bottom: 3vh; }
+}
+
+/* Once lifted into 3D the DOM copy stays for assistive tech only. */
+html.gl .poster, html.gl .aside { color: transparent; }
+
+/* No WebGL: the posters are the site. */
+html.no-gl .posters { position: static; height: auto; overflow: visible; }
+html.no-gl .poster { position: relative; height: 100vh; overflow: hidden; }
+html.no-gl .w2 { opacity: 1; background: var(--bone); color: var(--ink); }
+html.no-gl .journey { display: none; }
+
+/* ------------------------------------------------------------------ */
+
+.hint {
+  position: fixed;
+  left: 2.2vw;
+  bottom: 2.4vh;
+  z-index: 3;
+  font-size: 13px;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  color: var(--ash);
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+.hint.gone { opacity: 0; }
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+html.gl.fine .cursor.on { opacity: 1; }
+.cursor i { position: absolute; left: 0; top: 0; border-radius: 50%; will-change: transform; }
+.cursor .dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: #e9e4d9; }
+.cursor .ring { width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 1px solid #e9e4d9; opacity: 0; }
+html.no-gl .hint, html.no-gl .cursor { display: none; }
