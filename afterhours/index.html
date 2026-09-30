@@ -136,7 +136,6 @@ gsap.registerEase("creep", t => Math.pow(t, 1.8));
 /* ------------------------------------------------------------------ palette */
 const K = 0, R = 1, WH = 2;
 const COL = ["#0b0b0b", "#ff0000", "#f1ece2"];
-const INK = [WH, K, K];                       // HUD ink per background
 
 /* ------------------------------------------------------ load + trace logo */
 const img = new Image();
@@ -288,9 +287,6 @@ const S = {
   bg:    { c: K },
   cam:   { x: 0, y: 0, s: 1 },
   world: { r: 0, sx: 1, sy: 1 },
-  grid:  { on: 0, p: 0, r: 0, kx: 0, c: K },
-  line:  { on: 0, p: 0, y: 0, c: K },
-  mark:  { on: 0, x: 0, y: 0, c: K },
   inst:  Array.from({ length: NI }, instDefault)
 };
 
@@ -341,95 +337,25 @@ function drawInst(o) {
   ctx.restore();
 }
 
-let MOD = 100;
-function drawGrid() {
-  const g = S.grid;
-  if (!g.on || g.p <= 0) return;
-  const m = base.multiply(camM).multiply(worldM).translate(W / 2, H / 2).rotate(g.r);
-  const D = Math.hypot(W, H) * 2.2, n = Math.ceil(D / MOD) + 1;
-  const warp = x => x * (1 + g.kx * Math.min(Math.abs(x) / (W / 2), 2.5));
-  const T = (x, y) => m.transformPoint(new DOMPoint(x, y));
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.strokeStyle = COL[Math.round(g.c)];
-  ctx.lineWidth = Math.max(1, DPR);
-  ctx.beginPath();
-  const total = 4 * n + 2;
-  let idx = 0;
-  const seg = (ax, ay, bx, by, flip) => {
-    // lines draw on in sequence from alternating ends: architectural, not uniform
-    const k = Math.abs(idx++ - total / 2) / (total / 2);
-    const l = clamp01(g.p * 1.6 - k * 0.6);
-    if (l <= 0) return;
-    const p0 = flip ? T(bx, by) : T(ax, ay);
-    const p1 = flip ? T(bx + (ax - bx) * l, by + (ay - by) * l) : T(ax + (bx - ax) * l, ay + (by - ay) * l);
-    ctx.moveTo(Math.round(p0.x) + .5, Math.round(p0.y) + .5);
-    ctx.lineTo(Math.round(p1.x) + .5, Math.round(p1.y) + .5);
-  };
-  for (let i = -n; i <= n; i++) { const x = warp(i * MOD); seg(x, -D, x, D, i & 1); }
-  const oy = (H / 2) % MOD;                                   // rows locked to the comp's top edge
-  for (let j = -n; j <= n; j++) { const y = j * MOD - oy; seg(-D, y, D, y, j & 1); }
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawHUD(t) {
-  const ink = COL[INK[Math.round(S.bg.c)]];
-  const fs = W < 520 ? 9 : 10.5, pad = W < 520 ? 12 : 18;
-  ctx.save();
-  ctx.setTransform(base);
-  ctx.font = `600 ${fs}px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace`;
-  ctx.fillStyle = ink;
-  ctx.textBaseline = "top";
-  const f = Math.floor(t * 25 + 1e-6), ss = Math.floor(f / 25), ff = f % 25;
-  const tc = `00:00:${String(ss).padStart(2, "0")}:${String(ff).padStart(2, "0")}`;
-  const sec = SECTIONS.find(s => t >= s[0] && t < s[1]) || SECTIONS[SECTIONS.length - 1];
-  ctx.fillText("IDENT / MASTER", pad, pad);
-  ctx.textAlign = "right";
-  ctx.fillText(tc, W - pad, pad);
-  ctx.textBaseline = "bottom";
-  ctx.fillText(`${W >= H ? 12 : 6} COL · ${Math.round(MOD)}PX`, W - pad, H - pad);
-  ctx.textAlign = "left";
-  ctx.fillText(`${sec[2]} — ${sec[3]}`, pad, H - pad);
-  // tally light
-  ctx.fillStyle = COL[Math.round(S.bg.c) === R ? K : R];
-  ctx.fillRect(pad + ctx.measureText("IDENT / MASTER").width + 8, pad + 1, fs - 3, fs - 3);
-  ctx.restore();
-}
-
+// Only the logo is ever drawn. The column grid exists purely as positioning maths in build().
 function render() {
   mats();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = COL[Math.round(S.bg.c)];
   ctx.fillRect(0, 0, cv.width, cv.height);
-  drawGrid();
   for (const o of S.inst) drawInst(o);
-  const L = S.line;
-  if (L.on && L.p > 0) {
-    ctx.save(); ctx.setTransform(base); ctx.fillStyle = COL[Math.round(L.c)];
-    ctx.fillRect(0, Math.round(L.y), W * L.p, 2); ctx.restore();
-  }
-  const M = S.mark;
-  if (M.on) {
-    ctx.save(); ctx.setTransform(base); ctx.fillStyle = COL[Math.round(M.c)];
-    const a = Math.max(7, MOD * 0.09);
-    ctx.fillRect(Math.round(M.x - a), Math.round(M.y), a * 2, 1);
-    ctx.fillRect(Math.round(M.x), Math.round(M.y - a), 1, a * 2);
-    ctx.restore();
-  }
-  drawHUD(tl ? tl.time() : 0);
 }
 
 /* ---------------------------------------------------------------- score */
 const DUR = 12;
 const SECTIONS = [
-  [0, 2, "01", "MACRO"], [2, 4, "02", "GRID"], [4, 6, "03", "COLLIDE"],
+  [0, 2, "01", "MACRO"], [2, 4, "02", "TRAVEL"], [4, 6, "03", "COLLIDE"],
   [6, 7.6, "04", "BREAK"], [7.6, 9.85, "05", "HOLD"], [9.85, 12, "06", "RESOLVE"]
 ];
 
 function build() {
   const cols = W >= H ? 12 : 6;
-  const m = MOD = W / cols;
+  const m = W / cols;                                      // the grid: positioning only, never drawn
   const cx = W / 2, cy = H / 2;
   const g = v => Math.round(v / m) * m;                      // snap to column line
   const I = S.inst;
@@ -453,9 +379,6 @@ function build() {
   cut(0, K);
   $(0, S.cam, { x: 0, y: 0, s: 1 });
   $(0, S.world, { r: 0, sx: 1, sy: 1 });
-  $(0, S.grid, { on: 0, p: 0, r: 0, kx: 0, c: K });
-  $(0, S.line, { on: 0, p: 0, c: K });
-  $(0, S.mark, { on: 0 });
   I.forEach((o, i) => i ? $(0, o, instDefault()) : put(0, 0, S0));
 
   /* 01 · MACRO  00:00–02:00 --------------------------------------------
@@ -481,11 +404,9 @@ function build() {
   to(1.76, 0.2, I[0], { y: cy - 2 * m, x: cx - 2 * m });
   to(1.80, 0.2, I[2], { x: -W * 1.6 }, "whip");
 
-  /* 02 · GRID  02:00–04:00 ---------------------------------------------
-     The grid draws on. Oversized bands travel through it, locked to it. */
+  /* 02 · TRAVEL  02:00–04:00 ---------------------------------------------
+     Oversized bands travel on the (invisible) column grid, locked to it. */
   cut(2.0, WH); off(2.0, 0, 1, 2);
-  $(2.0, S.grid, { on: 1, p: 0, r: 0, kx: 0, c: K });
-  to(2.0, 0.5, S.grid, { p: 1 });
   const sA = H * 1.2 / b0.h, bwA = b0.w * sA;
   put(2.0, 0, { part: 1, u: b0.x0, v: b0.cy, x: W + m, y: g(cy) + m * .5, s: sA, c: R });
   to(2.04, 0.30, I[0], { x: g(W - 3 * m) }, "slam");
@@ -497,24 +418,20 @@ function build() {
   to(2.28, 0.30, I[1], { y: g(H * 0.7) }, "slam");
   to(2.72, 0.28, I[1], { y: g(H * 0.25) });
   to(3.12, 0.24, I[1], { y: -lenH }, "whip");
-  to(2.56, 0.28, S.grid, { kx: 0.7 });
   cut(3.0, R); $(3.0, I[0], { c: WH }); $(3.0, I[1], { c: K });
-  to(3.0, 0.28, S.grid, { r: -15, kx: -0.35 }, "slam");
   const s2 = H * 1.5 / b2.h;
   put(3.08, 2, { part: 3, u: b2.cx, v: b2.cy, x: W * 2.4, y: cy, r: -15, s: s2, c: WH });
   to(3.08, 0.24, I[2], { x: cx + m }, "slam");
   shake(3.16, 12);
-  cut(3.5, K); $(3.5, S.grid, { c: WH });
+  cut(3.5, K);
   $(3.5, I[2], { s: s2 * 1.9, u: b2.x0 + b2.w * 0.28, c: R }); // re-crop on the cut
-  to(3.52, 0.2, S.grid, { kx: 0.25 });
   to(3.60, 0.2, I[2], { y: cy - 2 * m, x: cx - 2 * m });
-  to(3.78, 0.22, S.grid, { r: 0, kx: 0, p: 0 }, "whip");
   to(3.80, 0.2, I[2], { y: -H * 2 }, "whip");
 
   /* 03 · COLLIDE  04:00–06:00 ------------------------------------------
      Three strips, three words, opposing directions. Then the logo becomes a
      matte for itself. Then AFTER and HOURS are thrown into each other. */
-  cut(4.0, K); off(4.0, 0, 1, 2); $(4.0, S.grid, { on: 0 });
+  cut(4.0, K); off(4.0, 0, 1, 2);
   const st = (b, f) => (H / 3) / b.h * f;
   put(4.0, 3, { part: 1, u: b0.cx, v: b0.cy, x: W * 1.8,  y: H / 6,     s: st(b0, 1.02), c: R,  sc: 1, k1: 0,     k3: 1 / 3 });
   put(4.0, 4, { part: 2, u: b1.cx, v: b1.cy, x: -W * .8,  y: H / 2,     s: st(b1, 1.02), c: WH, sc: 1, k1: 1 / 3, k3: 2 / 3 });
@@ -561,7 +478,6 @@ function build() {
      the columns stretch, and the type is pushed past legibility. Two scale
      punches. Then everything is gone. */
   cut(6.0, WH); off(6.0, 5);
-  $(6.0, S.grid, { on: 1, p: 1, r: 0, kx: 0, c: K });
   const sL = H * 0.62 / b1.h;
   const offs = [-3, 2, -1, 3, -2], offs2 = [2, -2, 3, -3, 1];
   b1.letters.slice(0, 5).forEach((l, k) => {
@@ -572,10 +488,10 @@ function build() {
   to(6.30, 0.26, S.world, { r: -24 }, "slam");
   shake(6.36, 8);
   to(6.62, 0.22, S.world, { sx: 2.8, sy: 0.7 });
-  cut(6.9, K); $(6.9, S.grid, { c: R });
+  cut(6.9, K);
   b1.letters.slice(0, 5).forEach((l, k) => $(6.9, I[3 + k], { c: k === 2 ? WH : R }));
   to(6.92, 0.28, S.world, { r: 90, sx: 0.5, sy: 3.4 }, "slam");
-  cut(7.24, R); $(7.24, S.grid, { c: K });
+  cut(7.24, R);
   b1.letters.slice(0, 5).forEach((l, k) => $(7.24, I[3 + k], { c: k === 2 ? WH : K }));
   to(7.24, 0.05, S.cam, { s: 2.7 });                          // punch 1
   to(7.29, 0.12, S.cam, { s: 1.12 }, "slam");
@@ -585,28 +501,24 @@ function build() {
   to(7.48, 0.08, S.cam, { s: 1 });
 
   /* 05 · HOLD  07:60–09:85 ---------------------------------------------
-     Remove almost everything. One fragment (the 7) parked off-axis on the
-     grid, a registration mark where the logo will land, a fuse line crossing
-     the frame. One single-cell jump halfway. Wait. */
+     Remove almost everything. One tiny crop of the 7, parked off-axis
+     against open ground. One single-cell jump halfway. Wait. */
   cut(7.6, WH); off(7.6, 3, 4, 5, 6, 7);
-  $(7.6, S.grid, { on: 0 }); $(7.6, S.world, { r: 0, sx: 1, sy: 1 }); $(7.6, S.cam, { x: 0, y: 0, s: 1 });
+ $(7.6, S.world, { r: 0, sx: 1, sy: 1 }); $(7.6, S.cam, { x: 0, y: 0, s: 1 });
   const f7 = { q0: b2.x0 + b2.w * 0.72, q1: b2.y0 - 1, q2: b2.x1 + 1, q3: b2.y0 + b2.h * 0.76 };
-  const sf = m * 0.9 / (f7.q3 - f7.q1);
+  const sf = m * 0.5 / (f7.q3 - f7.q1);
   const fx = g(W * (W >= H ? 0.78 : 0.7)) + m / 2, fy = Math.round(H * 0.22 / m) * m + m / 2;
   put(7.6, 8, { part: 0, lc: 1, ...f7, u: (f7.q0 + f7.q2) / 2, v: (f7.q1 + f7.q3) / 2, x: fx, y: fy, s: sf, c: R });
   to(7.6, 1.25, I[8], { s: sf * 1.04 }, "creep");
   $(8.85, I[8], { x: fx - m });                               // one cell. no tween.
-  $(7.6, S.mark, { on: 1, x: cx, y: cy, c: K });
-  $(7.6, S.line, { on: 1, p: 0, y: fy + m * 0.75, c: K });
-  to(7.8, 1.8, S.line, { p: 1 }, "none");                    // the fuse: deliberately linear
-  cut(9.6, K); $(9.6, I[8], { c: WH }); $(9.6, S.line, { on: 0 }); $(9.6, S.mark, { c: WH });
+  cut(9.6, K); $(9.6, I[8], { c: WH });
   to(9.62, 0.22, I[8], { s: sf * 70, x: cx, y: cy }, "crash");
 
   /* 06 · RESOLVE  09:85–12:00 ------------------------------------------
      AFTER from above, HOURS from the left, 24:7 from below: three impacts,
      one logo. Two-frame inversion on contact. Hold with confidence.
      Then re-anchor on frame-0's crop point and crash-zoom back in. */
-  cut(9.85, K); off(9.85, 8); $(9.85, S.mark, { on: 0 });
+  cut(9.85, K); off(9.85, 8);
   const hero = { u: LW / 2, v: LH / 2, x: cx, y: cy, s: fitS, c: R };
   put(9.85, 3, { ...hero, part: 1, y: cy - H * 1.3 });
   put(9.85, 4, { ...hero, part: 2, x: cx - W * 1.4 });
