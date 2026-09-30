@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AFTER HOURS 24:7 — Ident Master</title>
+<!--
+  AFTER HOURS 24:7 — 12s kinetic ident
+  ------------------------------------
+  One <canvas> = the comp. One GSAP timeline = the timeline panel.
+  Every visual property lives in a plain state object (S). The master timeline
+  only ever writes numbers into S; render() draws S. Scrub the timeline and the
+  picture follows, frame-accurate, in either direction.
+
+  THE LOGO: the supplied PNG is embedded below as base64, untouched. At boot its
+  alpha channel is traced along the 50%-coverage contour (marching squares, linear
+  interpolation between the original pixels), so the artwork can be pushed to
+  6000% scale without turning to mush. Nothing is redrawn or re-typeset: the
+  outline IS the supplied pixels. Press P to render the raw bitmap instead for comparison.
+-->
+<style>
+  :root{
+    --k:#0b0b0b; --r:#ff0000; --w:#f1ece2;
+    --hair:rgba(241,236,226,.16); --dim:rgba(241,236,226,.5);
+    --strip:46px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--k);overflow:hidden;overscroll-behavior:none}
+  #comp{position:fixed;left:0;top:0;width:100vw;height:calc(100dvh - var(--strip));display:block;background:var(--k)}
+
+  /* ---------- transport strip ---------- */
+  #strip{position:fixed;left:0;right:0;bottom:0;height:var(--strip);display:flex;align-items:stretch;
+    background:var(--k);color:var(--w);border-top:1px solid var(--hair);
+    font:500 10.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;letter-spacing:.08em;
+    text-transform:uppercase;user-select:none;-webkit-user-select:none;padding-bottom:env(safe-area-inset-bottom)}
+  .cell{display:flex;align-items:center;border-right:1px solid var(--hair);white-space:nowrap}
+  .btn{appearance:none;border:0;border-right:1px solid var(--hair);background:none;color:var(--w);
+    min-width:44px;padding:0 12px;display:grid;place-items:center;cursor:pointer;font:inherit;letter-spacing:inherit}
+  .btn:hover{background:rgba(241,236,226,.07)}
+  .btn:focus-visible{outline:1px solid var(--r);outline-offset:-3px}
+  .btn svg{width:12px;height:12px;fill:currentColor;display:block}
+  .btn.on{background:var(--w);color:var(--k)}
+  .tc{text-transform:none;padding:0 14px;gap:6px;font-variant-numeric:tabular-nums;min-width:128px}
+  .tc .now{color:var(--w);font-weight:700}
+  .tc .dur{color:var(--dim)}
+  .lbl{padding:0 12px;color:var(--dim)}
+  #track{position:relative;flex:1;min-width:120px;cursor:ew-resize;touch-action:none;overflow:hidden;border-right:1px solid var(--hair)}
+  #track .secs{position:absolute;left:0;right:0;top:0;height:15px;border-bottom:1px solid var(--hair)}
+  #track .sec{position:absolute;top:0;bottom:0;border-left:1px solid var(--hair);padding:3px 0 0 4px;
+    font-size:8.5px;color:var(--dim);overflow:hidden;white-space:nowrap}
+  #track .ticks{position:absolute;left:0;right:0;top:15px;bottom:0}
+  #track .tk{position:absolute;bottom:0;width:1px;background:var(--hair);height:5px}
+  #track .tk.s{height:10px;background:var(--dim)}
+  #track .tk i{position:absolute;left:3px;bottom:12px;font-style:normal;font-size:8.5px;color:var(--dim)}
+  #cti{position:absolute;top:0;bottom:0;left:0;width:0;pointer-events:none;will-change:transform}
+  #cti::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--r)}
+  #cti::after{content:"";position:absolute;top:0;left:-5px;width:10px;height:9px;background:var(--r);
+    clip-path:polygon(0 0,100% 0,100% 55%,50% 100%,0 55%)}
+  #prog{position:absolute;left:0;top:15px;bottom:0;width:100%;background:rgba(255,0,0,.13);transform-origin:0 0;pointer-events:none}
+  .fr{padding:0 12px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:74px}
+  @media (max-width:720px){ .lbl,.fr,#track .sec,#track .tk i{display:none} #track .secs{height:0;border:0} #track .ticks,#prog{top:0} .tc{min-width:0;padding:0 10px} .btn{min-width:40px;padding:0 9px} }
+  @media (max-width:420px){ .tc .dur{display:none} }
+</style>
+</head>
+<body>
+<canvas id="comp" aria-label="AFTER HOURS 24:7 kinetic title sequence"></canvas>
+
+<div id="strip" role="toolbar" aria-label="Transport">
+  <button class="btn" id="bPlay" title="Play / Pause (Space)" aria-label="Play or pause">
+    <svg id="icPause" viewBox="0 0 12 12"><rect x="1.5" y="1" width="3" height="10"/><rect x="7.5" y="1" width="3" height="10"/></svg>
+    <svg id="icPlay" viewBox="0 0 12 12" style="display:none"><path d="M2 1 L11 6 L2 11Z"/></svg>
+  </button>
+  <button class="btn" id="bRestart" title="Restart (Home)" aria-label="Restart">
+    <svg viewBox="0 0 12 12"><rect x="1" y="1" width="2" height="10"/><path d="M11 1 L3.5 6 L11 11Z"/></svg>
+  </button>
+  <div class="cell tc"><span class="now" id="tNow">00.00s</span><span class="dur">/ 12.00s</span></div>
+  <div id="track" aria-label="Timeline scrubber" role="slider" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" tabindex="0">
+    <div class="secs" id="secs"></div>
+    <div class="ticks" id="ticks"></div>
+    <div id="prog"></div>
+    <div id="cti"></div>
+  </div>
+  <button class="btn" id="bQ" title="0.25× speed" aria-label="Quarter speed">0.25×</button>
+  <button class="btn on" id="b1" title="1× speed" aria-label="Normal speed">1×</button>
+  <div class="cell fr" id="tFr">F 000</div>
+  <div class="cell lbl">25 FPS</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+/* The supplied logo, embedded byte-for-byte (276 × 368 RGBA PNG). */
+const LOGO_SRC = "data:image/png;base64,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";
+
+(async function(){
+"use strict";
+
+/* ==========================================================================
+   MOTION LANGUAGE
+   --------------------------------------------------------------------------
+   The logo is treated as a heavy physical object on a strict 12-column grid.
+   It never drifts and never fades. It is either travelling fast, stopped dead,
+   or cut. Colour only changes on hard cuts (tl.set), never by tween.
+   Holds are where the tension lives; the moves are short and violent.
+
+   Named eases (all hand-written, registered with gsap.registerEase):
+
+   snap   1-(1-t)^6       ~90% of the distance in the first third, then a dead
+                          stop. Grid-step moves: feels like a machine indexing
+                          to the next column.
+   slam   custom          reaches target at ~25%, overshoots 7%, recoils and
+                          parks by 70%. Arrivals and impacts: the object has
+                          mass and hits something.
+   whip   t^4             pure acceleration, no landing. Exits that end on a
+                          cut, the move is interrupted rather than finished.
+   drive  linear + 8% run-up   conveyor motion for the strip section: constant
+                          velocity with a hard stop at the end, no ease-out.
+   crash  expo-in         exponential zoom: perceived as constant speed that
+                          suddenly explodes. Used to dive into letterforms.
+   creep  t^1.8           barely-there pressure during holds (1-4% scale).
+                          Nobody should consciously see it move.
+
+   No stock in/out easing, no bounce, no elastic.
+   ========================================================================== */
+const clamp01 = t => t < 0 ? 0 : t > 1 ? 1 : t;
+gsap.registerEase("snap",  t => 1 - Math.pow(1 - t, 6));
+gsap.registerEase("slam",  t => {
+  if (t < 0.4) { const u = t / 0.4; return 1.07 * (1 - Math.pow(1 - u, 3)); }  // hit & overshoot
+  if (t < 0.7) { const u = (t - 0.4) / 0.3; return 1.07 - 0.07 * u * u * (3 - 2 * u); } // recoil
+  return 1;                                                                       // parked
+});
+gsap.registerEase("whip",  t => t * t * t * t);
+gsap.registerEase("drive", t => t < 0.08 ? (t / 0.08) * (t / 0.08) * 0.04 : 0.04 + (t - 0.08) * (0.96 / 0.92));
+gsap.registerEase("crash", t => t === 0 ? 0 : (Math.pow(2, 10 * (t - 1)) - 0.0009765625) / 0.9990234375);
+gsap.registerEase("creep", t => Math.pow(t, 1.8));
+
+/* ------------------------------------------------------------------ palette */
+const K = 0, R = 1, WH = 2;
+const COL = ["#0b0b0b", "#ff0000", "#f1ece2"];
+const INK = [WH, K, K];                       // HUD ink per background
+
+/* ------------------------------------------------------ load + trace logo */
+const img = new Image();
+img.src = LOGO_SRC;
+await img.decode();
+const LW = img.naturalWidth, LH = img.naturalHeight;
+const src = document.createElement("canvas");
+src.width = LW; src.height = LH;
+const sctx = src.getContext("2d", { willReadFrequently: true });
+sctx.drawImage(img, 0, 0);
+const px = sctx.getImageData(0, 0, LW, LH).data;
+const A = new Float32Array(LW * LH);
+for (let i = 0; i < LW * LH; i++) A[i] = px[i * 4 + 3] / 255;
+
+// Marching squares over the alpha field -> closed contour loops (logo px units).
+function trace(T = 0.5) {
+  const W2 = LW + 2, H2 = LH + 2, f = new Float32Array(W2 * H2);
+  for (let y = 0; y < LH; y++) for (let x = 0; x < LW; x++) f[(y + 1) * W2 + x + 1] = A[y * LW + x];
+  const F = (i, j) => f[j * W2 + i];
+  const hE = (i, j) => 2 * (j * W2 + i), vE = (i, j) => 2 * (j * W2 + i) + 1;
+  const pt = new Map(), segs = [];
+  const P = e => {
+    if (pt.has(e)) return;
+    const k = e >> 1, i = k % W2, j = (k / W2) | 0;
+    if (e & 1) { const a = F(i, j), b = F(i, j + 1); pt.set(e, [i - .5, j + (T - a) / (b - a) - .5]); }
+    else       { const a = F(i, j), b = F(i + 1, j); pt.set(e, [i + (T - a) / (b - a) - .5, j - .5]); }
+  };
+  const add = (a, b) => { segs.push(a, b); P(a); P(b); };
+  for (let j = 0; j < H2 - 1; j++) for (let i = 0; i < W2 - 1; i++) {
+    const c = (F(i, j) > T) | (F(i + 1, j) > T) << 1 | (F(i + 1, j + 1) > T) << 2 | (F(i, j + 1) > T) << 3;
+    if (c === 0 || c === 15) continue;
+    const top = hE(i, j), right = vE(i + 1, j), bottom = hE(i, j + 1), left = vE(i, j);
+    switch (c) {
+      case 1: case 14: add(left, top); break;
+      case 2: case 13: add(top, right); break;
+      case 3: case 12: add(left, right); break;
+      case 4: case 11: add(right, bottom); break;
+      case 6: case 9:  add(top, bottom); break;
+      case 7: case 8:  add(left, bottom); break;
+      default: {
+        const ctr = (F(i, j) + F(i + 1, j) + F(i + 1, j + 1) + F(i, j + 1)) / 4 > T;
+        if ((c === 5) === ctr) { add(top, right); add(left, bottom); } else { add(left, top); add(right, bottom); }
+      }
+    }
+  }
+  const byEdge = new Map(), n = segs.length / 2, used = new Uint8Array(n), loops = [];
+  for (let s = 0; s < n; s++) for (const e of [segs[2 * s], segs[2 * s + 1]]) {
+    const l = byEdge.get(e); l ? l.push(s) : byEdge.set(e, [s]);
+  }
+  for (let s0 = 0; s0 < n; s0++) {
+    if (used[s0]) continue;
+    used[s0] = 1;
+    const start = segs[2 * s0]; let cur = segs[2 * s0 + 1], s = s0;
+    const loop = [...pt.get(start)];
+    while (cur !== start) {
+      loop.push(...pt.get(cur));
+      const l = byEdge.get(cur), nx = l[0] === s ? l[1] : l[0];
+      if (nx === undefined || used[nx]) break;
+      used[nx] = 1; s = nx;
+      cur = segs[2 * nx] === cur ? segs[2 * nx + 1] : segs[2 * nx];
+    }
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (let k = 0; k < loop.length; k += 2) {
+      x0 = Math.min(x0, loop[k]); x1 = Math.max(x1, loop[k]);
+      y0 = Math.min(y0, loop[k + 1]); y1 = Math.max(y1, loop[k + 1]);
+    }
+    loops.push({ pts: loop, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+  }
+  return loops;
+}
+const loops = trace();
+
+// Occupancy runs: bands (AFTER / HOURS / 24:7) by empty rows, letters by empty columns.
+function runs(occ, minGap) {
+  const out = []; let s = -1, lastOn = -1e9;
+  for (let i = 0; i < occ.length; i++) {
+    if (!occ[i]) continue;
+    if (s < 0) s = i; else if (i - lastOn > minGap) { out.push([s, lastOn + 1]); s = i; }
+    lastOn = i;
+  }
+  if (s >= 0) out.push([s, lastOn + 1]);
+  return out;
+}
+const on = (x, y) => A[y * LW + x] > 0.5;
+const rowOcc = []; for (let y = 0; y < LH; y++) { let o = 0; for (let x = 0; x < LW && !o; x++) o = on(x, y); rowOcc.push(o); }
+let bandRows = runs(rowOcc, 3);
+if (bandRows.length !== 3) bandRows = [[0, LH * .31 | 0], [LH * .31 | 0, LH * .62 | 0], [LH * .62 | 0, LH]]; // fallback split
+const box = (x0, y0, x1, y1) => ({ x0, y0, x1, y1, w: x1 - x0, h: y1 - y0, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 });
+const BANDS = bandRows.map(([y0, y1]) => {
+  const occ = []; for (let x = 0; x < LW; x++) { let o = 0; for (let y = y0; y < y1 && !o; y++) o = on(x, y); occ.push(o); }
+  const cols = runs(occ, 1);
+  return { ...box(cols[0][0], y0, cols[cols.length - 1][1], y1), letters: cols.map(([a, b]) => box(a, y0, b, y1)) };
+});
+
+// Parts: 0 = whole logo, 1..3 = bands, 10*(b+1)+k = letter k of band b.
+const PARTS = new Map(), RECTS = new Map();
+function mkPart(id, test, rect) {
+  const p = new Path2D();
+  for (const L of loops) if (test(L)) {
+    const q = L.pts; p.moveTo(q[0], q[1]);
+    for (let k = 2; k < q.length; k += 2) p.lineTo(q[k], q[k + 1]);
+    p.closePath();
+  }
+  PARTS.set(id, p); RECTS.set(id, rect);
+}
+mkPart(0, () => true, box(0, 0, LW, LH));
+BANDS.forEach((b, bi) => {
+  mkPart(bi + 1, L => L.cy >= b.y0 && L.cy < b.y1, box(0, b.y0 - .5, LW, b.y1 + .5));
+  b.letters.forEach((l, k) => mkPart(10 * (bi + 1) + k, L => L.cy >= b.y0 && L.cy < b.y1 && L.cx >= l.x0 - .5 && L.cx < l.x1 + .5,
+    box(l.x0 - .5, b.y0 - .5, l.x1 + .5, b.y1 + .5)));
+});
+const band = i => BANDS[i];
+const letter = (b, k) => BANDS[b].letters[Math.min(k, BANDS[b].letters.length - 1)];
+
+// Tinted copies of the untouched bitmap, for the P (raw pixels) comparison mode.
+const TINT = COL.map(c => {
+  const t = document.createElement("canvas"); t.width = LW; t.height = LH;
+  const x = t.getContext("2d"); x.drawImage(img, 0, 0);
+  x.globalCompositeOperation = "source-in"; x.fillStyle = c; x.fillRect(0, 0, LW, LH);
+  return t;
+});
+let RAW = false;
+
+/* --------------------------------------------------------------- canvas */
+const cv = document.getElementById("comp");
+const ctx = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function size() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const r = cv.getBoundingClientRect();
+  W = Math.max(1, r.width); H = Math.max(1, r.height);
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+}
+
+/* ---------------------------------------------------------------- state
+   Everything the timeline animates. Think of each object as a layer in a comp. */
+const NI = 10;
+const instDefault = () => ({
+  on: 0, part: 0,
+  u: LW / 2, v: LH / 2,        // anchor point, in logo px
+  x: 0, y: 0,                  // where the anchor sits on screen
+  s: 1, sx: 1, sy: 1, r: 0,    // scale (screen px per logo px), stretch, rotation (deg)
+  c: R, world: 0,              // colour index; 1 = parented to the world (rotating grid)
+  mask: -1, mk: 1,             // track matte: index of another instance, 1 = inside, -1 = outside
+  sc: 0, k0: 0, k1: 0, k2: 1, k3: 1,              // screen-space crop (fractions of comp)
+  lc: 0, q0: 0, q1: 0, q2: LW, q3: LH             // logo-space crop (logo px)
+});
+const S = {
+  bg:    { c: K },
+  cam:   { x: 0, y: 0, s: 1 },
+  world: { r: 0, sx: 1, sy: 1 },
+  grid:  { on: 0, p: 0, r: 0, kx: 0, c: K },
+  line:  { on: 0, p: 0, y: 0, c: K },
+  mark:  { on: 0, x: 0, y: 0, c: K },
+  inst:  Array.from({ length: NI }, instDefault)
+};
+
+/* ------------------------------------------------------------ renderer */
+let camM, worldM, base;
+function mats() {
+  const c = S.cam, w = S.world;
+  base = new DOMMatrix().scale(DPR, DPR);
+  camM = new DOMMatrix().translate(W / 2 + c.x, H / 2 + c.y).scale(c.s, c.s).translate(-W / 2, -H / 2);
+  worldM = new DOMMatrix().translate(W / 2, H / 2).rotate(w.r).scale(w.sx, w.sy).translate(-W / 2, -H / 2);
+}
+function instM(o) {
+  let m = base.multiply(camM);
+  if (o.world) m = m.multiply(worldM);
+  return m.translate(o.x, o.y).rotate(o.r).scale(o.s * o.sx, o.s * o.sy).translate(-o.u, -o.v);
+}
+const partOf = o => PARTS.get(Math.round(o.part)) || PARTS.get(0);
+
+function drawInst(o) {
+  if (!o.on) return;
+  ctx.save();
+  if (o.sc) {
+    ctx.setTransform(base.multiply(camM));
+    ctx.beginPath(); ctx.rect(o.k0 * W, o.k1 * H, (o.k2 - o.k0) * W, (o.k3 - o.k1) * H); ctx.clip();
+  }
+  if (o.mask >= 0) {
+    const h = S.inst[o.mask];
+    if (h.on) {
+      const p = new Path2D();
+      if (o.mk < 0) p.rect(0, 0, cv.width, cv.height);
+      p.addPath(partOf(h), instM(h));
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clip(p, "evenodd");
+    }
+  }
+  ctx.setTransform(instM(o));
+  if (o.lc) { ctx.beginPath(); ctx.rect(o.q0, o.q1, o.q2 - o.q0, o.q3 - o.q1); ctx.clip(); }
+  const c = Math.round(o.c);
+  if (RAW) {
+    const rc = RECTS.get(Math.round(o.part)) || RECTS.get(0);
+    ctx.beginPath(); ctx.rect(rc.x0, rc.y0, rc.w, rc.h); ctx.clip();
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(TINT[c], 0, 0);
+  } else {
+    ctx.fillStyle = COL[c];
+    ctx.fill(partOf(o), "evenodd");
+  }
+  ctx.restore();
+}
+
+let MOD = 100;
+function drawGrid() {
+  const g = S.grid;
+  if (!g.on || g.p <= 0) return;
+  const m = base.multiply(camM).multiply(worldM).translate(W / 2, H / 2).rotate(g.r);
+  const D = Math.hypot(W, H) * 2.2, n = Math.ceil(D / MOD) + 1;
+  const warp = x => x * (1 + g.kx * Math.min(Math.abs(x) / (W / 2), 2.5));
+  const T = (x, y) => m.transformPoint(new DOMPoint(x, y));
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.strokeStyle = COL[Math.round(g.c)];
+  ctx.lineWidth = Math.max(1, DPR);
+  ctx.beginPath();
+  const total = 4 * n + 2;
+  let idx = 0;
+  const seg = (ax, ay, bx, by, flip) => {
+    // lines draw on in sequence from alternating ends: architectural, not uniform
+    const k = Math.abs(idx++ - total / 2) / (total / 2);
+    const l = clamp01(g.p * 1.6 - k * 0.6);
+    if (l <= 0) return;
+    const p0 = flip ? T(bx, by) : T(ax, ay);
+    const p1 = flip ? T(bx + (ax - bx) * l, by + (ay - by) * l) : T(ax + (bx - ax) * l, ay + (by - ay) * l);
+    ctx.moveTo(Math.round(p0.x) + .5, Math.round(p0.y) + .5);
+    ctx.lineTo(Math.round(p1.x) + .5, Math.round(p1.y) + .5);
+  };
+  for (let i = -n; i <= n; i++) { const x = warp(i * MOD); seg(x, -D, x, D, i & 1); }
+  const oy = (H / 2) % MOD;                                   // rows locked to the comp's top edge
+  for (let j = -n; j <= n; j++) { const y = j * MOD - oy; seg(-D, y, D, y, j & 1); }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawHUD(t) {
+  const ink = COL[INK[Math.round(S.bg.c)]];
+  const fs = W < 520 ? 9 : 10.5, pad = W < 520 ? 12 : 18;
+  ctx.save();
+  ctx.setTransform(base);
+  ctx.font = `600 ${fs}px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace`;
+  ctx.fillStyle = ink;
+  ctx.textBaseline = "top";
+  const f = Math.floor(t * 25 + 1e-6), ss = Math.floor(f / 25), ff = f % 25;
+  const tc = `00:00:${String(ss).padStart(2, "0")}:${String(ff).padStart(2, "0")}`;
+  const sec = SECTIONS.find(s => t >= s[0] && t < s[1]) || SECTIONS[SECTIONS.length - 1];
+  ctx.fillText("IDENT / MASTER", pad, pad);
+  ctx.textAlign = "right";
+  ctx.fillText(tc, W - pad, pad);
+  ctx.textBaseline = "bottom";
+  ctx.fillText(`${W >= H ? 12 : 6} COL · ${Math.round(MOD)}PX`, W - pad, H - pad);
+  ctx.textAlign = "left";
+  ctx.fillText(`${sec[2]} — ${sec[3]}`, pad, H - pad);
+  // tally light
+  ctx.fillStyle = COL[Math.round(S.bg.c) === R ? K : R];
+  ctx.fillRect(pad + ctx.measureText("IDENT / MASTER").width + 8, pad + 1, fs - 3, fs - 3);
+  ctx.restore();
+}
+
+function render() {
+  mats();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = COL[Math.round(S.bg.c)];
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  drawGrid();
+  for (const o of S.inst) drawInst(o);
+  const L = S.line;
+  if (L.on && L.p > 0) {
+    ctx.save(); ctx.setTransform(base); ctx.fillStyle = COL[Math.round(L.c)];
+    ctx.fillRect(0, Math.round(L.y), W * L.p, 2); ctx.restore();
+  }
+  const M = S.mark;
+  if (M.on) {
+    ctx.save(); ctx.setTransform(base); ctx.fillStyle = COL[Math.round(M.c)];
+    const a = Math.max(7, MOD * 0.09);
+    ctx.fillRect(Math.round(M.x - a), Math.round(M.y), a * 2, 1);
+    ctx.fillRect(Math.round(M.x), Math.round(M.y - a), 1, a * 2);
+    ctx.restore();
+  }
+  drawHUD(tl ? tl.time() : 0);
+}
+
+/* ---------------------------------------------------------------- score */
+const DUR = 12;
+const SECTIONS = [
+  [0, 2, "01", "MACRO"], [2, 4, "02", "GRID"], [4, 6, "03", "COLLIDE"],
+  [6, 7.6, "04", "BREAK"], [7.6, 9.85, "05", "HOLD"], [9.85, 12, "06", "RESOLVE"]
+];
+
+function build() {
+  const cols = W >= H ? 12 : 6;
+  const m = MOD = W / cols;
+  const cx = W / 2, cy = H / 2;
+  const g = v => Math.round(v / m) * m;                      // snap to column line
+  const I = S.inst;
+  const b0 = band(0), b1 = band(1), b2 = band(2);
+  const fitS = Math.min(H * 0.74 / LH, W * 0.84 / LW);
+
+  const tl = gsap.timeline({ paused: true, repeat: -1, onUpdate: render });
+  const $ = (t, o, v) => tl.set(o, v, t);
+  const to = (t, d, o, v, ease = "snap") => tl.to(o, { ...v, duration: d, ease }, t);
+  const cut = (t, c) => $(t, S.bg, { c });
+  const put = (t, i, v) => $(t, I[i], { ...instDefault(), on: 1, ...v }); // full-state set: no leakage between shots
+  const off = (t, ...ids) => ids.forEach(i => $(t, I[i], { on: 0 }));
+  const shake = (t, a) => [[a, -a * .6], [-a * .7, a * .45], [a * .4, a * .3], [-a * .2, -a * .15], [0, 0]]
+    .forEach(([x, y], i) => $(t + i / 25, S.cam, { x, y }));  // stepped on the 25fps frame grid, not smoothed
+
+  // Frame 0 == frame 300. The macro crop the whole loop dives back into.
+  const aR = letter(0, 4);
+  const S0 = { part: 0, u: aR.x0 + aR.w * 0.5, v: aR.y0 + aR.h * 0.46, x: cx, y: cy, s: H / 22, c: R };
+
+  // ---- reset every layer at 0
+  cut(0, K);
+  $(0, S.cam, { x: 0, y: 0, s: 1 });
+  $(0, S.world, { r: 0, sx: 1, sy: 1 });
+  $(0, S.grid, { on: 0, p: 0, r: 0, kx: 0, c: K });
+  $(0, S.line, { on: 0, p: 0, c: K });
+  $(0, S.mark, { on: 0 });
+  I.forEach((o, i) => i ? $(0, o, instDefault()) : put(0, 0, S0));
+
+  /* 01 · MACRO  00:00–02:00 --------------------------------------------
+     No intro. We're already inside the R of AFTER. Shapes, not words.
+     Every move indexes along the column grid. */
+  to(0.00, 0.30, I[0], { x: cx - 2 * m });
+  to(0.38, 0.26, I[0], { x: cx - 4 * m, y: cy - m });
+  to(0.72, 0.22, I[0], { x: cx - 7 * m });
+  const b2crop = { u: b2.x0 + b2.w * 0.43, v: b2.y0 + b2.h * 0.52 };
+  put(0.42, 1, { part: 3, ...b2crop, x: cx + 2 * m, y: H * 2.2, s: H / 17, c: WH });
+  to(0.42, 0.26, I[1], { y: cy - m }, "slam");
+  shake(0.5, 9);
+  cut(0.95, R); $(0.95, I[0], { c: K });                     // palette flip on the cut
+  to(1.00, 0.26, I[0], { y: cy + 2 * m, x: cx - 5 * m });
+  to(0.98, 0.30, I[1], { x: W * 2.8 }, "whip");
+  const aH = letter(1, 0);
+  put(1.22, 2, { part: 2, u: aH.cx, v: aH.cy, x: -W * 1.2, y: cy, s: H / 42, c: WH });
+  to(1.22, 0.24, I[2], { x: cx - m }, "slam");
+  shake(1.3, 7);
+  $(1.55, I[0], { s: H / 44 });                              // scale jump: a cut, not a zoom
+  to(1.55, 0.2, I[2], { x: cx + 3 * m });
+  cut(1.74, K); $(1.74, I[0], { c: R });
+  to(1.76, 0.2, I[0], { y: cy - 2 * m, x: cx - 2 * m });
+  to(1.80, 0.2, I[2], { x: -W * 1.6 }, "whip");
+
+  /* 02 · GRID  02:00–04:00 ---------------------------------------------
+     The grid draws on. Oversized bands travel through it, locked to it. */
+  cut(2.0, WH); off(2.0, 0, 1, 2);
+  $(2.0, S.grid, { on: 1, p: 0, r: 0, kx: 0, c: K });
+  to(2.0, 0.5, S.grid, { p: 1 });
+  const sA = H * 1.2 / b0.h, bwA = b0.w * sA;
+  put(2.0, 0, { part: 1, u: b0.x0, v: b0.cy, x: W + m, y: g(cy) + m * .5, s: sA, c: R });
+  to(2.04, 0.30, I[0], { x: g(W - 3 * m) }, "slam");
+  to(2.42, 0.30, I[0], { x: g(W * 0.25 - bwA * 0.3) });
+  to(2.80, 0.26, I[0], { x: g(-bwA * 0.62) });
+  to(3.14, 0.22, I[0], { x: -bwA - W * 0.3 }, "whip");
+  const sHr = 3 * m / b1.h, lenH = b1.w * sHr;
+  put(2.28, 1, { part: 2, u: b1.cx, v: b1.cy, r: 90, x: 2.5 * m, y: H + lenH * .6, s: sHr, c: K });
+  to(2.28, 0.30, I[1], { y: g(H * 0.7) }, "slam");
+  to(2.72, 0.28, I[1], { y: g(H * 0.25) });
+  to(3.12, 0.24, I[1], { y: -lenH }, "whip");
+  to(2.56, 0.28, S.grid, { kx: 0.7 });
+  cut(3.0, R); $(3.0, I[0], { c: WH }); $(3.0, I[1], { c: K });
+  to(3.0, 0.28, S.grid, { r: -15, kx: -0.35 }, "slam");
+  const s2 = H * 1.5 / b2.h;
+  put(3.08, 2, { part: 3, u: b2.cx, v: b2.cy, x: W * 2.4, y: cy, r: -15, s: s2, c: WH });
+  to(3.08, 0.24, I[2], { x: cx + m }, "slam");
+  shake(3.16, 12);
+  cut(3.5, K); $(3.5, S.grid, { c: WH });
+  $(3.5, I[2], { s: s2 * 1.9, u: b2.x0 + b2.w * 0.28, c: R }); // re-crop on the cut
+  to(3.52, 0.2, S.grid, { kx: 0.25 });
+  to(3.60, 0.2, I[2], { y: cy - 2 * m, x: cx - 2 * m });
+  to(3.78, 0.22, S.grid, { r: 0, kx: 0, p: 0 }, "whip");
+  to(3.80, 0.2, I[2], { y: -H * 2 }, "whip");
+
+  /* 03 · COLLIDE  04:00–06:00 ------------------------------------------
+     Three strips, three words, opposing directions. Then the logo becomes a
+     matte for itself. Then AFTER and HOURS are thrown into each other. */
+  cut(4.0, K); off(4.0, 0, 1, 2); $(4.0, S.grid, { on: 0 });
+  const st = (b, f) => (H / 3) / b.h * f;
+  put(4.0, 3, { part: 1, u: b0.cx, v: b0.cy, x: W * 1.8,  y: H / 6,     s: st(b0, 1.02), c: R,  sc: 1, k1: 0,     k3: 1 / 3 });
+  put(4.0, 4, { part: 2, u: b1.cx, v: b1.cy, x: -W * .8,  y: H / 2,     s: st(b1, 1.02), c: WH, sc: 1, k1: 1 / 3, k3: 2 / 3 });
+  put(4.0, 5, { part: 3, u: b2.cx, v: b2.cy, x: W * 1.8,  y: H * 5 / 6, s: st(b2, 1.02), c: R,  sc: 1, k1: 2 / 3, k3: 1 });
+  to(4.00, 0.18, I[3], { x: cx + m }, "slam");
+  to(4.06, 0.18, I[4], { x: cx - m }, "slam");
+  to(4.12, 0.18, I[5], { x: cx }, "slam");
+  to(4.20, 0.52, I[3], { x: cx - 3 * m }, "drive");
+  to(4.26, 0.46, I[4], { x: cx + 3 * m }, "drive");
+  to(4.32, 0.40, I[5], { x: cx - 2 * m }, "drive");
+  to(4.44, 0.14, I[3], { k3: 0.13 });
+  to(4.44, 0.14, I[4], { k1: 0.13, k3: 0.87 });
+  to(4.44, 0.14, I[5], { k1: 0.87 });
+  cut(4.44, WH); $(4.44, I[3], { c: K }); $(4.44, I[5], { c: K });
+  $(4.44, I[4], { s: H * 0.95 / b1.h, c: R });                // scale jump inside the widened strip
+
+  cut(4.72, WH); off(4.72, 3, 4, 5);
+  put(4.72, 6, { part: 0, x: cx, y: cy, s: H * 1.12 / LH, c: R });
+  put(4.72, 7, { part: 0, x: cx - m, y: H * 1.7, s: H * 0.42 / LH, c: K, mask: 6, mk: 1 });
+  to(4.72, 0.58, I[7], { y: -H * 0.7 }, "drive");
+  $(4.88, I[6], { s: H * 2.3 / LH, u: b1.cx, v: b1.cy });   // host punches in: hard cut
+  $(5.03, I[6], { s: H * 4.2 / LH, u: letter(1, 1).cx, v: b1.cy, r: 90 });
+  cut(5.03, K); $(5.03, I[7], { mk: -1, c: WH });            // matte flips: now outside the letterform
+  $(5.16, I[6], { s: H * 1.5 / LH, u: LW / 2, v: LH / 2, r: 0 });
+  $(5.16, I[7], { mk: 1, c: K });
+
+  cut(5.3, R); off(5.3, 6, 7);
+  const sc0 = H * 0.4 / b0.h, sc1 = H * 0.4 / b1.h;
+  put(5.3, 3, { part: 1, u: b0.x1, v: b0.cy, x: -W * 0.3, y: cy, s: sc0, c: K });
+  put(5.3, 4, { part: 2, u: b1.x0, v: b1.cy, x: W * 1.3,  y: cy, s: sc1, c: WH });
+  to(5.3, 0.16, I[3], { x: cx }, "slam");
+  to(5.3, 0.16, I[4], { x: cx }, "slam");
+  shake(5.38, 16);
+  cut(5.46, K); $(5.46, I[3], { c: R });
+  to(5.56, 0.2, I[3], { y: -H * 0.7 }, "whip");
+  to(5.56, 0.2, I[4], { y: H * 1.7 }, "whip");
+  put(5.62, 5, { part: 3, u: b2.cx, v: b2.cy, x: cx, y: H * 2, s: H * 0.9 / b2.h, c: R });
+  to(5.62, 0.18, I[5], { y: cy }, "slam");
+  to(5.84, 0.05, I[5], { s: H * 1.9 / b2.h });               // punch
+  to(5.89, 0.11, I[5], { s: H * 1.05 / b2.h }, "slam");
+
+  /* 04 · BREAK  06:00–07:60 --------------------------------------------
+     HOURS splits into letters, each owning a column. Then the world rotates,
+     the columns stretch, and the type is pushed past legibility. Two scale
+     punches. Then everything is gone. */
+  cut(6.0, WH); off(6.0, 5);
+  $(6.0, S.grid, { on: 1, p: 1, r: 0, kx: 0, c: K });
+  const sL = H * 0.62 / b1.h;
+  const offs = [-3, 2, -1, 3, -2], offs2 = [2, -2, 3, -3, 1];
+  b1.letters.slice(0, 5).forEach((l, k) => {
+    put(6.0, 3 + k, { part: 20 + k, u: b1.cx, v: b1.cy, x: cx, y: cy + offs[k] * m, s: sL, c: k === 2 ? R : K, world: 1 });
+    to(6.02 + k * 0.035, 0.2, I[3 + k], { y: cy });
+    to(6.95 + k * 0.03, 0.22, I[3 + k], { y: cy + offs2[k] * m * 1.4 });
+  });
+  to(6.30, 0.26, S.world, { r: -24 }, "slam");
+  shake(6.36, 8);
+  to(6.62, 0.22, S.world, { sx: 2.8, sy: 0.7 });
+  cut(6.9, K); $(6.9, S.grid, { c: R });
+  b1.letters.slice(0, 5).forEach((l, k) => $(6.9, I[3 + k], { c: k === 2 ? WH : R }));
+  to(6.92, 0.28, S.world, { r: 90, sx: 0.5, sy: 3.4 }, "slam");
+  cut(7.24, R); $(7.24, S.grid, { c: K });
+  b1.letters.slice(0, 5).forEach((l, k) => $(7.24, I[3 + k], { c: k === 2 ? WH : K }));
+  to(7.24, 0.05, S.cam, { s: 2.7 });                          // punch 1
+  to(7.29, 0.12, S.cam, { s: 1.12 }, "slam");
+  cut(7.44, K);
+  b1.letters.slice(0, 5).forEach((l, k) => $(7.44, I[3 + k], { c: k === 2 ? R : WH }));
+  to(7.44, 0.04, S.cam, { s: 5.5 });                          // punch 2
+  to(7.48, 0.08, S.cam, { s: 1 });
+
+  /* 05 · HOLD  07:60–09:85 ---------------------------------------------
+     Remove almost everything. One fragment (the 7) parked off-axis on the
+     grid, a registration mark where the logo will land, a fuse line crossing
+     the frame. One single-cell jump halfway. Wait. */
+  cut(7.6, WH); off(7.6, 3, 4, 5, 6, 7);
+  $(7.6, S.grid, { on: 0 }); $(7.6, S.world, { r: 0, sx: 1, sy: 1 }); $(7.6, S.cam, { x: 0, y: 0, s: 1 });
+  const f7 = { q0: b2.x0 + b2.w * 0.72, q1: b2.y0 - 1, q2: b2.x1 + 1, q3: b2.y0 + b2.h * 0.76 };
+  const sf = m * 0.9 / (f7.q3 - f7.q1);
+  const fx = g(W * (W >= H ? 0.78 : 0.7)) + m / 2, fy = Math.round(H * 0.22 / m) * m + m / 2;
+  put(7.6, 8, { part: 0, lc: 1, ...f7, u: (f7.q0 + f7.q2) / 2, v: (f7.q1 + f7.q3) / 2, x: fx, y: fy, s: sf, c: R });
+  to(7.6, 1.25, I[8], { s: sf * 1.04 }, "creep");
+  $(8.85, I[8], { x: fx - m });                               // one cell. no tween.
+  $(7.6, S.mark, { on: 1, x: cx, y: cy, c: K });
+  $(7.6, S.line, { on: 1, p: 0, y: fy + m * 0.75, c: K });
+  to(7.8, 1.8, S.line, { p: 1 }, "none");                    // the fuse: deliberately linear
+  cut(9.6, K); $(9.6, I[8], { c: WH }); $(9.6, S.line, { on: 0 }); $(9.6, S.mark, { c: WH });
+  to(9.62, 0.22, I[8], { s: sf * 70, x: cx, y: cy }, "crash");
+
+  /* 06 · RESOLVE  09:85–12:00 ------------------------------------------
+     AFTER from above, HOURS from the left, 24:7 from below: three impacts,
+     one logo. Two-frame inversion on contact. Hold with confidence.
+     Then re-anchor on frame-0's crop point and crash-zoom back in. */
+  cut(9.85, K); off(9.85, 8); $(9.85, S.mark, { on: 0 });
+  const hero = { u: LW / 2, v: LH / 2, x: cx, y: cy, s: fitS, c: R };
+  put(9.85, 3, { ...hero, part: 1, y: cy - H * 1.3 });
+  put(9.85, 4, { ...hero, part: 2, x: cx - W * 1.4 });
+  put(9.85, 5, { ...hero, part: 3, y: cy + H * 1.4 });
+  to(9.85, 0.16, I[3], { y: cy }, "slam");
+  to(9.93, 0.16, I[4], { x: cx }, "slam");
+  to(10.0, 0.18, I[5], { y: cy }, "slam");
+  cut(10.06, R); [3, 4, 5].forEach(i => $(10.06, I[i], { c: K }));
+  shake(10.06, 14);
+  cut(10.14, K); [3, 4, 5].forEach(i => $(10.14, I[i], { c: R }));
+  off(10.24, 3, 4, 5);
+  put(10.24, 0, { ...hero, part: 0 });                        // invisible swap to the single whole asset
+  const sHold = fitS * 1.025;
+  to(10.24, 1.06, I[0], { s: sHold }, "creep");
+  // re-anchor onto S0's point without moving a pixel
+  $(11.3, I[0], { u: S0.u, v: S0.v, x: cx + (S0.u - LW / 2) * sHold, y: cy + (S0.v - LH / 2) * sHold });
+  to(11.3, 0.2, I[0], { s: sHold * 0.92 });                  // pull back: anticipation
+  to(11.5, 0.5, I[0], { s: S0.s, x: S0.x, y: S0.y }, "crash"); // lands exactly on frame 0
+
+  tl.set({}, {}, DUR);                                        // pin duration to exactly 12.00s
+  return tl;
+}
+
+/* ------------------------------------------------------------- transport */
+let tl = null;
+const $id = id => document.getElementById(id);
+const bPlay = $id("bPlay"), track = $id("track"), cti = $id("cti"), prog = $id("prog");
+const tNow = $id("tNow"), tFr = $id("tFr");
+
+function paintTrack() {
+  const secs = $id("secs"), ticks = $id("ticks");
+  secs.innerHTML = SECTIONS.map(s =>
+    `<div class="sec" style="left:${s[0] / DUR * 100}%;width:${(s[1] - s[0]) / DUR * 100}%">${s[2]} ${s[3]}</div>`).join("");
+  let h = "";
+  for (let i = 0; i <= DUR * 4; i++) {
+    const t = i / 4, sec = i % 4 === 0;
+    h += `<div class="tk${sec ? " s" : ""}" style="left:${t / DUR * 100}%">${sec && i < DUR * 4 ? `<i>${String(t).padStart(2, "0")}</i>` : ""}</div>`;
+  }
+  ticks.innerHTML = h;
+}
+function syncUI() {
+  if (!tl) return;
+  const t = tl.time();
+  const w = track.clientWidth;
+  cti.style.transform = `translateX(${(t / DUR) * w}px)`;
+  prog.style.transform = `scaleX(${t / DUR})`;
+  tNow.textContent = t.toFixed(2).padStart(5, "0") + "s";
+  tFr.textContent = "F " + String(Math.min(299, Math.floor(t * 25 + 1e-6))).padStart(3, "0");
+  track.setAttribute("aria-valuenow", t.toFixed(2));
+  const playing = !tl.paused();
+  $id("icPause").style.display = playing ? "" : "none";
+  $id("icPlay").style.display = playing ? "none" : "";
+}
+gsap.ticker.add(syncUI);
+
+bPlay.onclick = () => { tl.paused(!tl.paused()); };
+$id("bRestart").onclick = () => { tl.restart(); };
+function speed(v) {
+  tl.timeScale(v);
+  $id("bQ").classList.toggle("on", v === 0.25);
+  $id("b1").classList.toggle("on", v === 1);
+}
+$id("bQ").onclick = () => speed(0.25);
+$id("b1").onclick = () => speed(1);
+
+// Scrubber drives the master timeline directly.
+let scrubbing = false, resume = false;
+const seekTo = t => { tl.time(Math.max(0, Math.min(DUR - 1e-4, t)), false); render(); syncUI(); };
+const seekX = e => { const r = track.getBoundingClientRect(); seekTo((e.clientX - r.left) / r.width * DUR); };
+track.addEventListener("pointerdown", e => {
+  scrubbing = true; resume = !tl.paused(); tl.pause();
+  track.setPointerCapture(e.pointerId); seekX(e);
+});
+track.addEventListener("pointermove", e => { if (scrubbing) seekX(e); });
+const endScrub = () => { if (!scrubbing) return; scrubbing = false; if (resume) tl.play(); };
+track.addEventListener("pointerup", endScrub);
+track.addEventListener("pointercancel", endScrub);
+
+window.addEventListener("keydown", e => {
+  if (e.target.tagName === "BUTTON" && (e.code === "Space" || e.code === "Enter")) return;
+  const F = 1 / 25;
+  if (e.code === "Space") { e.preventDefault(); tl.paused(!tl.paused()); }
+  else if (e.code === "ArrowRight") { tl.pause(); seekTo(tl.time() + (e.shiftKey ? 10 * F : F)); }
+  else if (e.code === "ArrowLeft")  { tl.pause(); seekTo(tl.time() - (e.shiftKey ? 10 * F : F)); }
+  else if (e.code === "Home") { tl.restart(); }
+  else if (e.code === "KeyP") { RAW = !RAW; render(); }
+});
+
+// Resize = rebuild the comp at the new dimensions, same playhead, same state.
+function rebuild() {
+  const t = tl ? tl.time() : 0, paused = tl ? tl.paused() : false, ts = tl ? tl.timeScale() : 1;
+  if (tl) tl.kill();
+  size();
+  tl = build();
+  tl.timeScale(ts);
+  tl.time(t, false);
+  render();
+  if (!paused) tl.play();
+}
+let rz;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(rebuild, 60); });
+
+paintTrack();
+rebuild();
+window.__ident = { get tl() { return tl; }, render, S, BANDS };
+})();
+</script>
+</body>
+</html>
