@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Motion Sequence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=block" />
+  <link rel="stylesheet" href="motion.css" />
+</head>
+<body>
+  <main id="stage" aria-label="Motion sequence"></main>
+
+  <!-- Development controls. Hidden when config.dev is false or the URL has ?dev=0 -->
+  <div id="dev" hidden>
+    <button id="dev-play" type="button">Pause</button>
+    <input id="dev-scrub" type="range" min="0" max="1000" step="1" value="0" aria-label="Scrub" />
+    <span id="dev-time">0.00s</span>
+    <select id="dev-scene" aria-label="Jump to scene"></select>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="config.js"></script>
+  <script src="scenes.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
