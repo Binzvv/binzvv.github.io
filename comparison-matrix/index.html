@@ -1,0 +1,1682 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comparison Matrix</title>
+<meta name="description" content="Component study: an insurance comparison matrix with anatomy, variants, states, responsive behaviour, stress test and documentation.">
+<style>
+/* =====================================================================
+   TOKENS
+   Kept intentionally neutral. Visual language to be refined later;
+   everything below references these, so a re-skin is a token change.
+   ===================================================================== */
+:root {
+  --c-bg: #ffffff;
+  --c-page: #ffffff;
+  --c-surface: #f5f6f8;
+  --c-surface-2: #eceef2;
+  --c-text: #15171c;
+  --c-muted: #555b66;
+  --c-subtle: #6f7682;
+  --c-border: #dfe2e7;
+  --c-border-strong: #b6bbc4;
+
+  --c-accent: #1d3f9e;          /* recommendation (system suggests) */
+  --c-accent-hover: #15307b;
+  --c-accent-tint: #f2f5fc;
+  --c-sel: #15171c;             /* selection (customer chose) */
+  --c-sel-tint: #f3f4f6;
+
+  --c-inc: #17683b;
+  --c-exc: #7b818c;
+  --c-cond: #8c5308;
+
+  --c-row-hover: rgba(21, 23, 28, 0.045);
+
+  --focus-inner: #ffdd00;
+  --focus-outer: #0b0c0c;
+  --focus-ring: 0 0 0 3px var(--focus-inner), 0 0 0 6px var(--focus-outer);
+
+  --r-sm: 4px;
+  --r-md: 6px;
+
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --guide: #c2185b; /* annotation colour for anatomy overlays only */
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--c-page);
+  color: var(--c-text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+}
+h1, h2, h3, h4 { line-height: 1.25; margin: 0; }
+p { margin: 0; }
+code { font-family: var(--mono); font-size: 0.875em; background: var(--c-surface); padding: 1px 4px; border-radius: 3px; }
+a { color: var(--c-accent); }
+.sr {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+:where(a, button, select, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-sm);
+}
+
+/* =====================================================================
+   APP SHELL (the documentation site — not part of the component)
+   ===================================================================== */
+.skip { position: absolute; left: var(--s4); top: -100px; background: var(--c-bg); padding: var(--s2) var(--s3); z-index: 100; }
+.skip:focus { top: var(--s2); }
+
+.app-bar { border-bottom: 1px solid var(--c-border); background: var(--c-bg); }
+.app-bar-inner { max-width: 1240px; margin: 0 auto; padding: var(--s4) var(--s5) 0; }
+.app-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2) var(--s3); }
+.app-title h1 { font-size: 18px; font-weight: 700; }
+.app-title span { font-size: 13px; color: var(--c-subtle); }
+.app-nav { margin-top: var(--s3); overflow-x: auto; scrollbar-width: none; }
+.app-nav::-webkit-scrollbar { display: none; }
+.app-nav ul { list-style: none; margin: 0; padding: 0 0 0 0; display: flex; gap: var(--s1); }
+.app-nav a {
+  display: block; padding: var(--s2) var(--s3) var(--s3); text-decoration: none; color: var(--c-muted);
+  font-size: 15px; font-weight: 500; white-space: nowrap; border-bottom: 3px solid transparent;
+}
+.app-nav a:hover { color: var(--c-text); }
+.app-nav a[aria-current="page"] { color: var(--c-text); border-bottom-color: var(--c-text); font-weight: 600; }
+
+.view { max-width: 1240px; margin: 0 auto; padding: var(--s6) var(--s5) var(--s8); }
+.view[hidden] { display: none; }
+.view-head { margin-bottom: var(--s6); max-width: 760px; }
+.view-head h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+.view-head h2:focus { outline: none; box-shadow: none; }
+.view-head p { margin-top: var(--s3); color: var(--c-muted); font-size: 17px; }
+
+.section { margin-top: var(--s7); }
+.section:first-of-type { margin-top: 0; }
+.section > h3 { font-size: 20px; font-weight: 700; }
+.section > .lede { margin-top: var(--s2); color: var(--c-muted); max-width: 720px; }
+.section-body { margin-top: var(--s5); }
+
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-subtle); }
+.meta-row { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); align-items: center; font-size: 14px; color: var(--c-muted); margin-bottom: var(--s4); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 2px 8px; border: 1px solid var(--c-border); border-radius: 999px; color: var(--c-text); background: var(--c-bg); font-variant-numeric: tabular-nums; }
+.pill b { font-weight: 600; }
+
+/* Segmented controls & toggles used by the doc tooling */
+.controls { display: flex; flex-wrap: wrap; gap: var(--s4) var(--s5); align-items: flex-end; padding: var(--s4) 0; border-top: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); margin-bottom: var(--s5); }
+.control { display: flex; flex-direction: column; gap: 6px; }
+.control > .control-label, .control > legend { font-size: 13px; font-weight: 600; color: var(--c-muted); padding: 0; }
+fieldset.control { border: 0; margin: 0; padding: 0; min-width: 0; }
+.seg { display: inline-flex; border: 1px solid var(--c-border-strong); border-radius: var(--r-sm); overflow: hidden; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 6px 12px; font-size: 14px; border-right: 1px solid var(--c-border-strong); white-space: nowrap; }
+.seg label:last-child span { border-right: 0; }
+.seg input:checked + span { background: var(--c-text); color: var(--c-bg); font-weight: 600; }
+.seg input:focus-visible + span { box-shadow: inset 0 0 0 3px var(--focus-inner), inset 0 0 0 5px var(--focus-outer); }
+.check { display: inline-flex; gap: var(--s2); align-items: center; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--c-text); }
+.checks { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); }
+.btn-text { appearance: none; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 14px; color: var(--c-accent); text-decoration: underline; cursor: pointer; }
+
+/* Device frame: an isolated scroll container so sticky behaviour is real */
+.frame-scroller { overflow-x: auto; padding-bottom: var(--s2); }
+.frame {
+  --frame-w: 375px;
+  width: var(--frame-w); height: 680px; overflow: auto; margin: 0 auto;
+  border: 1px solid var(--c-border-strong); border-radius: var(--r-md); background: var(--c-bg);
+  position: relative; overscroll-behavior: contain;
+}
+.frame-page { padding: var(--s4); }
+.frame-page > h4 { font-size: 20px; }
+.frame-page > p { font-size: 14px; color: var(--c-muted); margin: var(--s1) 0 var(--s4); }
+.frame-foot { padding: var(--s5) var(--s4) var(--s7); font-size: 13px; color: var(--c-subtle); }
+.frame-caption { text-align: center; font-size: 13px; color: var(--c-subtle); margin-top: var(--s2); }
+
+/* Generic doc tables */
+.doc-table-wrap { overflow-x: auto; }
+.doc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.doc-table th, .doc-table td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--c-border); }
+.doc-table thead th { font-size: 13px; color: var(--c-muted); font-weight: 600; border-bottom: 1px solid var(--c-border-strong); white-space: nowrap; }
+.doc-table tbody th { font-weight: 600; }
+.doc-table td code { white-space: nowrap; }
+
+pre.code { margin: 0; padding: var(--s3) var(--s4); background: var(--c-surface); border-radius: var(--r-sm); font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+
+/* =====================================================================
+   COMPONENT — Comparison Matrix  (.cm-*)
+   Everything below is the component itself.
+   ===================================================================== */
+.cm {
+  --cm-sticky-top: 0px;          /* offset of whatever sits above the scroll area */
+  --cm-head-h: 0px;              /* measured: height of the sticky plan header */
+  --cm-sel-left: 0px;            /* measured: selected column x (for group rows) */
+  --cm-sel-width: 0px;
+  position: relative;
+  color: var(--c-text);
+  font-size: 15px;
+  line-height: 1.4;
+}
+.cm-sentinel { height: 1px; margin-bottom: -1px; }
+
+/* ---- Table modes (full + compact) ---------------------------------- */
+.cm-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; background: var(--c-bg); }
+.cm-col-feature { width: 32%; }
+.cm--compact .cm-col-feature { width: max(180px, 27%); }
+.cm-table :where(th, td) { position: relative; text-align: left; font-weight: 400; padding: 0; }
+
+.cm-table thead { position: sticky; top: var(--cm-sticky-top); z-index: 3; }
+.cm-table thead th, .cm-table thead td { background: var(--c-bg); }
+.cm.is-stuck .cm-table thead tr:last-child > * { box-shadow: 0 8px 8px -8px rgba(21, 23, 28, 0.22); }
+
+/* Plan header: name row */
+.cm-hrow-name > * { vertical-align: bottom; padding: var(--s5) var(--s4) var(--s2); }
+.cm-pname { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: var(--s2); }
+.cm-pname-text { font-size: 18px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; hyphens: auto; }
+.cm--compact .cm-pname-text { font-size: 16px; }
+.cm-hrow-name .cm-c.is-rec::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--c-accent); }
+
+/* Plan header: price row */
+.cm-hrow-price > * { vertical-align: top; padding: 0 var(--s4) var(--s3); }
+.cm-hrow-price th { font-size: 13px; color: var(--c-muted); padding-top: 6px; }
+.cm-price { display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
+.cm-price-amt { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.cm-price-per { font-size: 13px; color: var(--c-muted); }
+.cm--compact .cm-price-amt { font-size: 19px; }
+.cm-price--na { font-size: 14px; color: var(--c-muted); }
+
+/* Plan header: CTA row */
+.cm-hrow-cta > * { vertical-align: top; padding: 0 var(--s4) var(--s4); border-bottom: 1px solid var(--c-border-strong); }
+
+/* Badge */
+.cm-badge {
+  display: inline-block; font-size: 12px; font-weight: 600; line-height: 1.3; padding: 3px 8px;
+  border-radius: var(--r-sm); border: 1px solid var(--c-border-strong); color: var(--c-text); background: var(--c-bg);
+  max-width: 100%; overflow-wrap: anywhere;
+}
+.cm-badge--rec { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+
+/* CTA */
+.cm-cta {
+  appearance: none; font: inherit; font-size: 15px; font-weight: 600; line-height: 1.2;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  border-radius: var(--r-sm); border: 1.5px solid var(--c-text); background: var(--c-bg); color: var(--c-text);
+  cursor: pointer; text-align: center;
+}
+.cm-cta:hover, .cm-cta.force-hover { background: var(--c-surface-2); }
+.cm-cta--primary { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+.cm-cta--primary:hover, .cm-cta--primary.force-hover { background: var(--c-accent-hover); border-color: var(--c-accent-hover); }
+.cm-cta.is-selected, .cm-cta.is-selected:hover { background: var(--c-sel); border-color: var(--c-sel); color: #fff; cursor: default; }
+.cm-cta[aria-disabled="true"], .cm-cta[aria-disabled="true"]:hover {
+  background: var(--c-surface); border-color: var(--c-border); color: var(--c-subtle); cursor: not-allowed;
+}
+.cm-cta:focus-visible, .cm-cta.force-focus { outline: 2px solid transparent; box-shadow: var(--focus-ring); }
+.cm-cta svg { flex: none; }
+.cm-cta-reason { margin-top: 6px; font-size: 13px; line-height: 1.35; color: var(--c-muted); }
+
+/* Feature groups */
+.cm-grow th {
+  position: sticky; top: calc(var(--cm-sticky-top) + var(--cm-head-h)); z-index: 2;
+  background: var(--c-surface); padding: var(--s3) var(--s4) 10px; font-size: 14px; font-weight: 700;
+  border-bottom: 1px solid var(--c-border);
+}
+.cm.has-sel .cm-grow th::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: var(--cm-sel-left); width: var(--cm-sel-width);
+  border-left: 2px solid var(--c-sel); border-right: 2px solid var(--c-sel); pointer-events: none; box-sizing: border-box;
+}
+
+/* Comparison rows */
+.cm-row > * { vertical-align: top; padding: var(--s3) var(--s4); border-bottom: 1px solid var(--c-border); background-color: var(--c-bg); }
+.cm-row:hover > *, .cm-row.force-hover > * { background-image: linear-gradient(var(--c-row-hover), var(--c-row-hover)); }
+.cm-flabel { display: block; font-weight: 600; overflow-wrap: anywhere; hyphens: auto; }
+.cm-fdesc { display: block; margin-top: 2px; font-size: 13px; color: var(--c-muted); overflow-wrap: anywhere; }
+
+/* Column states (apply to header + value cells) */
+.cm-row > .cm-c.is-rec { background-color: var(--c-accent-tint); }
+.cm-table thead .cm-c.is-rec { background-color: var(--c-accent-tint); }
+.cm-row > .cm-c.is-sel, .cm-table thead .cm-c.is-sel { background-color: var(--c-sel-tint); }
+.cm-c.is-sel::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-left: 2px solid var(--c-sel); border-right: 2px solid var(--c-sel);
+}
+.cm-hrow-name .cm-c.is-sel::after { border-top: 2px solid var(--c-sel); }
+.cm-c.is-sel.is-last::after { border-bottom: 2px solid var(--c-sel); }
+
+/* Value cell + status indicator */
+.cm-val { display: flex; align-items: flex-start; gap: 6px; min-height: 22px; }
+.cm-ind { flex: none; display: inline-flex; width: 20px; height: 20px; margin-top: 0; }
+.cm-val--inc .cm-ind { color: var(--c-inc); }
+.cm-val--exc .cm-ind { color: var(--c-exc); }
+.cm-val--cond .cm-ind { color: var(--c-cond); }
+.cm-note { font-size: 14px; padding-top: 1px; overflow-wrap: anywhere; }
+.cm-val--cond .cm-note { color: var(--c-text); }
+.cm-text { font-size: 15px; font-weight: 500; padding-top: 1px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.cm-val--na { font-size: 14px; color: var(--c-subtle); padding-top: 1px; }
+
+/* ---- Paired mode (narrow containers) ------------------------------- */
+.cm-pintro { font-size: 14px; color: var(--c-muted); margin-bottom: var(--s3); }
+.cm-phead {
+  position: sticky; top: var(--cm-sticky-top); z-index: 4;
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto); column-gap: var(--s2);
+  background: var(--c-bg); padding: var(--s2) 0 var(--s3); border-bottom: 1px solid var(--c-border-strong);
+}
+.cm.is-stuck .cm-phead { box-shadow: 0 8px 8px -8px rgba(21, 23, 28, 0.22); }
+.cm-pslot {
+  position: relative; grid-row: 1 / span 4; display: grid; grid-template-rows: subgrid; row-gap: var(--s2);
+  padding: var(--s3) var(--s3) var(--s3); border-radius: var(--r-sm); min-width: 0;
+}
+.cm-pslot.is-rec { background: var(--c-accent-tint); box-shadow: inset 0 4px 0 var(--c-accent); }
+.cm-pslot.is-sel { background: var(--c-sel-tint); box-shadow: inset 0 0 0 2px var(--c-sel); }
+.cm-pslot.is-rec.is-sel { box-shadow: inset 0 4px 0 var(--c-accent), inset 0 0 0 2px var(--c-sel); }
+.cm-pslot-badge { min-height: 0; }
+.cm-pslot-name { align-self: start; }
+.cm-pslot .cm-pname-text { font-size: 16px; }
+.cm-pslot .cm-price-amt { font-size: 18px; }
+.cm-pslot .cm-cta { font-size: 14px; padding: 8px; }
+
+.cm-switch { position: relative; display: block; border: 1px solid var(--c-border-strong); border-radius: var(--r-sm); background: var(--c-bg); }
+.cm-switch-face { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; padding: 7px 8px 7px 10px; }
+.cm-switch-face svg { flex: none; margin-top: 2px; }
+.cm-switch select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.cm-switch:focus-within { box-shadow: var(--focus-ring); }
+.cm-switch:hover { border-color: var(--c-text); }
+
+.cm--paired .cm-table, .cm--paired .cm-table tbody, .cm--paired .cm-table tr,
+.cm--paired .cm-table th, .cm--paired .cm-table td { display: block; }
+.cm--paired .cm-table thead {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+.cm--paired .cm-table colgroup { display: none; }
+.cm--paired .cm-grow { position: sticky; top: calc(var(--cm-sticky-top) + var(--cm-head-h)); z-index: 2; }
+.cm--paired .cm-grow th { position: static; padding: 10px var(--s3) var(--s2); }
+.cm--paired .cm-grow th::after { display: none; }
+.cm--paired .cm-table .cm-row { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s2); border-bottom: 1px solid var(--c-border); }
+.cm--paired .cm-row > * { border-bottom: 0; background-image: none; }
+.cm--paired .cm-row > th { grid-column: 1 / -1; padding: var(--s3) var(--s3) var(--s1); }
+.cm--paired .cm-row > td { padding: var(--s1) var(--s3) var(--s3); border-radius: 0; }
+.cm--paired .cm-c::after { display: none; }
+
+@media (forced-colors: active) {
+  .cm-c.is-sel::after, .cm-pslot.is-sel { border-color: Highlight; outline: 2px solid Highlight; }
+  .cm-badge--rec { border: 1px solid CanvasText; }
+}
+
+/* =====================================================================
+   VIEW-SPECIFIC DOC STYLES
+   ===================================================================== */
+/* Anatomy */
+.anat { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s6); align-items: start; }
+.anat-stage-scroll { overflow-x: auto; }
+.anat-stage { position: relative; min-width: 780px; padding: var(--s5) var(--s5) var(--s5) 56px; }
+.anat-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.anat-box { position: absolute; border: 2px solid var(--guide); border-radius: 2px; background: rgba(194, 24, 91, 0.06); display: none; }
+.anat-box.on { display: block; }
+.anat-pin {
+  position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--c-bg); color: var(--guide);
+  border: 1.5px solid var(--guide); font-size: 12px; font-weight: 700; display: grid; place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.anat-pin.on { background: var(--guide); color: #fff; }
+.anat-legend { position: sticky; top: var(--s4); }
+.anat-legend ol { list-style: none; margin: var(--s3) 0 0; padding: 0; }
+.anat-legend li + li { border-top: 1px solid var(--c-border); }
+.anat-legend button {
+  appearance: none; width: 100%; text-align: left; background: none; border: 0; font: inherit; cursor: pointer;
+  display: grid; grid-template-columns: 22px 1fr; gap: 10px; padding: 10px 6px; color: var(--c-text);
+}
+.anat-legend button .n { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--guide); color: var(--guide); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+.anat-legend button[aria-pressed="true"] { background: var(--c-surface); }
+.anat-legend button[aria-pressed="true"] .n { background: var(--guide); color: #fff; }
+.anat-legend .nm { font-weight: 600; font-size: 15px; }
+.anat-legend .ds { display: block; font-size: 13px; color: var(--c-muted); margin-top: 2px; }
+.anat-legend .lvl-1 .nm { padding-left: 0; }
+.anat-legend .lvl-2 .nm::before { content: "→ "; color: var(--c-subtle); }
+.anat-legend .lvl-3 .nm::before { content: "→ → "; color: var(--c-subtle); }
+.tree { font-family: var(--mono); font-size: 14px; line-height: 1.8; margin: 0; padding: var(--s4); background: var(--c-surface); border-radius: var(--r-sm); white-space: pre; overflow-x: auto; }
+
+/* Variants */
+.variant-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s5) var(--s6); }
+.variant-card { border-top: 1px solid var(--c-text); padding-top: var(--s3); }
+.variant-card h4 { font-size: 16px; }
+.variant-card dl { margin: var(--s3) 0 0; font-size: 14px; display: grid; grid-template-columns: 110px 1fr; gap: 6px var(--s3); }
+.variant-card dt { color: var(--c-muted); }
+.variant-card dd { margin: 0; }
+.not-variants { margin-top: var(--s5); font-size: 14px; color: var(--c-muted); max-width: 760px; }
+
+/* States */
+.spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--s5) var(--s4); }
+.spec { display: flex; flex-direction: column; gap: var(--s2); }
+.spec-stage { padding: var(--s4); border: 1px dashed var(--c-border-strong); border-radius: var(--r-sm); min-height: 88px; display: flex; flex-direction: column; justify-content: center; background: var(--c-bg); }
+.spec-name { font-weight: 600; font-size: 14px; }
+.spec-note { font-size: 13px; color: var(--c-muted); }
+.spec-note code { font-size: 12px; }
+.spec-matrix-scroll { overflow-x: auto; }
+.spec-matrix { min-width: 820px; }
+.legend-inline { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s5); font-size: 14px; color: var(--c-muted); margin-top: var(--s3); }
+.legend-inline b { color: var(--c-text); }
+
+/* Responsive */
+.width-readout { font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 240px; accent-color: var(--c-text); }
+
+/* Stress */
+.stress-list { margin: 0; padding-left: 20px; font-size: 14px; }
+.stress-list li { margin-top: 6px; }
+
+/* Docs */
+.docs { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--s7); align-items: start; }
+.docs-toc { position: sticky; top: var(--s4); font-size: 14px; }
+.docs-toc ol { list-style: none; margin: var(--s2) 0 0; padding: 0; border-left: 1px solid var(--c-border); }
+.docs-toc a { display: block; padding: 5px 0 5px 12px; color: var(--c-muted); text-decoration: none; margin-left: -1px; border-left: 2px solid transparent; }
+.docs-toc a:hover { color: var(--c-text); }
+.docs-toc a.active { color: var(--c-text); border-left-color: var(--c-text); font-weight: 600; }
+.doc-sec { padding-bottom: var(--s6); margin-bottom: var(--s6); border-bottom: 1px solid var(--c-border); max-width: 820px; scroll-margin-top: var(--s4); }
+.doc-sec:last-child { border-bottom: 0; }
+.doc-sec h3 { font-size: 22px; margin-bottom: var(--s3); }
+.doc-sec h4 { font-size: 16px; margin: var(--s5) 0 var(--s2); }
+.doc-sec p, .doc-sec li { font-size: 15px; }
+.doc-sec p + p { margin-top: var(--s3); }
+.doc-sec ul, .doc-sec ol { padding-left: 20px; margin: var(--s2) 0 0; }
+.doc-sec li + li { margin-top: 6px; }
+.doc-sec .doc-table-wrap { margin-top: var(--s3); }
+.dodont { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s5); margin-top: var(--s3); }
+.dodont > div { border-top: 4px solid var(--c-inc); padding-top: var(--s3); }
+.dodont > div.dont { border-top-color: #a8261b; }
+.dodont h4 { margin-top: 0; }
+
+@media (max-width: 980px) {
+  .anat { grid-template-columns: 1fr; }
+  .anat-legend { position: static; }
+  .docs { grid-template-columns: 1fr; gap: var(--s5); }
+  .docs-toc { position: static; }
+  .docs-toc ol { display: flex; flex-wrap: wrap; border-left: 0; gap: 0 var(--s3); }
+  .docs-toc a { padding-left: 0; border-left: 0; }
+  .variant-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .app-bar-inner { padding: var(--s3) var(--s4) 0; }
+  .view { padding: var(--s5) var(--s4) var(--s7); }
+  .view-head h2 { font-size: 24px; }
+  .dodont { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="app-bar">
+  <div class="app-bar-inner">
+    <div class="app-title">
+      <h1>Insurance Comparison Matrix</h1>
+      <span>Component study · fictional phone insurance · v0.1</span>
+    </div>
+    <nav class="app-nav" aria-label="Component documentation">
+      <ul>
+        <li><a href="#component">Component</a></li>
+        <li><a href="#anatomy">Anatomy</a></li>
+        <li><a href="#variants">Variants</a></li>
+        <li><a href="#states">States</a></li>
+        <li><a href="#responsive">Responsive</a></li>
+        <li><a href="#stress">Stress test</a></li>
+        <li><a href="#docs">Documentation</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ================================================================ COMPONENT -->
+<section class="view" id="view-component" data-view="component" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Component</h2>
+    <p>The default configuration: three plans, grouped features, monthly price and one recommendation. Scroll to see the sticky plan header and group headings. Resize the window to see the layout mode change.</p>
+  </div>
+  <div class="meta-row" aria-live="polite">
+    <span class="pill">Layout mode <b data-readout="component-mode">–</b></span>
+    <span class="pill">Container <b data-readout="component-width">–</b></span>
+    <span class="pill">Selected <b data-readout="component-sel">None</b></span>
+  </div>
+  <div data-mount="component"></div>
+</section>
+
+<!-- ================================================================ ANATOMY -->
+<section class="view" id="view-anatomy" data-view="anatomy" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Anatomy</h2>
+    <p>The matrix is a root plus nine parts. Each part has one job, so each can be specified, tested and changed on its own. Select a part to outline it on the live instance.</p>
+  </div>
+
+  <div class="anat">
+    <div class="anat-stage-scroll">
+      <div class="anat-stage" data-anat-stage>
+        <div data-mount="anatomy"></div>
+        <div class="anat-overlay" data-anat-overlay aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="anat-legend">
+      <div class="eyebrow">Parts</div>
+      <ol data-anat-legend></ol>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Hierarchy</h3>
+    <p class="lede">Composition, not decoration: every visible element belongs to exactly one part.</p>
+    <div class="section-body">
+<pre class="tree">Comparison Matrix                  table · owns layout mode, selection, sticky offsets
+├── Plan Header  ×n                one per plan · column header
+│   ├── Badge          optional    one recommendation max · or neutral status
+│   ├── Plan name      required
+│   ├── Price          optional    whole matrix shows price, or none does
+│   └── CTA            required    primary only on the recommended plan
+└── Feature Group  ×1–6            optional heading · omitted in simple variant
+    └── Comparison Row  ×1–8 per group
+        ├── Feature Label          name + optional description · row header
+        └── Value Cell  ×n         one per plan
+            └── Status Indicator   included · conditional · excluded (or text value)</pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Part specification</h3>
+    <div class="section-body doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th scope="col">Part</th><th scope="col">Element</th><th scope="col">Content</th><th scope="col">Rules</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Comparison Matrix</th><td><code>&lt;table&gt;</code> + caption</td><td>2–4 plans, 1–6 groups</td><td>Chooses its layout mode from its own width, not the viewport. Holds selection state.</td></tr>
+          <tr><th scope="row">Plan Header</th><td><code>&lt;th scope="col"&gt;</code> + price/CTA rows</td><td>Badge, name, price, CTA</td><td>Sticky. Names bottom-align so badges never push names out of line.</td></tr>
+          <tr><th scope="row">Badge</th><td><code>&lt;span&gt;</code> inside the column header</td><td>≤ 20 characters</td><td>Recommendation badge (filled) max once per matrix. Neutral badge for status, e.g. “Your current plan”.</td></tr>
+          <tr><th scope="row">Price</th><td>Text in the price row</td><td>Amount + period</td><td>If any plan has pence, every plan shows 2 decimal places. Tabular figures.</td></tr>
+          <tr><th scope="row">CTA</th><td><code>&lt;button&gt;</code></td><td>“Choose” + plan name (hidden)</td><td>Min 44px tall. Disabled uses <code>aria-disabled</code> and shows a reason.</td></tr>
+          <tr><th scope="row">Feature Group</th><td><code>&lt;tbody&gt;</code> + heading row</td><td>Group name</td><td>Heading sticks beneath the plan header. 3–8 rows per group.</td></tr>
+          <tr><th scope="row">Comparison Row</th><td><code>&lt;tr&gt;</code></td><td>1 label + n values</td><td>Hidden automatically when no plan includes the feature.</td></tr>
+          <tr><th scope="row">Feature Label</th><td><code>&lt;th scope="row"&gt;</code></td><td>Name ≤ 40 chars, description ≤ 60</td><td>Wraps; never truncates.</td></tr>
+          <tr><th scope="row">Value Cell</th><td><code>&lt;td&gt;</code></td><td>Status, status + note, or text</td><td>Left-aligned to the plan name above it.</td></tr>
+          <tr><th scope="row">Status Indicator</th><td>Inline SVG, <code>aria-hidden</code> + text</td><td>Tick, half-circle, dash</td><td>Shape carries meaning; colour only reinforces it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ VARIANTS -->
+<section class="view" id="view-variants" data-view="variants" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Variants</h2>
+    <p>Four structural axes, each answering a real product requirement. They combine freely, and every combination uses the same component.</p>
+  </div>
+
+  <form class="controls" data-variant-controls onsubmit="return false">
+    <fieldset class="control"><legend>Plans</legend>
+      <div class="seg">
+        <label><input type="radio" name="v-plans" value="2"><span>2</span></label>
+        <label><input type="radio" name="v-plans" value="3" checked><span>3</span></label>
+        <label><input type="radio" name="v-plans" value="4"><span>4</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="control"><legend>Price</legend>
+      <div class="seg">
+        <label><input type="radio" name="v-price" value="1" checked><span>With price</span></label>
+        <label><input type="radio" name="v-price" value="0"><span>Without</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="control"><legend>Recommendation</legend>
+      <div class="seg">
+        <label><input type="radio" name="v-rec" value="1" checked><span>With</span></label>
+        <label><input type="radio" name="v-rec" value="0"><span>Without</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="control"><legend>Features</legend>
+      <div class="seg">
+        <label><input type="radio" name="v-grouped" value="1" checked><span>Grouped</span></label>
+        <label><input type="radio" name="v-grouped" value="0"><span>Simple</span></label>
+      </div>
+    </fieldset>
+  </form>
+
+  <div class="meta-row"><span class="pill">Layout mode <b data-readout="variants-mode">–</b></span></div>
+  <pre class="code" data-variant-code aria-label="Configuration for this variant"></pre>
+  <div style="margin-top: var(--s5)" data-mount="variants"></div>
+
+  <div class="section">
+    <h3>Why each variant exists</h3>
+    <div class="section-body variant-grid">
+      <div class="variant-card">
+        <h4>Plan count: 2 / 3 / 4</h4>
+        <dl>
+          <dt>2 plans</dt><dd>Upgrade prompt in account: “your current plan” against the next tier up.</dd>
+          <dt>3 plans</dt><dd>Default sales journey: Essential, Extra, Complete.</dd>
+          <dt>4 plans</dt><dd>A fourth tier is introduced (Complete Plus covers a connected device). Rows that only that tier includes appear automatically.</dd>
+          <dt>Limit</dt><dd>5+ plans is not supported. Use a filtered list instead — comparison breaks down beyond four columns.</dd>
+        </dl>
+      </div>
+      <div class="variant-card">
+        <h4>Price: with / without</h4>
+        <dl>
+          <dt>With</dt><dd>Price is known: device already chosen in the journey.</dd>
+          <dt>Without</dt><dd>Price depends on a device not yet chosen, e.g. a help article explaining cover levels. The price row is removed rather than filled with placeholders.</dd>
+          <dt>Rule</dt><dd>All plans show price or none do. Mixed rows read as missing data.</dd>
+        </dl>
+      </div>
+      <div class="variant-card">
+        <h4>Recommendation: with / without</h4>
+        <dl>
+          <dt>With</dt><dd>The business has a defensible default (most chosen, best fit for this device). One plan gets a filled badge, a tinted column and the only primary CTA.</dd>
+          <dt>Without</dt><dd>Regulated or neutral contexts where steering is inappropriate. All CTAs carry equal weight.</dd>
+          <dt>Rule</dt><dd>Never more than one recommendation.</dd>
+        </dl>
+      </div>
+      <div class="variant-card">
+        <h4>Features: grouped / simple</h4>
+        <dl>
+          <dt>Grouped</dt><dd>9+ features. Groups give the customer landmarks and a sticky “where am I” heading.</dd>
+          <dt>Simple</dt><dd>Short lists (≤ 8 rows) such as an in-app upgrade sheet, where headings add more height than help.</dd>
+          <dt>Rule</dt><dd>Same data shape either way — simple mode flattens groups in order.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="not-variants"><strong>Deliberately not variants:</strong> colour themes, icon sets, card-style columns, horizontal-scrolling tables, and per-plan custom layouts. Each would multiply the surface area without solving a product requirement, and most would weaken scanning.</p>
+  </div>
+</section>
+
+<!-- ================================================================ STATES -->
+<section class="view" id="view-states" data-view="states" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">States</h2>
+    <p>Interaction states (the customer did something) are kept visually distinct from system states (the business is telling the customer something). Recommendation uses the accent colour; selection uses ink. They can co-exist on one plan.</p>
+  </div>
+
+  <div class="section">
+    <h3>CTA</h3>
+    <p class="lede">Hover and focus are forced on here so they can be inspected. Focus uses a two-tone ring that stays visible on white, tinted and dark backgrounds.</p>
+    <div class="section-body spec-grid" data-cta-specs></div>
+  </div>
+
+  <div class="section">
+    <h3>Plan and row states in context</h3>
+    <p class="lede">One matrix showing every plan-level state at once.</p>
+    <div class="section-body">
+      <div class="spec-matrix-scroll"><div class="spec-matrix" data-mount="states-matrix"></div></div>
+      <div class="legend-inline">
+        <span><b>Essential</b> default</span>
+        <span><b>Extra</b> recommended</span>
+        <span><b>Complete</b> selected</span>
+        <span><b>Complete Plus</b> CTA disabled, with reason</span>
+        <span><b>Liquid damage</b> row hover</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Value states</h3>
+    <p class="lede">Shape, not colour, carries meaning. Each value is also announced as text.</p>
+    <div class="section-body spec-grid" data-value-specs></div>
+  </div>
+
+  <div class="section">
+    <h3>State reference</h3>
+    <div class="section-body doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th scope="col">State</th><th scope="col">Trigger</th><th scope="col">Treatment</th><th scope="col">Semantics</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Default</th><td>–</td><td>White column, outline CTA</td><td>–</td></tr>
+          <tr><th scope="row">Hover (row)</th><td>Pointer over a row</td><td>4% ink overlay across the full row, to support reading across</td><td>None; visual aid only</td></tr>
+          <tr><th scope="row">Hover (CTA)</th><td>Pointer over a CTA</td><td>Background darkens one step</td><td>–</td></tr>
+          <tr><th scope="row">Focus</th><td>Keyboard focus on CTA or plan picker</td><td>3px yellow + 3px black ring</td><td><code>:focus-visible</code>; forced-colours safe</td></tr>
+          <tr><th scope="row">Recommended</th><td>Config: <code>recommendedPlanId</code></td><td>Filled badge, 4px top rule, tinted column, primary CTA</td><td>Badge text is part of the column header</td></tr>
+          <tr><th scope="row">Selected</th><td>Customer chooses a plan</td><td>2px ink outline around the column, “Selected” CTA with tick</td><td>CTA name becomes “Selected &lt;plan&gt;”; change announced via live region</td></tr>
+          <tr><th scope="row">Included</th><td>Value <code>true</code> or <code>{i: note}</code></td><td>Green tick (+ note)</td><td>“Included”</td></tr>
+          <tr><th scope="row">Conditional</th><td>Value <code>{c: note}</code></td><td>Amber half circle + note (note required)</td><td>“Conditional: &lt;note&gt;”</td></tr>
+          <tr><th scope="row">Excluded</th><td>Value <code>false</code></td><td>Grey dash</td><td>“Not included”</td></tr>
+          <tr><th scope="row">Not stated</th><td>Value missing / <code>null</code></td><td>Muted “Not stated”</td><td>Read as text. Never rendered as a dash: missing data ≠ not covered</td></tr>
+          <tr><th scope="row">Disabled CTA</th><td>Plan unavailable (<code>available: false</code>)</td><td>Grey CTA + visible reason</td><td><code>aria-disabled</code>, stays focusable, reason linked by <code>aria-describedby</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Try it</h3>
+    <p class="lede">Hover rows, Tab through the CTAs, choose a plan.</p>
+    <div class="section-body">
+      <div class="meta-row"><button type="button" class="btn-text" data-clear-selection>Clear selection</button></div>
+      <div data-mount="states-live"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ RESPONSIVE -->
+<section class="view" id="view-responsive" data-view="responsive" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Responsive behaviour</h2>
+    <p>The component chooses its layout from the width it is given and the number of plans — not from the device. On narrow containers it stops being a table and becomes a two-up comparison: the customer picks which two plans to compare, and the plan summary and group heading stay pinned while they scroll.</p>
+  </div>
+
+  <form class="controls" data-resp-controls onsubmit="return false">
+    <fieldset class="control"><legend>Preset</legend>
+      <div class="seg">
+        <label><input type="radio" name="r-preset" value="1200"><span>Desktop 1200</span></label>
+        <label><input type="radio" name="r-preset" value="768"><span>Tablet 768</span></label>
+        <label><input type="radio" name="r-preset" value="375" checked><span>Mobile 375</span></label>
+      </div>
+    </fieldset>
+    <div class="control">
+      <label class="control-label" for="r-width">Frame width <span class="width-readout" data-readout="resp-width">375px</span></label>
+      <input type="range" id="r-width" min="320" max="1280" step="1" value="375">
+    </div>
+    <fieldset class="control"><legend>Plans</legend>
+      <div class="seg">
+        <label><input type="radio" name="r-plans" value="2"><span>2</span></label>
+        <label><input type="radio" name="r-plans" value="3" checked><span>3</span></label>
+        <label><input type="radio" name="r-plans" value="4"><span>4</span></label>
+      </div>
+    </fieldset>
+  </form>
+  <div class="meta-row" aria-live="polite">
+    <span class="pill">Layout mode <b data-readout="resp-mode">–</b></span>
+    <span class="pill">Plans visible <b data-readout="resp-visible">–</b></span>
+  </div>
+
+  <div class="frame-scroller">
+    <div class="frame" data-resp-frame tabindex="0" aria-label="Preview frame, scrollable">
+      <div class="frame-page">
+        <h4>Choose your phone insurance</h4>
+        <p>Cover for your Pixel 9 Pro · 128GB</p>
+        <div data-mount="responsive"></div>
+      </div>
+      <div class="frame-foot">Insurance is provided by a fictional underwriter. Terms apply.</div>
+    </div>
+  </div>
+  <p class="frame-caption">The frame is its own scroll container, so sticky behaviour is real. Scroll inside it.</p>
+
+  <div class="section">
+    <h3>How the mode is chosen</h3>
+    <div class="section-body doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th scope="col">Mode</th><th scope="col">Applies when the container…</th><th scope="col">Typical context</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Full</th><td>is ≥ 900px <em>and</em> fits 240px + 170px per plan</td><td>Desktop</td></tr>
+          <tr><th scope="row">Compact</th><td>fits 180px + 132px per plan</td><td>Tablet, narrow desktop windows, 4 plans on a laptop</td></tr>
+          <tr><th scope="row">Paired</th><td>cannot fit every plan at its minimum width</td><td>Mobile, 400% zoom, side panels</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top: var(--s3)">Because the rule is width-per-plan, four plans switch to paired earlier than two. A two-plan matrix on a 375px phone is also paired, but the plan pickers are omitted because both plans are already visible.</p>
+  </div>
+
+  <div class="section">
+    <h3>What changes</h3>
+    <div class="section-body doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th scope="col"></th><th scope="col">Desktop · full</th><th scope="col">Tablet · compact</th><th scope="col">Mobile · paired</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Plans visible</th><td>All</td><td>All</td><td>Two at a time, customer chooses which</td></tr>
+          <tr><th scope="row">Structure</th><td>Feature column (32%) + plan columns</td><td>Feature column narrows to max(180px, 27%)</td><td>Each row stacks: label full-width, two values beneath</td></tr>
+          <tr><th scope="row">Plan header</th><td>Name 18px, price 22px, CTA</td><td>Name 16px, price 19px, CTA</td><td>Two-up summary: plan picker, badge, price, CTA</td></tr>
+          <tr><th scope="row">Sticky</th><td>Plan header; group heading beneath it</td><td>Same</td><td>Two-up summary; group heading beneath it</td></tr>
+          <tr><th scope="row">Switching plans</th><td>–</td><td>–</td><td>Picker on each slot. Choosing the plan already in the other slot swaps them</td></tr>
+          <tr><th scope="row">Default pair</th><td>–</td><td>–</td><td>Selected plan, else recommended plan, alongside the plan one tier below — the decision most customers are making</td></tr>
+          <tr><th scope="row">Selection</th><td>Column outline</td><td>Column outline</td><td>Slot outline + tinted values; kept in view if the layout changes</td></tr>
+          <tr><th scope="row">Row hover</th><td>Yes</td><td>Yes</td><td>No (touch)</td></tr>
+          <tr><th scope="row">Semantics</th><td>Native table</td><td>Native table</td><td>Same table with explicit roles; column headers visually hidden; caption names the two plans</td></tr>
+          <tr><th scope="row">Never</th><td colspan="3">Horizontal scrolling, hidden features, truncated labels, or a different data model per breakpoint</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ STRESS -->
+<section class="view" id="view-stress" data-view="stress" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Content stress test</h2>
+    <p>Every case below is data only. Nothing is fixed per instance — if the component breaks, the component is wrong.</p>
+  </div>
+
+  <form class="controls" data-stress-controls onsubmit="return false">
+    <fieldset class="control"><legend>Stress factors</legend>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="longFeatures" checked> Very long feature names</label>
+        <label class="check"><input type="checkbox" name="longNames" checked> Long plan names and badge</label>
+        <label class="check"><input type="checkbox" name="missing" checked> Missing values</label>
+        <label class="check"><input type="checkbox" name="four" checked> Four plans</label>
+        <label class="check"><input type="checkbox" name="prices" checked> Different price lengths</label>
+        <label class="check"><input type="checkbox" name="extraGroups" checked> Additional feature groups</label>
+        <label class="check"><input type="checkbox" name="unavailable" checked> Unavailable plan</label>
+      </div>
+    </fieldset>
+    <fieldset class="control"><legend>Preview width</legend>
+      <div class="seg">
+        <label><input type="radio" name="s-width" value="1200" checked><span>Desktop</span></label>
+        <label><input type="radio" name="s-width" value="768"><span>Tablet</span></label>
+        <label><input type="radio" name="s-width" value="375"><span>Mobile</span></label>
+      </div>
+    </fieldset>
+  </form>
+  <div class="meta-row"><span class="pill">Layout mode <b data-readout="stress-mode">–</b></span></div>
+
+  <div class="frame-scroller">
+    <div class="frame" data-stress-frame tabindex="0" aria-label="Stress test frame, scrollable" style="--frame-w: 1200px">
+      <div class="frame-page"><div data-mount="stress"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>What should hold</h3>
+    <div class="section-body">
+      <ul class="stress-list">
+        <li><strong>Long feature names</strong> wrap inside the feature column; rows grow, never truncate. Values stay top-aligned with the first line of the label.</li>
+        <li><strong>Long plan names</strong> wrap; names bottom-align so plan names, prices and CTAs each sit on a shared line across columns. In paired mode the plan picker wraps the name instead of truncating it like a native select would.</li>
+        <li><strong>Long badges</strong> wrap inside their column and push nothing out of line.</li>
+        <li><strong>Missing values</strong> render as “Not stated”, distinct from “Not included”.</li>
+        <li><strong>Four plans</strong> fit in full/compact; paired mode activates earlier because the rule is width per plan.</li>
+        <li><strong>Price lengths</strong> — any pence forces 2 decimal places on every plan; tabular figures keep digits aligned.</li>
+        <li><strong>Additional groups</strong> each get a sticky heading; rows no visible plan includes are dropped.</li>
+        <li><strong>Unavailable plan</strong> keeps its column (so the customer sees what they can’t have and why) with a disabled CTA and reason.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ DOCS -->
+<section class="view" id="view-docs" data-view="docs" hidden>
+  <div class="view-head">
+    <h2 tabindex="-1">Documentation</h2>
+    <p>Guidance for designers and engineers using the Comparison Matrix.</p>
+  </div>
+
+  <div class="docs">
+    <nav class="docs-toc" aria-label="On this page">
+      <div class="eyebrow">On this page</div>
+      <ol>
+        <li><a href="#docs:purpose">Purpose</a></li>
+        <li><a href="#docs:anatomy">Anatomy</a></li>
+        <li><a href="#docs:variants">Variants</a></li>
+        <li><a href="#docs:states">States</a></li>
+        <li><a href="#docs:behaviour">Behaviour</a></li>
+        <li><a href="#docs:responsive">Responsive</a></li>
+        <li><a href="#docs:content">Content rules</a></li>
+        <li><a href="#docs:accessibility">Accessibility</a></li>
+        <li><a href="#docs:dodont">Do / Don’t</a></li>
+        <li><a href="#docs:api">Configuration</a></li>
+      </ol>
+    </nav>
+
+    <div class="docs-body">
+      <section class="doc-sec" id="doc-purpose" aria-labelledby="h-purpose">
+        <h3 id="h-purpose">Purpose</h3>
+        <p>Help a customer choose between two to four mutually exclusive plans whose differences can be expressed against one shared list of features. The matrix exists for comparison: reading across a row to see how plans differ, and down a column to understand one plan.</p>
+        <h4>Use it when</h4>
+        <ul>
+          <li>The customer must pick exactly one plan from 2–4 options.</li>
+          <li>Plans share most features and differ by inclusion, limits or service level.</li>
+          <li>The decision benefits from seeing differences side by side, e.g. insurance tiers, broadband speeds, roaming bundles.</li>
+        </ul>
+        <h4>Don’t use it when</h4>
+        <ul>
+          <li>There is only one product — use a product summary.</li>
+          <li>There are five or more options — use a filterable list, then compare a shortlist.</li>
+          <li>Products have different attributes (a phone vs. a tablet) — there is no shared row to compare against.</li>
+          <li>The goal is promotion rather than decision — use marketing content, not a matrix.</li>
+        </ul>
+      </section>
+
+      <section class="doc-sec" id="doc-anatomy" aria-labelledby="h-anatomy">
+        <h3 id="h-anatomy">Anatomy</h3>
+        <ol>
+          <li><strong>Comparison Matrix</strong> — the root table. Owns layout mode, selection and sticky offsets.</li>
+          <li><strong>Plan Header</strong> — one per plan: badge, name, price, CTA. Sticky.</li>
+          <li><strong>Badge</strong> — optional. Filled for the single recommendation; outlined for neutral status such as “Your current plan”.</li>
+          <li><strong>Price</strong> — optional, all-or-nothing across plans.</li>
+          <li><strong>CTA</strong> — choose this plan. Primary only on the recommended plan.</li>
+          <li><strong>Feature Group</strong> — optional heading and its rows. Heading sticks beneath the plan header.</li>
+          <li><strong>Comparison Row</strong> — one feature across all plans.</li>
+          <li><strong>Feature Label</strong> — row header: name and optional one-line description.</li>
+          <li><strong>Value Cell</strong> — one plan’s value for one feature.</li>
+          <li><strong>Status Indicator</strong> — tick, half-circle or dash inside the value cell.</li>
+        </ol>
+        <p style="margin-top: var(--s3)">See <a href="#anatomy">Anatomy</a> for the annotated instance and part specification.</p>
+      </section>
+
+      <section class="doc-sec" id="doc-variants" aria-labelledby="h-variants">
+        <h3 id="h-variants">Variants</h3>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th scope="col">Axis</th><th scope="col">Options</th><th scope="col">Use when</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Plans</th><td>2 · 3 · 4</td><td>2 for upgrade prompts, 3 for the default journey, 4 when a tier is added. Never 5+.</td></tr>
+              <tr><th scope="row">Price</th><td>With · without</td><td>Without only when price can’t be known yet (device not chosen).</td></tr>
+              <tr><th scope="row">Recommendation</th><td>With · without</td><td>Without where steering is inappropriate.</td></tr>
+              <tr><th scope="row">Features</th><td>Grouped · simple</td><td>Simple for ≤ 8 rows.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="doc-sec" id="doc-states" aria-labelledby="h-states">
+        <h3 id="h-states">States</h3>
+        <p><strong>Interaction states</strong> — default, hover, focus, selected — respond to the customer. <strong>System states</strong> — recommended, included, conditional, excluded, not stated, disabled — come from data.</p>
+        <p>Recommendation and selection must never look alike: recommendation is accent blue (the business suggests), selection is ink (the customer decided). A recommended plan that is also selected shows both.</p>
+        <p>Conditional values always carry a note. A half-circle with no explanation is a question the customer can’t answer.</p>
+      </section>
+
+      <section class="doc-sec" id="doc-behaviour" aria-labelledby="h-behaviour">
+        <h3 id="h-behaviour">Behaviour</h3>
+        <h4>Scrolling and sticky headers</h4>
+        <ul>
+          <li>The plan header (name, price, CTA) sticks to the top of the nearest scroll container. The customer can act from anywhere in the list.</li>
+          <li>The current group heading sticks directly beneath it, so “which plan” and “which category” are always visible.</li>
+          <li>Offsets are measured, not hard-coded. Set <code>--cm-sticky-top</code> if a fixed site header sits above the scroll area.</li>
+          <li>A soft shadow appears under the header only while it is stuck.</li>
+          <li>Tables never scroll horizontally. If plans don’t fit, the layout changes instead.</li>
+        </ul>
+        <h4>Selection</h4>
+        <ul>
+          <li>Single select. Choosing a plan outlines its column and changes its CTA to “Selected”. Choosing another plan moves the selection.</li>
+          <li>Selection persists across layout changes; in paired mode the selected plan is kept in view.</li>
+          <li>In production the CTA normally continues to the next step. The selected state represents a choice already made — a returning customer or a basket — and must still be shown when they come back to compare.</li>
+        </ul>
+        <h4>Automatic rules</h4>
+        <ul>
+          <li>Rows where no plan includes the feature are dropped (they only add noise).</li>
+          <li>If any price has pence, all prices show 2 decimal places.</li>
+          <li>When any plan has a badge, plan names still align — names bottom-align, badges sit above.</li>
+        </ul>
+      </section>
+
+      <section class="doc-sec" id="doc-responsive" aria-labelledby="h-responsive">
+        <h3 id="h-responsive">Responsive</h3>
+        <p>Layout is chosen from the component’s own width and its plan count — so the same component works in a full page, a side panel or a modal.</p>
+        <ul>
+          <li><strong>Full</strong> — container ≥ 900px and fits 240px + 170px per plan.</li>
+          <li><strong>Compact</strong> — fits 180px + 132px per plan. Smaller type, narrower feature column.</li>
+          <li><strong>Paired</strong> — otherwise. Two plans side by side with plan pickers; rows stack label over values.</li>
+        </ul>
+        <p>Paired mode is a different presentation of the same data, not a reduced one: every feature remains, and every plan is reachable through the pickers.</p>
+      </section>
+
+      <section class="doc-sec" id="doc-content" aria-labelledby="h-content">
+        <h3 id="h-content">Content rules</h3>
+        <div class="doc-table-wrap">
+          <table class="doc-table">
+            <thead><tr><th scope="col">Element</th><th scope="col">Guide</th><th scope="col">Notes</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Plan name</th><td>≤ 24 characters</td><td>Wraps if longer; never truncated. Avoid repeating the product (“Essential”, not “Essential Phone Insurance”).</td></tr>
+              <tr><th scope="row">Badge</th><td>≤ 20 characters</td><td>“Most popular”, “Your current plan”. Not a sales slogan.</td></tr>
+              <tr><th scope="row">Price</th><td>£11.00 a month</td><td>Currency symbol, amount, period in words. No “only”, no “from” unless genuinely variable.</td></tr>
+              <tr><th scope="row">Feature name</th><td>≤ 40 characters</td><td>Noun phrase, sentence case: “Liquid damage”. No question marks or marketing claims.</td></tr>
+              <tr><th scope="row">Feature description</th><td>≤ 60 characters</td><td>One clarifying line. Anything longer belongs in policy documents.</td></tr>
+              <tr><th scope="row">Conditional note</th><td>≤ 30 characters</td><td>The condition itself: “Up to £500”, “Up to 30 days per trip”.</td></tr>
+              <tr><th scope="row">Text value</th><td>≤ 24 characters</td><td>Use for genuinely non-binary values: excess, replacement type, claims per year.</td></tr>
+              <tr><th scope="row">Group name</th><td>≤ 24 characters</td><td>Plain category: “Loss and theft”. 3–8 rows per group, ≤ 6 groups.</td></tr>
+              <tr><th scope="row">Unavailable reason</th><td>≤ 60 characters</td><td>Say why and, if possible, what to do: “Not available for phones over 3 years old”.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: var(--s3)">Write values from the customer’s side: “Not stated” when data is missing, never a dash — a dash means “not covered” and would misinform.</p>
+      </section>
+
+      <section class="doc-sec" id="doc-accessibility" aria-labelledby="h-a11y">
+        <h3 id="h-a11y">Accessibility</h3>
+        <h4>Semantics</h4>
+        <ul>
+          <li>A native <code>&lt;table&gt;</code> with a <code>&lt;caption&gt;</code>, column headers (<code>th scope="col"</code>) for plans, row headers (<code>th scope="row"</code>) for features and a heading row per group.</li>
+          <li>Explicit table roles are set on every element so semantics survive the paired layout, where CSS changes their <code>display</code>.</li>
+          <li>It is a data table, not <code>role="grid"</code>: screen-reader table navigation already lets users move by row and column, and Tab only stops on things that do something.</li>
+        </ul>
+        <h4>Keyboard and focus</h4>
+        <ul>
+          <li>Tab order: plan pickers (paired mode) then CTAs, left to right.</li>
+          <li>Focus ring is 3px yellow inside 3px black — visible on white, tinted and dark fills, and replaced by the system colour in forced-colours mode.</li>
+          <li>Sticky regions are short (≈ 130–190px) so they don’t obscure focused content (WCAG 2.4.11).</li>
+          <li>Touch targets are at least 44px tall.</li>
+        </ul>
+        <h4>Screen readers</h4>
+        <ul>
+          <li>Status icons are <code>aria-hidden</code>; each value has text: “Included”, “Conditional: Up to £500”, “Not included”, “Not stated”.</li>
+          <li>CTA names include the plan: “Choose Extra”, “Selected Complete”.</li>
+          <li>Disabled CTAs use <code>aria-disabled="true"</code>, stay focusable, and are described by the visible reason.</li>
+          <li>Selecting a plan or changing the compared pair is announced in a polite live region.</li>
+          <li>In paired mode the caption names the two plans being compared and how many exist; each picker is labelled “First / Second plan to compare”.</li>
+        </ul>
+        <h4>Colour, zoom and reflow</h4>
+        <ul>
+          <li>Status is conveyed by shape (tick, half-circle, dash) and text, not colour alone.</li>
+          <li>At 400% zoom the container is narrow enough for paired mode — no horizontal scroll (WCAG 1.4.10).</li>
+          <li>Text contrast ≥ 4.5:1; indicator and border contrast ≥ 3:1 against their backgrounds.</li>
+        </ul>
+      </section>
+
+      <section class="doc-sec" id="doc-dodont" aria-labelledby="h-dodont">
+        <h3 id="h-dodont">Do / Don’t</h3>
+        <div class="dodont">
+          <div>
+            <h4>Do</h4>
+            <ul>
+              <li>Order plans cheapest to most comprehensive, left to right.</li>
+              <li>Put the features that differ most between plans near the top of each group.</li>
+              <li>Use conditional values with a short, specific note.</li>
+              <li>Recommend one plan only when you can say why.</li>
+              <li>Keep an unavailable plan visible with its reason.</li>
+              <li>Let the component choose its layout.</li>
+            </ul>
+          </div>
+          <div class="dont">
+            <h4>Don’t</h4>
+            <ul>
+              <li>Compare five or more plans.</li>
+              <li>List rows that every plan includes identically just to look generous.</li>
+              <li>Use colour alone to show inclusion.</li>
+              <li>Mark more than one plan as recommended, or make every CTA primary.</li>
+              <li>Show a dash for unknown data.</li>
+              <li>Add horizontal scrolling or hide plans on mobile without a way to bring them back.</li>
+              <li>Nest the matrix inside a container with <code>overflow</code> other than the intended scroll area — sticky headers will stop working.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="doc-sec" id="doc-api" aria-labelledby="h-api">
+        <h3 id="h-api">Configuration</h3>
+        <p>The component is driven entirely by data. Values: <code>true</code> included, <code>false</code> excluded, <code>{c: "note"}</code> conditional, <code>{i: "note"}</code> included with detail, a string for a text value, <code>null</code> or missing for not stated.</p>
+<pre class="code" style="margin-top: var(--s3)">new ComparisonMatrix(element, {
+  caption: "Mobile phone insurance plans",
+  plans: [
+    { id: "essential", name: "Essential", price: 7 },
+    { id: "extra",     name: "Extra",     price: 11 },
+    { id: "complete",  name: "Complete",  price: 15,
+      available: false, unavailableReason: "Not available for phones over 3 years old" }
+  ],
+  recommendedPlanId: "extra",       // optional, max one
+  recommendLabel: "Most popular",   // optional
+  showPrice: true,
+  grouped: true,
+  selectedPlanId: null,
+  groups: [
+    { id: "damage", name: "Damage", features: [
+      { id: "liquid", label: "Liquid damage",
+        values: { essential: false, extra: true, complete: true } },
+      { id: "worldwide", label: "Worldwide cover",
+        values: { essential: false, extra: { c: "Up to 30 days per trip" }, complete: true } }
+    ]}
+  ]
+});</pre>
+      </section>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* =====================================================================
+   COMPONENT
+   ===================================================================== */
+const ICON = {
+  inc: '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4.5 10.5l3.5 3.5 7.5-8.5" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  exc: '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 10h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  cond: '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6.25" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M10 3.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></svg>',
+  tick: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4.5 10.5l3.5 3.5 7.5-8.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  chev: '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M5.5 8l4.5 4.5L14.5 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function normValue(v) {
+  if (v === true) return { s: 'inc' };
+  if (v === false) return { s: 'exc' };
+  if (v === null || v === undefined) return { s: 'na' };
+  if (typeof v === 'string') return { s: 'text', t: v };
+  if (v.c) return { s: 'cond', t: v.c };
+  if (v.i) return { s: 'inc', t: v.i };
+  return { s: 'na' };
+}
+
+function valueHTML(v) {
+  const n = normValue(v);
+  const ind = icon => `<span class="cm-ind" data-part="indicator">${icon}</span>`;
+  switch (n.s) {
+    case 'inc': return `<span class="cm-val cm-val--inc">${ind(ICON.inc)}<span class="sr">Included${n.t ? ':' : ''}</span>${n.t ? `<span class="cm-note">${esc(n.t)}</span>` : ''}</span>`;
+    case 'exc': return `<span class="cm-val cm-val--exc">${ind(ICON.exc)}<span class="sr">Not included</span></span>`;
+    case 'cond': return `<span class="cm-val cm-val--cond">${ind(ICON.cond)}<span class="sr">Conditional:</span><span class="cm-note">${esc(n.t)}</span></span>`;
+    case 'text': return `<span class="cm-val cm-val--text"><span class="cm-text">${esc(n.t)}</span></span>`;
+    default: return `<span class="cm-val cm-val--na">Not stated</span>`;
+  }
+}
+
+function priceFormatter(plans) {
+  const pence = plans.some(p => p.price != null && Math.round(p.price * 100) % 100 !== 0);
+  const dp = pence ? 2 : 0;
+  return n => '£' + n.toLocaleString('en-GB', { minimumFractionDigits: dp, maximumFractionDigits: dp });
+}
+
+function scrollParent(el) {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const o = getComputedStyle(p).overflowY;
+    if (o === 'auto' || o === 'scroll') return p;
+  }
+  return null;
+}
+
+const MODE_RULES = { fullMin: 900, full: { feat: 240, plan: 170 }, compact: { feat: 180, plan: 132 } };
+
+let UID = 0;
+
+class ComparisonMatrix {
+  static computeMode(width, planCount) {
+    const r = MODE_RULES;
+    if (width >= r.fullMin && width >= r.full.feat + planCount * r.full.plan) return 'full';
+    if (width >= r.compact.feat + planCount * r.compact.plan) return 'compact';
+    return 'paired';
+  }
+
+  constructor(host, config, opts = {}) {
+    this.uid = 'cm' + (++UID);
+    this.opts = opts;
+    this.cfg = config;
+    this.state = { selected: config.selectedPlanId ?? null, pair: null, mode: null };
+    this.stuck = false;
+
+    this.root = document.createElement('div');
+    this.root.className = 'cm';
+    this.live = document.createElement('div');
+    this.live.className = 'sr';
+    this.live.setAttribute('aria-live', 'polite');
+    this.body = document.createElement('div');
+    this.body.className = 'cm-body';
+    this.root.append(this.live, this.body);
+    host.appendChild(this.root);
+
+    this.root.addEventListener('click', e => this.onClick(e));
+    this.root.addEventListener('change', e => this.onChange(e));
+    this.ro = new ResizeObserver(() => this.measure());
+    this.ro.observe(this.root);
+    this.headRO = new ResizeObserver(() => this.syncHead());
+    this.measure(true);
+  }
+
+  setConfig(config) {
+    this.cfg = config;
+    const ids = config.plans.map(p => p.id);
+    if (config.selectedPlanId !== undefined) this.state.selected = config.selectedPlanId;
+    if (!ids.includes(this.state.selected)) this.state.selected = null;
+    if (this.state.pair && !this.state.pair.every(id => ids.includes(id))) this.state.pair = null;
+    this.measure(true);
+  }
+
+  setSelected(id) { this.state.selected = id; this.render(); }
+
+  get mode() { return this.state.mode; }
+
+  measure(force) {
+    const w = this.root.clientWidth;
+    if (!w) return;
+    this.width = w;
+    const mode = this.cfg.forceMode || ComparisonMatrix.computeMode(w, this.cfg.plans.length);
+    if (force || mode !== this.state.mode) { this.state.mode = mode; this.render(); }
+    else this.syncGeometry();
+    this.opts.onMeasure?.(this);
+  }
+
+  groups() {
+    const c = this.cfg;
+    const hide = c.hideEmptyRows !== false;
+    let gs = c.groups
+      .map(g => ({ ...g, features: g.features.filter(f => !hide || c.plans.some(p => f.values[p.id] !== false)) }))
+      .filter(g => g.features.length);
+    if (c.grouped === false) gs = [{ id: 'all', name: null, features: gs.flatMap(g => g.features) }];
+    return gs;
+  }
+
+  defaultPair() {
+    const ps = this.cfg.plans;
+    if (ps.length <= 2) return ps.map(p => p.id);
+    const anchor = this.state.selected || this.cfg.recommendedPlanId;
+    let i = Math.max(0, ps.findIndex(p => p.id === anchor));
+    return i === 0 ? [ps[0].id, ps[1].id] : [ps[i - 1].id, ps[i].id];
+  }
+
+  visiblePlans() {
+    const ps = this.cfg.plans;
+    if (this.state.mode !== 'paired' || ps.length <= 2) return ps;
+    const ids = ps.map(p => p.id);
+    let pair = this.state.pair;
+    if (!pair || !pair.every(id => ids.includes(id)) ||
+        (this.state.selected && !pair.includes(this.state.selected))) {
+      pair = this.state.pair = this.defaultPair();
+    }
+    return pair.map(id => ps.find(p => p.id === id));
+  }
+
+  /* ---- part renderers ---- */
+  colClass(p, extra = '') {
+    return `cm-c${p.id === this.cfg.recommendedPlanId ? ' is-rec' : ''}${p.id === this.state.selected ? ' is-sel' : ''}${extra}`;
+  }
+
+  badge(p) {
+    if (p.id === this.cfg.recommendedPlanId)
+      return `<span class="cm-badge cm-badge--rec" data-part="badge">${esc(this.cfg.recommendLabel || 'Most popular')}</span>`;
+    if (p.badge) return `<span class="cm-badge" data-part="badge">${esc(p.badge)}</span>`;
+    return '';
+  }
+
+  price(p, fmt) {
+    if (p.price == null) return `<span class="cm-price cm-price--na" data-part="price" data-plan="${p.id}">Price on request</span>`;
+    return `<span class="cm-price" data-part="price" data-plan="${p.id}"><span class="cm-price-amt">${fmt(p.price)}</span> <span class="cm-price-per">a month</span></span>`;
+  }
+
+  cta(p) {
+    const sel = p.id === this.state.selected;
+    const dis = p.available === false;
+    const rid = `${this.uid}-reason-${p.id}`;
+    let cls = 'cm-cta';
+    if (dis) cls += '';
+    else if (sel) cls += ' is-selected';
+    else if (p.id === this.cfg.recommendedPlanId) cls += ' cm-cta--primary';
+    if (this.cfg.forceFocusCta === p.id) cls += ' force-focus';
+    const label = sel ? `${ICON.tick}<span>Selected<span class="sr"> ${esc(p.name)}</span></span>` : `Choose<span class="sr"> ${esc(p.name)}</span>`;
+    return `<button type="button" class="${cls}" data-part="cta" data-plan="${p.id}" data-key="cta-${p.id}" data-action="select"` +
+      (dis ? ` aria-disabled="true" aria-describedby="${rid}"` : '') + `>${label}</button>` +
+      (dis ? `<p class="cm-cta-reason" id="${rid}">${esc(p.unavailableReason || 'Not available')}</p>` : '');
+  }
+
+  pairedHead(plans, fmt) {
+    const c = this.cfg;
+    const switchable = c.plans.length > 2;
+    let h = '';
+    if (switchable) h += `<p class="cm-pintro">Comparing 2 of ${c.plans.length} plans. Use the plan menus to change which plans you see.</p>`;
+    h += `<div class="cm-phead">`;
+    plans.forEach((p, i) => {
+      const sid = `${this.uid}-slot-${i}`;
+      const name = switchable
+        ? `<div class="cm-switch"><span class="cm-switch-face" aria-hidden="true"><span class="cm-pname-text">${esc(p.name)}</span>${ICON.chev}</span>` +
+          `<label class="sr" for="${sid}">${i ? 'Second' : 'First'} plan to compare</label>` +
+          `<select id="${sid}" data-slot="${i}" data-key="slot-${i}">` +
+          c.plans.map(o => `<option value="${o.id}"${o.id === p.id ? ' selected' : ''}>${esc(o.name)}${c.showPrice !== false && o.price != null ? ' – ' + fmt(o.price) + ' a month' : ''}</option>`).join('') +
+          `</select></div>`
+        : `<span class="cm-pname-text">${esc(p.name)}</span>`;
+      h += `<div class="cm-pslot ${this.colClass(p)}" style="grid-column:${i + 1}" data-part="plan-header" data-plan="${p.id}">` +
+        `<div class="cm-pslot-badge">${this.badge(p)}</div>` +
+        `<div class="cm-pslot-name">${name}</div>` +
+        `<div class="cm-pslot-price">${c.showPrice !== false ? this.price(p, fmt) : ''}</div>` +
+        `<div class="cm-pslot-cta">${this.cta(p)}</div></div>`;
+    });
+    return h + `</div>`;
+  }
+
+  table(plans, groups, fmt) {
+    const c = this.cfg, mode = this.state.mode, n = plans.length, paired = mode === 'paired';
+    const cap = paired && c.plans.length > 2
+      ? `${c.caption}: comparing ${plans[0].name} and ${plans[1].name} (2 of ${c.plans.length} plans)`
+      : `${c.caption}: ${c.plans.map(p => p.name).join(', ')}`;
+
+    let h = `<table class="cm-table" role="table" data-part="matrix"><caption class="sr">${esc(cap)}</caption>`;
+    h += `<colgroup><col class="cm-col-feature">${plans.map(() => '<col>').join('')}</colgroup>`;
+    h += `<thead role="rowgroup">`;
+    h += `<tr class="cm-hrow-name" role="row"><th scope="col" role="columnheader" class="cm-corner"><span class="sr">Feature</span></th>`;
+    plans.forEach(p => {
+      h += `<th scope="col" role="columnheader" class="${this.colClass(p)}" data-part="plan-header" data-plan="${p.id}">` +
+        `<div class="cm-pname"><span class="cm-pname-text">${esc(p.name)}</span>${paired ? '' : this.badge(p)}</div></th>`;
+    });
+    h += `</tr>`;
+    if (!paired) {
+      if (c.showPrice !== false) {
+        h += `<tr class="cm-hrow-price" role="row"><th scope="row" role="rowheader">Monthly price</th>`;
+        plans.forEach(p => { h += `<td role="cell" class="${this.colClass(p)}" data-part="plan-header" data-plan="${p.id}">${this.price(p, fmt)}</td>`; });
+        h += `</tr>`;
+      }
+      h += `<tr class="cm-hrow-cta" role="row"><td role="cell"></td>`;
+      plans.forEach(p => { h += `<td role="cell" class="${this.colClass(p)}" data-part="plan-header" data-plan="${p.id}">${this.cta(p)}</td>`; });
+      h += `</tr>`;
+    }
+    h += `</thead>`;
+
+    groups.forEach((g, gi) => {
+      h += `<tbody role="rowgroup" data-part="group" data-group="${g.id}">`;
+      if (g.name) h += `<tr class="cm-grow" role="row"><th scope="rowgroup" role="rowheader" colspan="${n + 1}">${esc(g.name)}</th></tr>`;
+      g.features.forEach((f, fi) => {
+        const last = gi === groups.length - 1 && fi === g.features.length - 1;
+        const hover = c.forceHoverRow === f.id ? ' force-hover' : '';
+        h += `<tr class="cm-row${hover}" role="row" data-part="row" data-feature="${f.id}">` +
+          `<th scope="row" role="rowheader" data-part="label"><span class="cm-flabel">${esc(f.label)}</span>${f.desc ? `<span class="cm-fdesc">${esc(f.desc)}</span>` : ''}</th>`;
+        plans.forEach(p => {
+          h += `<td role="cell" class="${this.colClass(p, last ? ' is-last' : '')}" data-part="cell" data-plan="${p.id}">${valueHTML(f.values[p.id])}</td>`;
+        });
+        h += `</tr>`;
+      });
+      h += `</tbody>`;
+    });
+    return h + `</table>`;
+  }
+
+  render() {
+    const active = document.activeElement;
+    const focusKey = this.root.contains(active) ? active.dataset.key : null;
+
+    const mode = this.state.mode;
+    this.root.className = `cm cm--${mode}` + (this.stuck ? ' is-stuck' : '') +
+      (this.state.selected && mode !== 'paired' ? ' has-sel' : '');
+    const fmt = priceFormatter(this.cfg.plans);
+    const plans = this.visiblePlans();
+    const groups = this.groups();
+
+    let h = `<div class="cm-sentinel" aria-hidden="true"></div>`;
+    if (mode === 'paired') h += this.pairedHead(plans, fmt);
+    h += this.table(plans, groups, fmt);
+    this.body.innerHTML = h;
+
+    if (focusKey) this.body.querySelector(`[data-key="${focusKey}"]`)?.focus();
+
+    this.headRO.disconnect();
+    this.headEl = this.body.querySelector(mode === 'paired' ? '.cm-phead' : '.cm-table thead');
+    if (this.headEl) this.headRO.observe(this.headEl);
+    this.syncHead();
+    this.syncGeometry();
+    this.setupStuck();
+    this.opts.onRender?.(this);
+  }
+
+  syncHead() {
+    if (this.headEl) this.root.style.setProperty('--cm-head-h', this.headEl.offsetHeight + 'px');
+  }
+
+  syncGeometry() {
+    const sel = this.state.selected;
+    if (!sel || this.state.mode === 'paired') return;
+    const table = this.body.querySelector('.cm-table');
+    const th = this.body.querySelector(`thead th[data-plan="${sel}"]`);
+    if (!table || !th) return;
+    const t = table.getBoundingClientRect(), r = th.getBoundingClientRect();
+    this.root.style.setProperty('--cm-sel-left', (r.left - t.left) + 'px');
+    this.root.style.setProperty('--cm-sel-width', r.width + 'px');
+  }
+
+  setupStuck() {
+    this.io?.disconnect();
+    const s = this.body.querySelector('.cm-sentinel');
+    this.io = new IntersectionObserver(([en]) => {
+      const top = en.rootBounds ? en.rootBounds.top : 0;
+      this.stuck = !en.isIntersecting && en.boundingClientRect.top < top;
+      this.root.classList.toggle('is-stuck', this.stuck);
+    }, { root: scrollParent(this.root), threshold: 0 });
+    this.io.observe(s);
+  }
+
+  announce(msg) {
+    this.live.textContent = '';
+    setTimeout(() => { this.live.textContent = msg; }, 60);
+  }
+
+  onClick(e) {
+    const b = e.target.closest('[data-action="select"]');
+    if (!b || !this.root.contains(b)) return;
+    if (b.getAttribute('aria-disabled') === 'true') return;
+    const id = b.dataset.plan;
+    if (this.state.selected === id) return;
+    this.state.selected = id;
+    this.render();
+    const p = this.cfg.plans.find(x => x.id === id);
+    this.announce(`${p.name} selected.`);
+    this.opts.onSelect?.(id, this);
+  }
+
+  onChange(e) {
+    const s = e.target.closest('select[data-slot]');
+    if (!s) return;
+    const slot = +s.dataset.slot, other = 1 - slot;
+    const pair = [...this.state.pair];
+    if (pair[other] === s.value) pair[other] = pair[slot];
+    pair[slot] = s.value;
+    this.state.pair = pair;
+    // If the customer moves their selected plan out of view, keep the selection but stop forcing it into the pair.
+    if (this.state.selected && !pair.includes(this.state.selected)) this.state.selected = null;
+    this.render();
+    const nm = id => this.cfg.plans.find(p => p.id === id).name;
+    this.announce(`Now comparing ${nm(pair[0])} and ${nm(pair[1])}.`);
+    this.opts.onSelect?.(this.state.selected, this);
+  }
+}
+
+/* =====================================================================
+   DATA — fictional phone insurance
+   ===================================================================== */
+const PLAN_LIB = {
+  essential: { id: 'essential', name: 'Essential', price: 7 },
+  extra: { id: 'extra', name: 'Extra', price: 11 },
+  complete: { id: 'complete', name: 'Complete', price: 15 },
+  plus: { id: 'plus', name: 'Complete Plus', price: 19 }
+};
+
+const GROUPS = [
+  { id: 'damage', name: 'Damage', features: [
+    { id: 'accidental', label: 'Accidental damage', desc: 'Drops, knocks and impacts',
+      values: { essential: true, extra: true, complete: true, plus: true } },
+    { id: 'screen', label: 'Cracked screen', desc: 'Front and rear glass',
+      values: { essential: true, extra: true, complete: true, plus: true } },
+    { id: 'liquid', label: 'Liquid damage',
+      values: { essential: false, extra: true, complete: true, plus: true } },
+    { id: 'breakdown', label: 'Mechanical breakdown', desc: 'Once the manufacturer warranty ends',
+      values: { essential: { c: 'Repair only' }, extra: true, complete: true, plus: true } }
+  ]},
+  { id: 'loss', name: 'Loss and theft', features: [
+    { id: 'theft', label: 'Theft',
+      values: { essential: false, extra: true, complete: true, plus: true } },
+    { id: 'loss', label: 'Loss',
+      values: { essential: false, extra: false, complete: true, plus: true } },
+    { id: 'misuse', label: 'Unauthorised calls and data', desc: 'Charges after theft or loss',
+      values: { essential: false, extra: { c: 'Up to £500' }, complete: { i: 'Up to £2,000' }, plus: { i: 'Up to £2,000' } } }
+  ]},
+  { id: 'service', name: 'Cover and service', features: [
+    { id: 'worldwide', label: 'Worldwide cover',
+      values: { essential: false, extra: { c: 'Up to 30 days per trip' }, complete: { i: 'Up to 90 days per trip' }, plus: { i: 'Up to 90 days per trip' } } },
+    { id: 'replacement', label: 'Replacement device', desc: 'If your phone can’t be repaired',
+      values: { essential: 'Refurbished', extra: 'Refurbished', complete: 'New', plus: 'New' } },
+    { id: 'speed', label: 'Repair or replacement time',
+      values: { essential: 'Within 3 working days', extra: 'Next working day', complete: { c: 'Same day in selected areas' }, plus: { c: 'Same day in selected areas' } } },
+    { id: 'connected', label: 'Connected device cover', desc: 'One smartwatch or tablet on the same account',
+      values: { essential: false, extra: false, complete: false, plus: true } },
+    { id: 'excess', label: 'Excess per claim',
+      values: { essential: '£75', extra: '£50', complete: '£25', plus: '£25' } },
+    { id: 'claims', label: 'Claims per year',
+      values: { essential: '2', extra: '2', complete: '3', plus: '4' } }
+  ]}
+];
+
+const clone = o => JSON.parse(JSON.stringify(o));
+const PLAN_SETS = { 2: ['essential', 'extra'], 3: ['essential', 'extra', 'complete'], 4: ['essential', 'extra', 'complete', 'plus'] };
+
+function buildConfig({ plans = 3, price = true, recommend = true, grouped = true, ...rest } = {}) {
+  return {
+    caption: 'Mobile phone insurance plans',
+    plans: PLAN_SETS[plans].map(id => ({ ...PLAN_LIB[id] })),
+    recommendedPlanId: recommend ? 'extra' : null,
+    showPrice: price,
+    grouped,
+    groups: clone(GROUPS),
+    ...rest
+  };
+}
+
+function buildStressConfig(f) {
+  const cfg = buildConfig({ plans: f.four ? 4 : 3 });
+  const P = Object.fromEntries(cfg.plans.map(p => [p.id, p]));
+  const feat = id => cfg.groups.flatMap(g => g.features).find(x => x.id === id);
+
+  if (f.longNames) {
+    P.extra.name = 'Extra with Worldwide Travel Protection';
+    if (P.plus) P.plus.name = 'Complete Plus for Business and Shared Devices';
+    else P.complete.name = 'Complete Cover with Same-Day Replacement';
+    cfg.recommendLabel = 'Recommended for your Galaxy S24 Ultra';
+  }
+  if (f.prices) {
+    P.essential.price = 4.99; P.extra.price = 12.5; P.complete.price = 18;
+    if (P.plus) P.plus.price = 129.99;
+  }
+  if (f.longFeatures) {
+    Object.assign(feat('accidental'), { label: 'Accidental damage, including dents, cracks and damage that happens while the phone is in a protective case', desc: 'Covers drops, knocks and other impacts to the device body, screen and camera lenses' });
+    feat('misuse').label = 'Unauthorised calls, texts, data and premium-rate services after theft or loss';
+    feat('speed').label = 'Repair or replacement turnaround time from approved claim';
+  }
+  if (f.missing) {
+    feat('worldwide').values.essential = null;
+    feat('claims').values.extra = null;
+    delete feat('speed').values.complete;
+    if (P.plus) feat('breakdown').values.plus = null;
+  }
+  if (f.extraGroups) {
+    cfg.groups.push(
+      { id: 'business', name: 'Business use', features: [
+        { id: 'users', label: 'Named users', values: { essential: '1', extra: '1', complete: '2', plus: 'Up to 10' } },
+        { id: 'recovery', label: 'Data recovery', desc: 'From damaged internal storage', values: { essential: false, extra: false, complete: { c: 'One attempt per claim' }, plus: true } },
+        { id: 'loan', label: 'Loan device during repair', values: { essential: false, extra: { c: 'Subject to availability' }, complete: true, plus: true } }
+      ]},
+      { id: 'accessories', name: 'Accessories', features: [
+        { id: 'cases', label: 'Cases, chargers and cables', values: { essential: false, extra: false, complete: { c: 'Up to £150' }, plus: { i: 'Up to £400' } } },
+        { id: 'audio', label: 'Wireless headphones', values: { essential: false, extra: false, complete: false, plus: { c: 'One pair per year' } } }
+      ]}
+    );
+  }
+  if (f.unavailable) {
+    const target = P.plus || P.complete;
+    target.available = false;
+    target.unavailableReason = 'Not available for phones more than 36 months old. Your phone was first activated in March 2022.';
+  }
+  return cfg;
+}
+
+/* =====================================================================
+   DOCUMENTATION APP
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const readout = (k, v) => $$(`[data-readout="${k}"]`).forEach(el => { el.textContent = v; });
+const modeName = m => ({ full: 'Full (desktop)', compact: 'Compact (tablet)', paired: 'Paired (mobile)' }[m] || m);
+const instances = {};
+
+const inits = {
+  component() {
+    instances.component = new ComparisonMatrix($('[data-mount="component"]'), buildConfig(), {
+      onMeasure: m => { readout('component-mode', modeName(m.mode)); readout('component-width', Math.round(m.width) + 'px'); },
+      onSelect: id => readout('component-sel', id ? PLAN_LIB[id].name : 'None')
+    });
+  },
+
+  anatomy() {
+    const cfg = buildConfig({ forceMode: 'full' });
+    cfg.groups = [
+      { ...cfg.groups[0], features: cfg.groups[0].features.slice(0, 3) },
+      { ...cfg.groups[1], features: cfg.groups[1].features.slice(0, 2) }
+    ];
+    const stage = $('[data-anat-stage]'), overlay = $('[data-anat-overlay]'), legend = $('[data-anat-legend]');
+    const m = instances.anatomy = new ComparisonMatrix($('[data-mount="anatomy"]'), cfg, { onRender: () => requestAnimationFrame(draw) });
+    const R = () => m.root;
+    const rows = () => $$('tbody', R())[0].querySelectorAll('tr.cm-row');
+
+    const PARTS = [
+      { key: 'matrix', lvl: 1, name: 'Comparison Matrix', ds: 'Root table; layout mode, selection, sticky offsets', els: () => [$('.cm-table', R())], at: 'left-top' },
+      { key: 'plan-header', lvl: 2, name: 'Plan Header', ds: 'Column header: badge, name, price, CTA', els: () => $$('[data-part="plan-header"][data-plan="extra"]', R()), at: 'top-right' },
+      { key: 'badge', lvl: 3, name: 'Badge', ds: 'Optional; one recommendation max', els: () => [$('[data-part="badge"]', R())], at: 'right' },
+      { key: 'price', lvl: 3, name: 'Price', ds: 'Optional; all plans or none', els: () => [$('[data-part="price"][data-plan="complete"]', R())], at: 'right' },
+      { key: 'cta', lvl: 3, name: 'CTA', ds: 'Choose plan; primary only when recommended', els: () => [$('[data-part="cta"][data-plan="complete"]', R())], at: 'top-right' },
+      { key: 'group', lvl: 2, name: 'Feature Group', ds: 'Optional heading + rows', els: () => [$$('tbody', R())[1]], at: 'left-top' },
+      { key: 'row', lvl: 3, name: 'Comparison Row', ds: 'One feature across every plan', els: () => [rows()[1]], at: 'left-mid' },
+      { key: 'label', lvl: 3, name: 'Feature Label', ds: 'Row header: name + description', els: () => [rows()[0].querySelector('th')], at: 'inside-right' },
+      { key: 'cell', lvl: 3, name: 'Value Cell', ds: 'One plan’s value for one feature', els: () => [rows()[2].querySelector('td[data-plan="extra"]')], at: 'top-right' },
+      { key: 'indicator', lvl: 3, name: 'Status Indicator', ds: 'Tick, half-circle or dash + text', els: () => [rows()[2].querySelector('td[data-plan="essential"] .cm-ind')], at: 'right' }
+    ];
+    let active = 'plan-header';
+
+    legend.innerHTML = PARTS.map((p, i) =>
+      `<li class="lvl-${p.lvl}"><button type="button" data-key="${p.key}" aria-pressed="${p.key === active}"><span class="n">${i + 1}</span><span><span class="nm">${p.name}</span><span class="ds">${p.ds}</span></span></button></li>`).join('');
+    const setActive = k => {
+      active = k;
+      $$('button', legend).forEach(b => b.setAttribute('aria-pressed', b.dataset.key === k));
+      $$('.anat-box, .anat-pin', overlay).forEach(el => el.classList.toggle('on', el.dataset.key === k));
+    };
+    legend.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setActive(b.dataset.key); });
+    legend.addEventListener('mouseover', e => { const b = e.target.closest('button'); if (b) setActive(b.dataset.key); });
+    legend.addEventListener('focusin', e => { const b = e.target.closest('button'); if (b) setActive(b.dataset.key); });
+
+    function draw() {
+      const s = stage.getBoundingClientRect();
+      let h = '';
+      PARTS.forEach((p, i) => {
+        const els = p.els().filter(Boolean);
+        if (!els.length) return;
+        const rs = els.map(e => e.getBoundingClientRect());
+        const r = {
+          l: Math.min(...rs.map(x => x.left)) - s.left, t: Math.min(...rs.map(x => x.top)) - s.top,
+          r: Math.max(...rs.map(x => x.right)) - s.left, b: Math.max(...rs.map(x => x.bottom)) - s.top
+        };
+        const pin = {
+          'left-top': [18, r.t], 'left-mid': [18, (r.t + r.b) / 2 - 11], 'top-right': [r.r - 11, r.t - 11],
+          'right': [r.r + 6, (r.t + r.b) / 2 - 11], 'inside-right': [r.r - 30, (r.t + r.b) / 2 - 11]
+        }[p.at];
+        const on = p.key === active ? ' on' : '';
+        h += `<div class="anat-box${on}" data-key="${p.key}" style="left:${r.l}px;top:${r.t}px;width:${r.r - r.l}px;height:${r.b - r.t}px"></div>`;
+        h += `<div class="anat-pin${on}" data-key="${p.key}" style="left:${pin[0]}px;top:${pin[1]}px">${i + 1}</div>`;
+      });
+      overlay.innerHTML = h;
+    }
+    new ResizeObserver(() => requestAnimationFrame(draw)).observe(stage);
+    requestAnimationFrame(draw);
+  },
+
+  variants() {
+    const form = $('[data-variant-controls]');
+    const read = () => ({
+      plans: +form.elements['v-plans'].value,
+      price: form.elements['v-price'].value === '1',
+      recommend: form.elements['v-rec'].value === '1',
+      grouped: form.elements['v-grouped'].value === '1'
+    });
+    const code = v => [
+      '<ComparisonMatrix',
+      `  plans={[${PLAN_SETS[v.plans].map(id => `"${id}"`).join(', ')}]}`,
+      `  showPrice={${v.price}}`,
+      `  recommendedPlanId={${v.recommend ? '"extra"' : 'null'}}`,
+      `  grouped={${v.grouped}}`,
+      '/>'
+    ].join('\n');
+    const update = () => {
+      const v = read();
+      $('[data-variant-code]').textContent = code(v);
+      if (instances.variants) instances.variants.setConfig(buildConfig(v));
+      else instances.variants = new ComparisonMatrix($('[data-mount="variants"]'), buildConfig(v), { onMeasure: m => readout('variants-mode', modeName(m.mode)) });
+    };
+    form.addEventListener('change', update);
+    update();
+  },
+
+  states() {
+    const specs = [
+      ['Secondary · default', 'cm-cta', 'Choose', ''],
+      ['Secondary · hover', 'cm-cta force-hover', 'Choose', ''],
+      ['Secondary · focus', 'cm-cta force-focus', 'Choose', 'Keyboard only (<code>:focus-visible</code>)'],
+      ['Primary · default', 'cm-cta cm-cta--primary', 'Choose', 'Recommended plan only'],
+      ['Primary · hover', 'cm-cta cm-cta--primary force-hover', 'Choose', ''],
+      ['Primary · focus', 'cm-cta cm-cta--primary force-focus', 'Choose', 'Ring is legible on the accent fill'],
+      ['Selected', 'cm-cta is-selected', `${ICON.tick}<span>Selected</span>`, 'Name: “Selected &lt;plan&gt;”'],
+      ['Disabled', 'cm-cta', 'Choose', '<code>aria-disabled</code>; focusable; reason linked']
+    ];
+    $('[data-cta-specs]').innerHTML = specs.map(([name, cls, label, note], i) => {
+      const dis = name === 'Disabled';
+      return `<div class="spec"><div class="spec-stage"><button type="button" tabindex="-1" class="${cls}"${dis ? ' aria-disabled="true"' : ''}>${label}<span class="sr"> Extra (example)</span></button>` +
+        (dis ? '<p class="cm-cta-reason">Not available for phones over 3 years old</p>' : '') +
+        `</div><div class="spec-name">${name}</div>${note ? `<div class="spec-note">${note}</div>` : ''}</div>`;
+    }).join('');
+
+    const values = [
+      ['Included', true, '“Included”', '<code>true</code>'],
+      ['Included with detail', { i: 'Up to £2,000' }, '“Included: Up to £2,000”', '<code>{i: "Up to £2,000"}</code>'],
+      ['Conditional', { c: 'Up to 30 days per trip' }, '“Conditional: Up to 30 days per trip”', '<code>{c: "…"}</code> — note required'],
+      ['Excluded', false, '“Not included”', '<code>false</code>'],
+      ['Text value', 'Next working day', '“Next working day”', '<code>"Next working day"</code>'],
+      ['Not stated', null, '“Not stated”', '<code>null</code> or missing — never a dash']
+    ];
+    $('[data-value-specs]').innerHTML = values.map(([name, v, sr, data]) =>
+      `<div class="spec"><div class="spec-stage">${valueHTML(v)}</div><div class="spec-name">${name}</div>` +
+      `<div class="spec-note">Announced: ${sr}</div><div class="spec-note">Data: ${data}</div></div>`).join('');
+
+    const cfg = buildConfig({ plans: 4, forceMode: 'full', selectedPlanId: 'complete', forceHoverRow: 'liquid', caption: 'State specimen' });
+    cfg.plans[3].available = false;
+    cfg.plans[3].unavailableReason = 'Not available for phones over 3 years old';
+    cfg.groups = [
+      { ...cfg.groups[0], features: cfg.groups[0].features.filter(f => ['accidental', 'liquid'].includes(f.id)) },
+      { ...cfg.groups[1], features: cfg.groups[1].features.filter(f => ['misuse'].includes(f.id)) },
+      { ...cfg.groups[2], features: cfg.groups[2].features.filter(f => ['replacement'].includes(f.id)) }
+    ];
+    instances.statesMatrix = new ComparisonMatrix($('[data-mount="states-matrix"]'), cfg);
+
+    instances.statesLive = new ComparisonMatrix($('[data-mount="states-live"]'), buildConfig());
+    $('[data-clear-selection]').addEventListener('click', () => instances.statesLive.setSelected(null));
+  },
+
+  responsive() {
+    const form = $('[data-resp-controls]'), frame = $('[data-resp-frame]'), range = $('#r-width');
+    const setWidth = w => {
+      frame.style.setProperty('--frame-w', w + 'px');
+      range.value = w;
+      readout('resp-width', w + 'px');
+      const preset = $$('input[name="r-preset"]', form).find(i => +i.value === +w);
+      $$('input[name="r-preset"]', form).forEach(i => { i.checked = i === preset; });
+    };
+    const m = instances.responsive = new ComparisonMatrix($('[data-mount="responsive"]'), buildConfig({ plans: 3 }), {
+      onMeasure: mm => {
+        readout('resp-mode', modeName(mm.mode));
+        const total = mm.cfg.plans.length;
+        readout('resp-visible', mm.mode === 'paired' ? `${Math.min(2, total)} of ${total}` : `${total} of ${total}`);
+      }
+    });
+    form.addEventListener('change', e => {
+      if (e.target.name === 'r-preset') setWidth(+e.target.value);
+      if (e.target.name === 'r-plans') m.setConfig(buildConfig({ plans: +e.target.value }));
+    });
+    range.addEventListener('input', () => setWidth(+range.value));
+    setWidth(375);
+  },
+
+  stress() {
+    const form = $('[data-stress-controls]'), frame = $('[data-stress-frame]');
+    const flags = () => Object.fromEntries($$('input[type="checkbox"]', form).map(i => [i.name, i.checked]));
+    const m = instances.stress = new ComparisonMatrix($('[data-mount="stress"]'), buildStressConfig(flags()), {
+      onMeasure: mm => readout('stress-mode', modeName(mm.mode))
+    });
+    form.addEventListener('change', e => {
+      if (e.target.name === 's-width') frame.style.setProperty('--frame-w', e.target.value + 'px');
+      else m.setConfig(buildStressConfig(flags()));
+    });
+  },
+
+  docs() {
+    const links = $$('.docs-toc a');
+    const secs = links.map(a => $('#doc-' + a.getAttribute('href').split(':')[1]));
+    const io = new IntersectionObserver(() => {
+      let current = secs[0];
+      for (const s of secs) if (s.getBoundingClientRect().top < 140) current = s;
+      links.forEach((a, i) => a.classList.toggle('active', secs[i] === current));
+    }, { rootMargin: '0px 0px -60% 0px', threshold: [0, 1] });
+    secs.forEach(s => io.observe(s));
+  }
+};
+
+/* ---- Routing ---- */
+const VIEWS = ['component', 'anatomy', 'variants', 'states', 'responsive', 'stress', 'docs'];
+const done = new Set();
+let firstRoute = true;
+
+function route() {
+  const [id, sub] = location.hash.slice(1).split(':');
+  const view = VIEWS.includes(id) ? id : 'component';
+  $$('.view').forEach(v => { v.hidden = v.dataset.view !== view; });
+  $$('.app-nav a').forEach(a => {
+    if (a.getAttribute('href') === '#' + view) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
+  document.title = `${$(`.app-nav a[href="#${view}"]`).textContent} · Comparison Matrix`;
+  if (!done.has(view)) { done.add(view); inits[view](); }
+  if (sub) {
+    $('#doc-' + sub)?.scrollIntoView({ block: 'start' });
+  } else if (!firstRoute) {
+    window.scrollTo(0, 0);
+    $(`#view-${view} h2`).focus({ preventScroll: true });
+  }
+  firstRoute = false;
+}
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
