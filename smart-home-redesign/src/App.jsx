@@ -12,7 +12,12 @@ export const DIRECTIONS = {
 };
 
 function readInitialDirection() {
-  const fromUrl = new URLSearchParams(location.search).get('d');
+  let fromUrl = null;
+  try {
+    fromUrl = new URLSearchParams(location.search).get('d');
+  } catch {
+    /* sandboxed previews */
+  }
   if (fromUrl in DIRECTIONS) return fromUrl;
   try {
     const saved = localStorage.getItem('sh-direction');
@@ -34,9 +39,13 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.direction = rendered;
-    const url = new URL(location.href);
-    url.searchParams.set('d', rendered);
-    history.replaceState(null, '', url);
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set('d', rendered);
+      history.replaceState(null, '', url);
+    } catch {
+      /* sandboxed or file:// previews */
+    }
     try {
       localStorage.setItem('sh-direction', rendered);
     } catch {
