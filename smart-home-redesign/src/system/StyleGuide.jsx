@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap, ScrollTrigger, SplitText, useGSAP } from '../lib/gsap.js';
 import { useSystemReducedMotion } from '../lib/motion.js';
-import { DURATION, EASE, SCRUB, STAGGER } from '../directions/apple/tokens.js';
+import { DURATION, EASE, LINE_FROM, LINE_SPLIT, SCRUB, STAGGER } from '../directions/apple/tokens.js';
 import { Handheld, PixelScene } from '../components/art/Handheld.jsx';
 
 // Examples use "Relic Pocket", a fictional handheld. Token values are read
@@ -216,7 +216,7 @@ function TypeRow({ name, role, sample, note }) {
       <div className="sg-type__meta">
         <strong>{name}</strong>
         <span>{note}</span>
-        <code>{meta ? `${meta} @ this width` : '\u00a0'}</code>
+        <code>{meta || '\u00a0'}</code>
       </div>
       <p ref={ref} className={`sg-t-${role} sg-type__sample`}>
         {sample}
@@ -292,10 +292,9 @@ function TextRevealDemo({ reduced }) {
     const h = scope.current.querySelector('h3');
     split.current?.revert();
     split.current = SplitText.create(h, {
-      type: 'lines',
-      mask: 'lines',
+      ...LINE_SPLIT,
       onSplit: (self) =>
-        gsap.fromTo(self.lines, { yPercent: 105 }, { yPercent: 0, duration: reduced ? 0 : DURATION.text, stagger: STAGGER.lines, ease: 'cine' }),
+        gsap.fromTo(self.lines, { yPercent: LINE_FROM }, { yPercent: 0, duration: reduced ? 0 : DURATION.text, stagger: STAGGER.lines, ease: 'cine' }),
     });
   });
   playRef.current = play;
@@ -308,7 +307,7 @@ function TextRevealDemo({ reduced }) {
       </h3>
       <div className="sg-demo__bar">
         <span>
-          Lines rise through a mask · <code>yPercent 105 → 0</code> · {DURATION.text}s · stagger {STAGGER.lines}s · cine
+          Lines rise through a mask · <code>yPercent {LINE_FROM} → 0</code> · {DURATION.text}s · stagger {STAGGER.lines}s · cine
         </span>
         <button type="button" className="ap-link sg-play" onClick={play}>
           Replay
@@ -388,12 +387,12 @@ export default function StyleGuide() {
       }
 
       // ---- Cover: load-in, then a pinned boot sequence -----------------
-      const title = SplitText.create(q('.sg-cover__title'), { type: 'lines', mask: 'lines', linesClass: 'sg-cover__line' });
+      const title = SplitText.create(q('.sg-cover__title'), { ...LINE_SPLIT, linesClass: 'cn-line sg-cover__line' });
       root.current.classList.add('is-split');
       gsap
         .timeline({ defaults: { ease: 'cine' }, delay: 0.1 })
         .from(q('.sg-cover .ap-eyebrow'), { autoAlpha: 0, y: 14, duration: DURATION.support })
-        .from(title.lines, { yPercent: 105, duration: DURATION.text, stagger: STAGGER.lines }, 0.1)
+        .from(title.lines, { yPercent: LINE_FROM, duration: DURATION.text, stagger: STAGGER.lines }, 0.1)
         .from(q('.sg-cover__copy .ap-lede, .sg-cover__cue'), { autoAlpha: 0, y: 18, duration: DURATION.support, stagger: STAGGER.items }, 0.5)
         .from(q('.sg-cover__device'), { autoAlpha: 0, yPercent: 12, duration: DURATION.object }, 0.3);
 
@@ -414,11 +413,11 @@ export default function StyleGuide() {
 
       // ---- Section intros: eyebrow, H2 lines, lede ----------------------
       q('.sg-head').forEach((head) => {
-        const h2 = SplitText.create(head.querySelector('.ap-h2'), { type: 'lines', mask: 'lines' });
+        const h2 = SplitText.create(head.querySelector('.ap-h2'), LINE_SPLIT);
         const tl = gsap
           .timeline({ defaults: { ease: 'cine' }, scrollTrigger: { trigger: head, start: 'top 72%' } })
           .from(head.querySelector('.ap-eyebrow'), { autoAlpha: 0, y: 12, duration: DURATION.support })
-          .from(h2.lines, { yPercent: 105, duration: DURATION.text, stagger: STAGGER.lines }, 0.05);
+          .from(h2.lines, { yPercent: LINE_FROM, duration: DURATION.text, stagger: STAGGER.lines }, 0.05);
         const lede = head.querySelector('.ap-lede');
         if (lede) tl.from(lede, { autoAlpha: 0, y: 20, duration: DURATION.support }, 0.4);
       });
@@ -434,8 +433,8 @@ export default function StyleGuide() {
 
       // Type specimens rise line by line.
       q('.sg-type__sample').forEach((p) => {
-        const s = SplitText.create(p, { type: 'lines', mask: 'lines' });
-        gsap.from(s.lines, { yPercent: 105, duration: DURATION.text, ease: 'cine', stagger: STAGGER.lines, scrollTrigger: { trigger: p, start: 'top 88%' } });
+        const s = SplitText.create(p, LINE_SPLIT);
+        gsap.from(s.lines, { yPercent: LINE_FROM, duration: DURATION.text, ease: 'cine', stagger: STAGGER.lines, scrollTrigger: { trigger: p, start: 'top 88%' } });
       });
 
       // Spacing bars grow to their token width.
@@ -600,6 +599,10 @@ export default function StyleGuide() {
                 <TypeRow key={role} name={name} role={role} sample={sample} note={note} />
               ))}
             </ul>
+            <p className="sg-note">
+              Sizes are measured live at this window width. The fluid roles (Display, H2, H3, Eyebrow, Lede) scale with
+              the viewport between their token limits.
+            </p>
           </div>
         </section>
 

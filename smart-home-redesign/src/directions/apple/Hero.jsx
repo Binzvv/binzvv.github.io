@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { gsap, SplitText, useGSAP } from '../../lib/gsap.js';
 import { useMotion } from '../../lib/motion.js';
+import { LINE_FROM, LINE_SPLIT } from './tokens.js';
 import { Doorbell } from '../../components/art/Devices.jsx';
 import { plans } from '../../lib/content.js';
 
@@ -16,12 +17,12 @@ export default function Hero() {
 
       // Load-in: lines rise through a mask, then the device surfaces.
       // Gradient text moves onto each line so it survives the mask wrappers.
-      const title = SplitText.create(q('.ap-hero__title'), { type: 'lines', mask: 'lines', linesClass: 'ap-hero__line' });
+      const title = SplitText.create(q('.ap-hero__title'), { ...LINE_SPLIT, linesClass: 'cn-line ap-hero__line' });
       root.current.classList.add('is-split');
       gsap
         .timeline({ defaults: { ease: 'cine' }, delay: 0.1 })
         .from(q('.ap-hero__eyebrow'), { autoAlpha: 0, y: 14, duration: 1.2 })
-        .from(title.lines, { yPercent: 105, duration: 1.6, stagger: 0.1 }, 0.1)
+        .from(title.lines, { yPercent: LINE_FROM, duration: 1.6, stagger: 0.1 }, 0.1)
         .from(q('.ap-hero__lede'), { autoAlpha: 0, y: 18, duration: 1.4 }, 0.5)
         .from(q('.ap-hero__ctas > *'), { autoAlpha: 0, y: 14, duration: 1.2, stagger: 0.08 }, 0.65)
         .from(q('.ap-hero__device'), { autoAlpha: 0, yPercent: 16, duration: 2.4 }, 0.3)

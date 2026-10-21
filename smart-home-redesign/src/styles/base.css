@@ -304,6 +304,16 @@ html[data-direction='monzo'] {
   z-index: 3;
 }
 
+/* Line-reveal masks (SplitText). Tight display leading puts descenders
+   outside the line box; pad the clip area down and pull the next line
+   back up so layout is unchanged. Pairs with LINE_FROM in tokens.js.
+   (SplitText derives the mask's class from the line's, so it's targeted
+   by structure: the direct parent of a .cn-line.) */
+:has(> .cn-line) {
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
 .art-scene {
   position: absolute;
   inset: 0;

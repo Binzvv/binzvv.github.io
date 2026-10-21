@@ -21,6 +21,12 @@ export const STAGGER = {
   items: 0.08, // Between siblings (CTAs, tiles, chips)
 };
 
+// Line reveals. Masks are padded below (the parent of .cn-line in base.css) so
+// descenders survive tight leading; lines start far enough down to clear
+// that padding.
+export const LINE_SPLIT = { type: 'lines', mask: 'lines', linesClass: 'cn-line' };
+export const LINE_FROM = 125; // yPercent
+
 // Scrub smoothing for scroll-linked timelines. 0.6 for short, local
 // scenes; 0.8 for long pinned stories.
 export const SCRUB = { local: 0.6, story: 0.8 };

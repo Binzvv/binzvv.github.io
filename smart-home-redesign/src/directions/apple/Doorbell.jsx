@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { gsap, SplitText, useGSAP } from '../../lib/gsap.js';
 import { useMotion } from '../../lib/motion.js';
+import { LINE_FROM, LINE_SPLIT } from './tokens.js';
 import { DoorstepScene, Phone } from '../../components/art/Scenes.jsx';
 import { doorbell } from '../../lib/content.js';
 
@@ -17,11 +18,11 @@ export default function Doorbell() {
       const q = gsap.utils.selector(root);
 
       const intro = q('.ap-db__intro')[0];
-      const title = SplitText.create(q('.ap-db__title'), { type: 'lines', mask: 'lines' });
+      const title = SplitText.create(q('.ap-db__title'), LINE_SPLIT);
       gsap
         .timeline({ defaults: { ease: 'cine' }, scrollTrigger: { trigger: intro, start: 'top 72%' } })
         .from(q('.ap-db__intro .ap-eyebrow'), { autoAlpha: 0, y: 12, duration: 1.1 })
-        .from(title.lines, { yPercent: 105, duration: 1.5, stagger: 0.1 }, 0.05)
+        .from(title.lines, { yPercent: LINE_FROM, duration: 1.5, stagger: 0.1 }, 0.05)
         .from(q('.ap-db__intro .ap-lede, .ap-db__intro .ap-meta'), { autoAlpha: 0, y: 20, duration: 1.3, stagger: 0.1 }, 0.4);
 
       // Pinned story. One timeline, three acts, each roughly one unit long.

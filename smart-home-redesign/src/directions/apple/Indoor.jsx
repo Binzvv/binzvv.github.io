@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { gsap, ScrollTrigger, SplitText, useGSAP } from '../../lib/gsap.js';
 import { useMotion } from '../../lib/motion.js';
+import { LINE_FROM, LINE_SPLIT } from './tokens.js';
 import { IndoorCamera, SensorBridge } from '../../components/art/Devices.jsx';
 import { FloorPlan } from '../../components/art/Scenes.jsx';
 import { indoor, planFeatures } from '../../lib/content.js';
@@ -31,11 +32,11 @@ export default function Indoor() {
 
       // Intro
       const intro = q('.ap-in__intro')[0];
-      const title = SplitText.create(q('.ap-in__title'), { type: 'lines', mask: 'lines' });
+      const title = SplitText.create(q('.ap-in__title'), LINE_SPLIT);
       gsap
         .timeline({ defaults: { ease: 'cine' }, scrollTrigger: { trigger: intro, start: 'top 72%' } })
         .from(q('.ap-in__intro .ap-eyebrow'), { autoAlpha: 0, y: 12, duration: 1.1 })
-        .from(title.lines, { yPercent: 105, duration: 1.5, stagger: 0.1 }, 0.05)
+        .from(title.lines, { yPercent: LINE_FROM, duration: 1.5, stagger: 0.1 }, 0.05)
         .from(q('.ap-in__intro .ap-lede, .ap-in__intro .ap-meta'), { autoAlpha: 0, y: 20, duration: 1.3, stagger: 0.1 }, 0.4);
 
       // Image reveal: the frame opens while the product drifts against it.

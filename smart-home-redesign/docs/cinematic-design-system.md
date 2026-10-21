@@ -217,8 +217,10 @@ already arriving as they appear.
 
 ### Patterns
 
-- **Text reveal:** split into lines; each line rises from `yPercent: 105`
-  through an overflow mask. Never animate per character, never scale text,
+- **Text reveal:** split into lines (`LINE_SPLIT`); each line rises from
+  `yPercent: 125` (`LINE_FROM`) through an overflow mask. The mask is
+  padded 0.16em below (the parent of `.cn-line`, in `base.css`) so descenders aren't clipped at
+  tight leading. Never reveal text through an unpadded mask. Never animate per character, never scale text,
   never blur text.
 - **Image reveal:** the frame opens from a cropped inset
   (`clip-path: inset(12% 14% round 48px)`) to full while the product
