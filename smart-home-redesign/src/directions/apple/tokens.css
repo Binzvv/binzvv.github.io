@@ -1,0 +1,115 @@
+/* ==================================================================
+   Cinematic design tokens
+   The single source of truth for the Cinematic (Apple-inspired)
+   direction. apple.css consumes these; the style guide documents them.
+   Prefix: --cn- (cinematic). Rules live in docs/cinematic-design-system.md.
+=================================================================== */
+
+:root {
+  /* ---- Colour: neutrals -------------------------------------------
+     Two worlds: Stage (dark) and Paper (light). Never mix greys
+     across worlds; each has its own muted tone tuned for contrast. */
+  --cn-black: #000000;          /* Stage background */
+  --cn-surface-dark: #161617;   /* Raised surface on Stage */
+  --cn-paper: #f5f5f7;          /* Paper background; text on Stage */
+  --cn-paper-bright: #fbfbfd;   /* Brightest paper, product sections */
+  --cn-surface: #ffffff;        /* Raised surface on Paper (cards) */
+  --cn-ink: #1d1d1f;            /* Text on Paper */
+  --cn-muted: #86868b;          /* Secondary text on Stage; tertiary on Paper */
+  --cn-muted-ink: #6e6e73;      /* Secondary text on Paper */
+  --cn-hairline: #d2d2d7;       /* Rules and dividers on Paper */
+  --cn-fixture: #c7c7cc;        /* Illustration line work */
+  --cn-guide: #a1a1a6;          /* Dashed guides in diagrams */
+  --cn-pure: #ffffff;           /* Only on imagery or the accent */
+
+  /* ---- Colour: accent -----------------------------------------------
+     One accent. Two tints: --cn-accent on Stage, --cn-accent-ink on
+     Paper and as the primary button fill. */
+  --cn-accent: #2997ff;
+  --cn-accent-ink: #0066cc;
+  --cn-accent-hover: #005bbf;   /* Darker on hover: keeps white text ≥ 4.5:1 */
+  --cn-accent-wash: rgba(0, 102, 204, 0.08);
+
+  /* ---- Colour: status (data only, never decoration) ---------------- */
+  --cn-live: #ff453a;           /* Live video indicator */
+  --cn-warning: #ff9f0a;        /* Leak / needs attention */
+  --cn-success: #34c759;        /* Device online */
+
+  /* ---- Type -------------------------------------------------------- */
+  --cn-font: 'Inter Tight Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --cn-tracking-body: -0.011em;
+
+  --cn-display-size: clamp(52px, 9.4vw, 136px);   /* Hero only, once per page */
+  --cn-display-weight: 660;
+  --cn-display-leading: 0.94;
+  --cn-display-tracking: -0.052em;
+
+  --cn-h2-size: clamp(44px, 7.2vw, 96px);         /* Section headline */
+  --cn-h2-weight: 650;
+  --cn-h2-leading: 0.98;
+  --cn-h2-tracking: -0.045em;
+
+  --cn-h3-size: clamp(32px, 4.4vw, 56px);         /* Sub-section headline */
+  --cn-h3-weight: 640;
+  --cn-h3-leading: 1.02;
+  --cn-h3-tracking: -0.04em;
+
+  --cn-title-size: 22px;                          /* Card title */
+  --cn-title-weight: 640;
+  --cn-title-tracking: -0.03em;
+
+  --cn-eyebrow-size: clamp(17px, 1.4vw, 21px);    /* Product name above a headline */
+  --cn-eyebrow-weight: 600;
+
+  --cn-lede-size: clamp(18px, 1.55vw, 22px);      /* Supporting paragraph */
+  --cn-lede-weight: 500;
+  --cn-lede-leading: 1.38;
+  --cn-lede-tracking: -0.016em;
+  --cn-lede-measure: 36ch;
+
+  --cn-body-size: 16px;
+  --cn-body-leading: 1.42;
+  --cn-control-size: 17px;                        /* Buttons, links */
+  --cn-meta-size: 15px;                           /* Prices, plan notes (tabular) */
+  --cn-caption-size: 12.5px;                      /* Nav links, device labels */
+
+  /* ---- Space ------------------------------------------------------- */
+  --cn-gutter: clamp(16px, 5vw, 64px);
+  --cn-container: 1180px;
+  --cn-space-section: clamp(120px, 18vh, 200px);  /* Above every section intro */
+  --cn-space-intro-after: clamp(40px, 6vh, 80px); /* Intro → content */
+  --cn-space-block: clamp(100px, 14vh, 160px);    /* Between blocks in a section */
+  --cn-space-1: 4px;
+  --cn-space-2: 8px;
+  --cn-space-3: 12px;
+  --cn-space-4: 16px;
+  --cn-space-5: 24px;
+  --cn-space-6: 32px;
+  --cn-space-7: 48px;
+  --cn-space-8: 64px;
+
+  /* ---- Shape ------------------------------------------------------- */
+  --cn-radius-pill: 999px;
+  --cn-radius-sm: 14px;     /* Icon chips, compact cards */
+  --cn-radius-md: 20px;     /* List rows, notifications */
+  --cn-radius-lg: 28px;     /* Cards */
+  --cn-radius-xl: 32px;     /* Media frames */
+  --cn-nav-h: 48px;
+  --cn-control-h: 44px;     /* Minimum hit target */
+
+  /* ---- Elevation (Paper only; Stage uses tone, not shadow) ---------- */
+  --cn-shadow-card: 0 1px 0 rgba(0, 0, 0, 0.04), 0 18px 40px -24px rgba(0, 0, 0, 0.18);
+  --cn-shadow-card-hover: 0 1px 0 rgba(0, 0, 0, 0.04), 0 28px 50px -24px rgba(0, 0, 0, 0.24);
+  --cn-shadow-row: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 30px -12px rgba(0, 0, 0, 0.14);
+  --cn-ring-dark: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+
+  /* ---- Materials --------------------------------------------------- */
+  --cn-glass-dark: rgba(22, 22, 23, 0.72);
+  --cn-glass-blur: saturate(180%) blur(20px);
+
+  /* ---- Motion (CSS side; GSAP values live in tokens.js) ------------- */
+  --cn-ease-ui: cubic-bezier(0.2, 0.8, 0.2, 1);   /* Hover, press */
+  --cn-ease-cine: cubic-bezier(0.16, 1, 0.3, 1);  /* Mirrors GSAP "cine" */
+  --cn-dur-press: 0.25s;
+  --cn-dur-hover: 0.6s;
+}

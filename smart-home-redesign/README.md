@@ -37,6 +37,23 @@ build on 127.0.0.1 only.
 | Doorbell | Pinned three-act story: keyhole → 1080p, page and feed fall to night, two-way talk | Press the doorbell: ripples, phone shake, notification, chat plays out; night-vision switch |
 | Sensors | Floor plan draws itself; sensors report into an alert feed; Sensor Bridge slides out from behind the camera | Horizontal pinned track of cards with live demos (lens follows your pointer, door/motion, leak, bridge plug-in) |
 
+## Cinematic design system
+
+The Cinematic direction has its own design system:
+
+- **Rules:** [`docs/cinematic-design-system.md`](docs/cinematic-design-system.md),
+  covering principles, colour, type, space, shape, components, motion,
+  accessibility and the don'ts
+- **Tokens:** `src/directions/apple/tokens.css` (CSS, `--cn-*`) and
+  `tokens.js` (GSAP curves and timings). `apple.css` reads from these.
+- **Living style guide:** `system.html`. Open
+  `http://127.0.0.1:5173/system.html` with `npm run dev`. Its swatches,
+  contrast ratios and easing plots are read from the live CSS and GSAP,
+  so they can't drift.
+
+`npm run build:single` writes self-contained copies of both pages to
+`dist-single/`.
+
 ## Accessibility and motion
 
 - `prefers-reduced-motion` (or the dock switch) removes all pinning, scrubbing

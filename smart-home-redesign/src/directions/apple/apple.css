@@ -1,61 +1,65 @@
 /* ==================================================================
    Direction A — Cinematic (Apple-inspired)
    Restraint: one typeface, two greys, one accent. Space does the work.
+   Values come from tokens.css; rules in docs/cinematic-design-system.md.
 =================================================================== */
 
+@import './tokens.css';
+
 .ap {
-  --ink: #1d1d1f;
-  --paper: #f5f5f7;
-  --white: #fbfbfd;
-  --muted: #86868b;
-  --muted-ink: #6e6e73;
-  --accent: #2997ff;
-  --accent-ink: #0066cc;
-  --nav-h: 48px;
-  font-family: 'Inter Tight Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Short aliases used throughout this file. */
+  --ink: var(--cn-ink);
+  --paper: var(--cn-paper);
+  --white: var(--cn-paper-bright);
+  --muted: var(--cn-muted);
+  --muted-ink: var(--cn-muted-ink);
+  --accent: var(--cn-accent);
+  --accent-ink: var(--cn-accent-ink);
+  --nav-h: var(--cn-nav-h);
+  font-family: var(--cn-font);
   font-feature-settings: 'ss01', 'cv11';
-  background: #000;
+  background: var(--cn-black);
   color: var(--paper);
-  letter-spacing: -0.011em;
+  letter-spacing: var(--cn-tracking-body);
 }
 
 .ap-wrap {
-  width: min(1180px, 100% - 2 * var(--gutter));
+  width: min(var(--cn-container), 100% - 2 * var(--gutter));
   margin-inline: auto;
 }
 
 /* ---------- Type ---------- */
 
 .ap-eyebrow {
-  font-size: clamp(17px, 1.4vw, 21px);
-  font-weight: 600;
+  font-size: var(--cn-eyebrow-size);
+  font-weight: var(--cn-eyebrow-weight);
   letter-spacing: -0.01em;
   margin-bottom: 14px;
 }
 .ap-h2 {
-  font-size: clamp(44px, 7.2vw, 96px);
-  font-weight: 650;
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  font-size: var(--cn-h2-size);
+  font-weight: var(--cn-h2-weight);
+  line-height: var(--cn-h2-leading);
+  letter-spacing: var(--cn-h2-tracking);
 }
 .ap-h3 {
-  font-size: clamp(32px, 4.4vw, 56px);
-  font-weight: 640;
-  line-height: 1.02;
-  letter-spacing: -0.04em;
+  font-size: var(--cn-h3-size);
+  font-weight: var(--cn-h3-weight);
+  line-height: var(--cn-h3-leading);
+  letter-spacing: var(--cn-h3-tracking);
 }
 .ap-lede {
-  max-width: 36ch;
+  max-width: var(--cn-lede-measure);
   margin-top: 22px;
-  font-size: clamp(18px, 1.55vw, 22px);
-  font-weight: 500;
-  line-height: 1.38;
-  letter-spacing: -0.016em;
+  font-size: var(--cn-lede-size);
+  font-weight: var(--cn-lede-weight);
+  line-height: var(--cn-lede-leading);
+  letter-spacing: var(--cn-lede-tracking);
   color: var(--muted);
 }
 .ap-meta {
   margin-top: 18px;
-  font-size: 15px;
+  font-size: var(--cn-meta-size);
   font-weight: 500;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -66,18 +70,18 @@
 .ap-btn {
   display: inline-flex;
   align-items: center;
-  height: 44px;
+  height: var(--cn-control-h);
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: var(--cn-radius-pill);
   background: var(--accent-ink);
-  color: #fff;
-  font-size: 17px;
+  color: var(--cn-pure);
+  font-size: var(--cn-control-size);
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.25s, scale 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background var(--cn-dur-press), scale var(--cn-dur-press) var(--cn-ease-ui);
 }
 .ap-btn:hover {
-  background: #0077ed;
+  background: var(--cn-accent-hover);
 }
 .ap-btn:active {
   scale: 0.97;
@@ -88,7 +92,7 @@
   align-items: center;
   gap: 2px;
   color: var(--accent);
-  font-size: 17px;
+  font-size: var(--cn-control-size);
   font-weight: 500;
   text-decoration: none;
 }
@@ -100,7 +104,7 @@
   border-top: 1.6px solid currentColor;
   border-right: 1.6px solid currentColor;
   transform: rotate(45deg);
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.3s var(--cn-ease-ui);
 }
 .ap-link:hover {
   text-decoration: underline;
@@ -117,9 +121,9 @@
   top: 0;
   z-index: 50;
   height: var(--nav-h);
-  background: rgba(22, 22, 23, 0.72);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
+  background: var(--cn-glass-dark);
+  -webkit-backdrop-filter: var(--cn-glass-blur);
+  backdrop-filter: var(--cn-glass-blur);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .ap-nav__inner {
@@ -127,7 +131,7 @@
   align-items: center;
   gap: 28px;
   height: 100%;
-  width: min(1180px, 100% - 2 * var(--gutter));
+  width: min(var(--cn-container), 100% - 2 * var(--gutter));
   margin-inline: auto;
 }
 .ap-nav__brand {
@@ -142,13 +146,13 @@
   gap: 24px;
 }
 .ap-nav__links a {
-  font-size: 12.5px;
+  font-size: var(--cn-caption-size);
   color: rgba(245, 245, 247, 0.8);
   text-decoration: none;
   transition: color 0.2s;
 }
 .ap-nav__links a:hover {
-  color: #fff;
+  color: var(--cn-pure);
 }
 .ap-nav__cta {
   height: 26px;
@@ -157,14 +161,14 @@
   align-items: center;
   border-radius: 999px;
   background: var(--accent-ink);
-  color: #fff;
+  color: var(--cn-pure);
   font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   transition: background 0.2s, scale 0.2s;
 }
 .ap-nav__cta:hover {
-  background: #0077ed;
+  background: var(--cn-accent-hover);
 }
 .ap-nav__cta:active {
   scale: 0.95;
@@ -181,7 +185,7 @@
 
 .ap-hero {
   position: relative;
-  background: #000;
+  background: var(--cn-black);
 }
 .ap-hero__stage {
   position: relative;
@@ -200,10 +204,10 @@
   margin-bottom: 10px;
 }
 .ap-hero__title {
-  font-size: clamp(52px, 9.4vw, 136px);
-  font-weight: 660;
-  line-height: 0.94;
-  letter-spacing: -0.052em;
+  font-size: var(--cn-display-size);
+  font-weight: var(--cn-display-weight);
+  line-height: var(--cn-display-leading);
+  letter-spacing: var(--cn-display-tracking);
 }
 /* Gentle top-lit gradient; reads as metal under studio light. */
 .ap-hero:not(.is-split) .ap-hero__title,
@@ -288,9 +292,9 @@
 .ap-hero__plan {
   text-align: left;
   padding: 26px 26px 22px;
-  border-radius: 28px;
-  background: #161617;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  border-radius: var(--cn-radius-lg);
+  background: var(--cn-surface-dark);
+  box-shadow: var(--cn-ring-dark);
   max-width: 360px;
   margin-inline: auto;
   width: 100%;
@@ -428,7 +432,7 @@
   color: var(--db-muted);
 }
 .ap-db__intro {
-  padding: clamp(120px, 18vh, 200px) 0 clamp(40px, 6vh, 80px);
+  padding: var(--cn-space-section) 0 var(--cn-space-intro-after);
 }
 
 .ap-db__stage {
@@ -567,7 +571,7 @@
   justify-content: space-between;
   font-size: calc(var(--phone-w) * 0.038);
   font-weight: 600;
-  color: #fff;
+  color: var(--cn-pure);
   font-variant-numeric: tabular-nums;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
@@ -581,7 +585,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ff453a;
+  background: var(--cn-live);
   box-shadow: 0 0 0 3px rgba(255, 69, 58, 0.25);
 }
 .ap-db__ir {
@@ -597,7 +601,7 @@
   background: rgba(0, 0, 0, 0.5);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  color: #fff;
+  color: var(--cn-pure);
   font-size: calc(var(--phone-w) * 0.034);
   font-weight: 600;
   opacity: 0;
@@ -618,7 +622,7 @@
   background: rgba(246, 246, 248, 0.82);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   backdrop-filter: saturate(180%) blur(24px);
-  color: #1d1d1f;
+  color: var(--cn-ink);
   font-size: calc(var(--phone-w) * 0.04);
   line-height: 1.25;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
@@ -630,7 +634,7 @@
 .ap-db__notif time {
   align-self: start;
   font-size: 0.85em;
-  color: #6e6e73;
+  color: var(--cn-muted-ink);
 }
 .ap-db__appIcon {
   width: calc(var(--phone-w) * 0.1);
@@ -658,7 +662,7 @@
   border-radius: 16px;
   font-size: calc(var(--phone-w) * 0.038);
   line-height: 1.3;
-  color: #fff;
+  color: var(--cn-pure);
   background: rgba(255, 255, 255, 0.18);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
@@ -688,7 +692,7 @@
   width: 3px;
   height: 100%;
   border-radius: 3px;
-  background: #fff;
+  background: var(--cn-pure);
   transform: scaleY(0.18);
   opacity: 0.85;
 }
@@ -716,8 +720,8 @@
   width: calc(var(--phone-w) * 0.13);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #fff;
-  color: #000;
+  background: var(--cn-pure);
+  color: var(--cn-black);
 }
 .ap-db.is-talking .ap-db__micBtn {
   box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
@@ -748,7 +752,7 @@
   color: var(--muted-ink);
 }
 .ap-in__intro {
-  padding: clamp(120px, 18vh, 200px) 0 clamp(48px, 7vh, 88px);
+  padding: var(--cn-space-section) 0 var(--cn-space-intro-after);
 }
 
 .ap-in__figure {
@@ -760,7 +764,7 @@
   place-items: center;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: 32px;
+  border-radius: var(--cn-radius-xl);
   background:
     radial-gradient(60% 70% at 50% 42%, #ffffff 0%, rgba(255, 255, 255, 0) 70%),
     linear-gradient(180deg, #e8e8ed 0%, #d2d2d7 100%);
@@ -845,11 +849,11 @@
   stroke: var(--accent-ink);
 }
 .art-plan__fixtures {
-  stroke: #c7c7cc;
+  stroke: var(--cn-fixture);
 }
 .art-plan__labels text {
   font: 500 13px 'Inter Tight Variable', system-ui, sans-serif;
-  fill: var(--muted);
+  fill: var(--muted-ink);
   letter-spacing: -0.01em;
 }
 .art-plan__dot {
@@ -858,7 +862,7 @@
   stroke-width: 3;
 }
 .art-plan__node--leak .art-plan__dot {
-  fill: #ff9f0a;
+  fill: var(--cn-warning);
 }
 .art-plan__ring {
   fill: none;
@@ -872,7 +876,7 @@
   animation-delay: 1.2s;
 }
 .art-plan__node--leak .art-plan__ring {
-  stroke: #ff9f0a;
+  stroke: var(--cn-warning);
 }
 @keyframes ap-ping {
   0% {
@@ -896,9 +900,9 @@
   gap: 14px;
   align-items: center;
   padding: 16px 18px;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 10px 30px -12px rgba(0, 0, 0, 0.14);
+  border-radius: var(--cn-radius-md);
+  background: var(--cn-surface);
+  box-shadow: var(--cn-shadow-row);
 }
 .ap-in__dot {
   width: 10px;
@@ -907,7 +911,7 @@
   background: var(--accent-ink);
 }
 .ap-in__dot.is-leak {
-  background: #ff9f0a;
+  background: var(--cn-warning);
 }
 .ap-in__feedBody {
   display: grid;
@@ -917,7 +921,7 @@
 .ap-in__feedDevice {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--muted-ink);
 }
 .ap-in__feedAlert {
   font-size: 16px;
@@ -926,7 +930,7 @@
 }
 .ap-in__feed time {
   font-size: 13px;
-  color: var(--muted);
+  color: var(--muted-ink);
   font-variant-numeric: tabular-nums;
 }
 @media (max-width: 860px) {
@@ -965,12 +969,12 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(40px, 6vw, 96px);
   align-items: center;
-  padding: clamp(100px, 14vh, 160px) 0;
+  padding: var(--cn-space-block) 0;
 }
 .ap-in__bridgeVisual {
   position: relative;
   aspect-ratio: 5 / 4;
-  border-radius: 32px;
+  border-radius: var(--cn-radius-xl);
   background: var(--paper);
   overflow: hidden;
 }
@@ -1009,7 +1013,7 @@
 }
 .ap-in__cable {
   fill: none;
-  stroke: #a1a1a6;
+  stroke: var(--cn-guide);
   stroke-width: 1.5;
   stroke-dasharray: 1 5;
   stroke-width: 2;
@@ -1019,7 +1023,7 @@
 .ap-in__packs {
   display: grid;
   margin-top: 32px;
-  border-top: 1px solid #d2d2d7;
+  border-top: 1px solid var(--cn-hairline);
 }
 .ap-in__packs li {
   display: flex;
@@ -1027,7 +1031,7 @@
   align-items: baseline;
   gap: 16px;
   padding: 18px 0;
-  border-bottom: 1px solid #d2d2d7;
+  border-bottom: 1px solid var(--cn-hairline);
   font-size: 15px;
   color: var(--muted-ink);
 }
@@ -1069,11 +1073,11 @@
   flex-direction: column;
   min-height: 248px;
   padding: 28px 28px 30px;
-  border-radius: 28px;
-  background: #fff;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 18px 40px -24px rgba(0, 0, 0, 0.18);
+  border-radius: var(--cn-radius-lg);
+  background: var(--cn-surface);
+  box-shadow: var(--cn-shadow-card);
   overflow: hidden;
-  transition: translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: translate var(--cn-dur-hover) var(--cn-ease-ui), box-shadow var(--cn-dur-hover) var(--cn-ease-ui);
 }
 .ap-tile:nth-child(4),
 .ap-tile:nth-child(5) {
@@ -1091,7 +1095,7 @@
 @media (hover: hover) {
   .ap-tile:hover {
     translate: 0 -4px;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 28px 50px -24px rgba(0, 0, 0, 0.24);
+    box-shadow: var(--cn-shadow-card-hover);
   }
   .ap-tile:hover::before {
     opacity: 1;
@@ -1105,7 +1109,7 @@
   padding: 9px;
   margin-bottom: 32px;
   border-radius: 12px;
-  background: rgba(0, 102, 204, 0.08);
+  background: var(--cn-accent-wash);
   fill: none;
   stroke: var(--accent-ink);
   stroke-width: 1.6;
@@ -1115,16 +1119,16 @@
 .ap-tile h4 {
   /* Text block anchors to the bottom so titles line up across a row. */
   margin: auto 0 0;
-  font-size: 22px;
-  font-weight: 640;
-  letter-spacing: -0.03em;
+  font-size: var(--cn-title-size);
+  font-weight: var(--cn-title-weight);
+  letter-spacing: var(--cn-title-tracking);
 }
 .ap-tile p {
   margin-top: 8px;
   max-width: 36ch;
   min-height: 2.84em;
-  font-size: 16px;
-  line-height: 1.42;
+  font-size: var(--cn-body-size);
+  line-height: var(--cn-body-leading);
   color: var(--muted-ink);
 }
 @media (max-width: 900px) {
@@ -1160,10 +1164,10 @@
   color: var(--muted-ink);
   font-size: 12px;
   line-height: 1.5;
-  border-top: 1px solid #d2d2d7;
+  border-top: 1px solid var(--cn-hairline);
 }
 .ap-foot p {
-  max-width: 1180px;
+  max-width: var(--cn-container);
   margin-inline: auto;
 }
 .ap-foot__next {
