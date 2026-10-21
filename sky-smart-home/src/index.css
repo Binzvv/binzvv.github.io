@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Masked text reveal. Padding keeps descenders inside the mask. */
+.split-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding: 0 0.04em 0.16em;
+  margin: 0 -0.04em -0.16em;
+}
+.split-char,
+.split-word {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Native scrollbar hidden so thumbnail and fullscreen share identical widths;
+   BrowserWindow draws its own slim indicator. */
+.site-scroll {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+.site-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+  border-radius: 4px;
+}
