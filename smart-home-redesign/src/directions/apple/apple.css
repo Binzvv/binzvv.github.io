@@ -74,13 +74,13 @@
   font-size: 17px;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.25s, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background 0.25s, scale 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .ap-btn:hover {
   background: #0077ed;
 }
 .ap-btn:active {
-  transform: scale(0.97);
+  scale: 0.97;
 }
 
 .ap-link {
@@ -161,13 +161,13 @@
   font-size: 12px;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s, scale 0.2s;
 }
 .ap-nav__cta:hover {
   background: #0077ed;
 }
 .ap-nav__cta:active {
-  transform: scale(0.95);
+  scale: 0.95;
 }
 @media (max-width: 720px) {
   .ap-nav__links {
@@ -752,7 +752,7 @@
 }
 
 .ap-in__figure {
-  margin-bottom: clamp(80px, 12vh, 140px);
+  margin-bottom: clamp(24px, 4vh, 48px);
 }
 .ap-in__frame {
   position: relative;
@@ -814,11 +814,12 @@
 .ap-in.is-motion .ap-in__map {
   height: 100svh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: calc(var(--nav-h) + clamp(24px, 6vh, 64px));
 }
 .ap-in__mapGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
   grid-template-areas:
     'head head'
     'plan feed';
@@ -835,7 +836,7 @@
   grid-area: plan;
   width: 100%;
   height: auto;
-  max-height: 58svh;
+  max-height: 62svh;
 }
 .art-plan__walls {
   stroke: var(--ink);
@@ -976,9 +977,9 @@
 .ap-in__bridgeCam {
   position: absolute;
   z-index: 2;
-  left: 12%;
+  left: 10%;
   top: 50%;
-  width: 38%;
+  width: 42%;
   transform: translateY(-50%);
 }
 .ap-in__bridgeCam svg {
@@ -989,11 +990,13 @@
 .ap-in__bridgeArt {
   position: absolute;
   z-index: 1;
-  left: 52%;
-  top: 40%;
-  width: 36%;
+  left: 60%;
+  top: 38%;
+  width: 34%;
 }
 .ap-in__bridgeArt svg {
+  /* Plug faces the camera it slots into. */
+  transform: scaleX(-1);
   width: 100%;
   height: auto;
   filter: drop-shadow(0 16px 20px rgba(0, 0, 0, 0.12));
@@ -1006,9 +1009,10 @@
 }
 .ap-in__cable {
   fill: none;
-  stroke: #c7c7cc;
+  stroke: #a1a1a6;
   stroke-width: 1.5;
-  stroke-dasharray: 2 6;
+  stroke-dasharray: 1 5;
+  stroke-width: 2;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
@@ -1049,7 +1053,7 @@
 
 /* Feature tiles */
 .ap-in__features .ap-h3 {
-  margin-bottom: 36px;
+  margin-bottom: clamp(28px, 4vw, 44px);
 }
 .ap-tiles {
   display: grid;
@@ -1061,12 +1065,15 @@
   --my: 50%;
   position: relative;
   grid-column: span 2;
-  padding: 30px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 248px;
+  padding: 28px 28px 30px;
   border-radius: 28px;
   background: #fff;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 18px 40px -24px rgba(0, 0, 0, 0.18);
   overflow: hidden;
-  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .ap-tile:nth-child(4),
 .ap-tile:nth-child(5) {
@@ -1083,7 +1090,7 @@
 }
 @media (hover: hover) {
   .ap-tile:hover {
-    transform: translateY(-4px);
+    translate: 0 -4px;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 28px 50px -24px rgba(0, 0, 0, 0.24);
   }
   .ap-tile:hover::before {
@@ -1091,9 +1098,14 @@
   }
 }
 .ap-tile__icon {
-  width: 30px;
-  height: 30px;
-  margin-bottom: 40px;
+  /* Fixed chip so every glyph sits on the same optical grid. */
+  box-sizing: content-box;
+  width: 22px;
+  height: 22px;
+  padding: 9px;
+  margin-bottom: 32px;
+  border-radius: 12px;
+  background: rgba(0, 102, 204, 0.08);
   fill: none;
   stroke: var(--accent-ink);
   stroke-width: 1.6;
@@ -1101,14 +1113,16 @@
   stroke-linejoin: round;
 }
 .ap-tile h4 {
-  margin: 0;
+  /* Text block anchors to the bottom so titles line up across a row. */
+  margin: auto 0 0;
   font-size: 22px;
   font-weight: 640;
   letter-spacing: -0.03em;
 }
 .ap-tile p {
   margin-top: 8px;
-  max-width: 32ch;
+  max-width: 36ch;
+  min-height: 2.84em;
   font-size: 16px;
   line-height: 1.42;
   color: var(--muted-ink);
@@ -1129,6 +1143,12 @@
 @media (max-width: 560px) {
   .ap-tiles {
     grid-template-columns: 1fr;
+  }
+  .ap-tile {
+    min-height: 0;
+  }
+  .ap-tile__icon {
+    margin-bottom: 24px;
   }
 }
 

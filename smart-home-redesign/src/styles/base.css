@@ -132,6 +132,8 @@ html[data-direction='monzo'] {
   left: 50%;
   bottom: max(16px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
+  /* Without this the shrink-to-fit width is capped at 50vw (from left: 50%). */
+  width: max-content;
   display: flex;
   gap: 6px;
   align-items: stretch;

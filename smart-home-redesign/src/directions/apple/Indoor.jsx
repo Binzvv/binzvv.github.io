@@ -67,15 +67,27 @@ export default function Indoor() {
       const map = q('.ap-in__map')[0];
       const nodes = q('.art-plan__node');
       const items = q('.ap-in__feed li');
+      gsap.from(q('.ap-in__mapHead > *'), {
+        autoAlpha: 0,
+        y: 24,
+        duration: 1.1,
+        ease: 'cine',
+        stagger: 0.1,
+        scrollTrigger: { trigger: map, start: 'top 80%' },
+      });
+      gsap.from(q('.art-plan__walls path'), {
+        drawSVG: '0%',
+        ease: 'power1.inOut',
+        stagger: 0.06,
+        scrollTrigger: { trigger: map, start: 'top 75%', end: 'top top', scrub: 0.6 },
+      });
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
         scrollTrigger: { trigger: map, start: 'top top', end: '+=280%', scrub: 0.8, pin: true },
       });
-      tl.from(q('.ap-in__mapHead > *'), { autoAlpha: 0, y: 24, stagger: 0.1, duration: 0.35, ease: 'power2.out' }, 0)
-        .from(q('.art-plan__walls path'), { drawSVG: '0%', duration: 0.9, stagger: 0.06, ease: 'power1.inOut' }, 0.05)
-        .from(q('.art-plan__fixtures > *, .art-plan__labels text'), { autoAlpha: 0, duration: 0.3, stagger: 0.03 }, 0.7);
+      tl.from(q('.art-plan__fixtures > *, .art-plan__labels text'), { autoAlpha: 0, duration: 0.3, stagger: 0.03 }, 0);
       nodes.forEach((node, i) => {
-        const at = 1.2 + i * 0.55;
+        const at = 0.4 + i * 0.55;
         tl.from(node, { autoAlpha: 0, duration: 0.15 }, at)
           .from(node.querySelector('.art-plan__dot'), { scale: 0, transformOrigin: '50% 50%', duration: 0.25, ease: 'back.out(3)' }, at)
           .from(items[i], { autoAlpha: 0, y: 24, duration: 0.25, ease: 'power2.out' }, at + 0.05);
@@ -158,7 +170,7 @@ export default function Indoor() {
       <div className="ap-in__bridge ap-wrap">
         <div className="ap-in__bridgeVisual" aria-hidden="true">
           <svg className="ap-in__cableSvg" viewBox="0 0 400 200" preserveAspectRatio="none">
-            <path className="ap-in__cable" d="M60 120 C 140 120, 160 60, 240 70 S 340 120, 390 110" />
+            <path className="ap-in__cable" d="M192 108 H 238" />
           </svg>
           <div className="ap-in__bridgeCam">
             <IndoorCamera variant="apple" title="" />

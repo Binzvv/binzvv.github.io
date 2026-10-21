@@ -88,15 +88,16 @@
   font-size: 15px;
 }
 .mz-press {
-  transition: transform 0.55s var(--spring), background 0.2s;
+  transition: translate 0.55s var(--spring), rotate 0.55s var(--spring), scale 0.55s var(--spring), background 0.2s;
 }
 @media (hover: hover) {
   .mz-press:hover {
-    transform: translateY(-3px) rotate(-1.5deg);
+    translate: 0 -3px;
+    rotate: -1.5deg;
   }
 }
 .mz-press:active {
-  transform: scale(0.92);
+  scale: 0.92;
   transition-duration: 0.08s;
 }
 
@@ -272,11 +273,12 @@
   padding: 18px 20px;
   border-radius: 26px;
   text-align: left;
-  transition: transform 0.6s var(--spring);
+  transition: translate 0.6s var(--spring), rotate 0.6s var(--spring);
 }
 @media (hover: hover) {
   .mz-hcard__body:hover {
-    transform: translateY(-8px) rotate(-2deg) scale(1.02);
+    translate: 0 -8px;
+    rotate: -2deg;
   }
 }
 .mz-hcard__body.is-coral {
@@ -444,11 +446,12 @@
 .mz-db__bell {
   position: relative;
   border-radius: 999px;
-  transition: transform 0.55s var(--spring);
+  transition: translate 0.55s var(--spring), rotate 0.55s var(--spring);
 }
 @media (hover: hover) {
   .mz-db__bell:hover {
-    transform: rotate(-4deg) translateY(-6px);
+    translate: 0 -6px;
+    rotate: -4deg;
   }
 }
 .mz-db__bellArt {
@@ -636,11 +639,12 @@
   font-size: 17px;
   font-weight: 750;
   font-stretch: 88%;
-  transition: transform 0.5s var(--spring);
+  transition: rotate 0.5s var(--spring), scale 0.5s var(--spring);
 }
 @media (hover: hover) {
   .mz-chip:hover {
-    transform: rotate(-4deg) scale(1.06);
+    rotate: -4deg;
+    scale: 1.06;
   }
 }
 .mz-chip--0 {
