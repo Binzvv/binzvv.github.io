@@ -10,29 +10,34 @@ export const SITES = {
   discovery: {
     title: 'Discovery',
     url: 'https://www.sky.com/smart-home',
-    capture: 'captures/discovery.png',
+    capture: 'captures/discovery.webp',
+    captureSize: [508, 2000],
     Component: DiscoverySite,
   },
   product: {
     title: 'Product',
     url: 'https://www.sky.com/smart-home/video-doorbell',
-    capture: 'captures/product.png',
+    capture: 'captures/product.webp',
+    captureSize: [804, 2000],
     Component: ProductSite,
   },
 };
 
 const displayUrl = (url) => url.replace(/^https?:\/\/(www\.)?/, '');
 
-function Capture({ src, title, Fallback }) {
+// captureSize only reserves space before decode; a swapped image keeps its own ratio.
+function Capture({ src, size, title, Fallback }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <Fallback />;
   return (
     <img
       src={`${import.meta.env.BASE_URL}${src}`}
       alt={`${title} page`}
+      width={size[0]}
+      height={size[1]}
       draggable={false}
       onError={() => setFailed(true)}
-      className="block w-full select-none"
+      className="block h-auto w-full select-none"
     />
   );
 }
@@ -42,7 +47,7 @@ function Capture({ src, title, Fallback }) {
  * Controls marked `chrome-aux` are hidden in the thumbnail and faded in on expand.
  */
 export default function BrowserWindow({ site, mini = false, onBack, scrollerRef }) {
-  const { title, url, capture, Component } = SITES[site];
+  const { title, url, capture, captureSize, Component } = SITES[site];
   const thumbRef = useRef(null);
 
   const onScroll = (e) => {
@@ -112,7 +117,7 @@ export default function BrowserWindow({ site, mini = false, onBack, scrollerRef 
         onScroll={mini ? undefined : onScroll}
         className={`site-scroll min-h-0 flex-1 outline-none ${mini ? 'overflow-hidden' : 'overflow-y-auto'}`}
       >
-        <Capture src={capture} title={title} Fallback={Component} />
+        <Capture src={capture} size={captureSize} title={title} Fallback={Component} />
       </div>
       {!mini && (
         <div className="chrome-aux pointer-events-none absolute bottom-2 right-1.5 top-[64px] w-[3px]" aria-hidden="true">
