@@ -910,7 +910,8 @@
   border-radius: 50%;
   background: var(--accent-ink);
 }
-.ap-in__dot.is-leak {
+.ap-in__dot.is-leak,
+.ap-in__dot.is-warning {
   background: var(--cn-warning);
 }
 .ap-in__feedBody {

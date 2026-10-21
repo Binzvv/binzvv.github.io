@@ -39,7 +39,9 @@ build on 127.0.0.1 only.
 
 ## Cinematic design system
 
-The Cinematic direction has its own design system:
+The Cinematic direction has its own design system. It's product-agnostic;
+its examples use Relic Pocket, a fictional handheld console with original
+artwork.
 
 - **Rules:** [`docs/cinematic-design-system.md`](docs/cinematic-design-system.md),
   covering principles, colour, type, space, shape, components, motion,

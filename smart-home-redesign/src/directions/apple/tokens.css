@@ -31,9 +31,9 @@
   --cn-accent-wash: rgba(0, 102, 204, 0.08);
 
   /* ---- Colour: status (data only, never decoration) ---------------- */
-  --cn-live: #ff453a;           /* Live video indicator */
-  --cn-warning: #ff9f0a;        /* Leak / needs attention */
-  --cn-success: #34c759;        /* Device online */
+  --cn-live: #ff453a;           /* Live / recording */
+  --cn-warning: #ff9f0a;        /* Needs attention */
+  --cn-success: #34c759;        /* Connected / powered on */
 
   /* ---- Type -------------------------------------------------------- */
   --cn-font: 'Inter Tight Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;

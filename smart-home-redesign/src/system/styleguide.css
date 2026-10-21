@@ -24,6 +24,27 @@ html[data-direction='apple'] body {
 .sg-nav {
   gap: 20px;
 }
+.sg-nav a {
+  position: relative;
+}
+.sg-nav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -15px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--cn-paper);
+  transform: scaleX(0);
+  transition: transform var(--cn-dur-hover) var(--cn-ease-ui);
+}
+.sg-nav a.is-active {
+  color: var(--cn-paper);
+}
+.sg-nav a.is-active::after {
+  transform: scaleX(1);
+}
 .sg-version {
   font-size: var(--cn-caption-size);
   color: var(--cn-muted);
@@ -46,24 +67,110 @@ html[data-direction='apple'] body {
 /* ---------- Cover (Stage) ---------- */
 
 .sg-cover {
-  padding: var(--cn-space-section) 0 var(--cn-space-block);
+  padding-bottom: var(--cn-space-block);
   background: var(--cn-black);
   color: var(--cn-paper);
 }
 .sg-cover .ap-lede {
   color: var(--cn-muted);
 }
+.sg-cover__stage {
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - var(--cn-nav-h));
+  padding: var(--cn-space-7) 0;
+  overflow: hidden;
+}
+.sg-cover__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--cn-space-7);
+}
 .sg-cover__title {
   font-size: var(--cn-display-size);
   font-weight: var(--cn-display-weight);
   line-height: var(--cn-display-leading);
   letter-spacing: var(--cn-display-tracking);
+}
+/* Top-lit metal gradient; moves onto each line once split. */
+.sg:not(.is-split) .sg-cover__title,
+.sg-cover__line {
   background: linear-gradient(180deg, #ffffff 30%, #a1a1a6 130%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   padding-bottom: 0.06em;
 }
+.sg-cover__cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--cn-space-6);
+  font-size: var(--cn-meta-size);
+  font-weight: 500;
+  color: var(--cn-muted);
+}
+.sg-cover__cue::after {
+  content: '';
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(var(--cn-muted), transparent);
+}
+.sg.is-static .sg-cover__cue {
+  display: none;
+}
+.sg-cover__device {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+.sg-cover__deviceWrap {
+  position: relative;
+  z-index: 1;
+  width: min(330px, 30vw, 36svh);
+  will-change: transform;
+}
+.sg-cover__deviceWrap > svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 50px 70px rgba(0, 0, 0, 0.85));
+}
+.sg-cover__glow {
+  position: absolute;
+  inset: -10% -20%;
+  background: radial-gradient(closest-side, rgba(41, 151, 255, 0.2), rgba(41, 151, 255, 0.05) 50%, transparent 72%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.sg-cover__caption {
+  position: relative;
+  z-index: 1;
+  max-width: 30ch;
+  margin-top: var(--cn-space-5);
+  text-align: center;
+  font-size: var(--cn-meta-size);
+  line-height: 1.45;
+  color: var(--cn-muted);
+}
+.sg-cover__caption strong {
+  display: block;
+  color: var(--cn-paper);
+  font-weight: 600;
+}
+@media (max-width: 860px) {
+  .sg-cover__grid {
+    grid-template-columns: 1fr;
+    gap: var(--cn-space-6);
+  }
+  .sg-cover__deviceWrap {
+    width: min(220px, 52vw, 30svh);
+  }
+  .sg-cover__cue {
+    margin-top: var(--cn-space-4);
+  }
+}
+
 .sg-principles {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -546,12 +653,36 @@ html[data-direction='apple'] body {
   min-height: 520px;
 }
 .sg-product__device {
-  width: 150px;
+  width: min(240px, 60%);
   height: auto;
   filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.8));
 }
-.sg-phone {
-  --phone-w: 220px;
+.sg-toast {
+  --phone-w: 300px;
+  position: relative;
+  width: min(100%, 420px);
+  aspect-ratio: 10 / 9;
+  overflow: hidden;
+  border-radius: var(--cn-radius-lg);
+  background: #000;
+  box-shadow: var(--cn-shadow-card);
+}
+.sg-toast__screen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.sg-toast .ap-db__notif {
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  font-size: 13px;
+}
+.sg-toast__icon {
+  width: 34px;
+  background: radial-gradient(circle at 50% 50%, #2997ff 0 22%, transparent 23%), linear-gradient(160deg, #2c2c2e, #000);
 }
 .sg-product .sg-note {
   grid-column: 1 / -1;
@@ -663,9 +794,9 @@ html[data-direction='apple'] body {
     linear-gradient(180deg, #e8e8ed 0%, #d2d2d7 100%);
 }
 .sg-reveal__product {
-  width: min(26%, 240px);
+  width: min(22%, 200px);
 }
-.sg-reveal__product svg {
+.sg-reveal__product > svg {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.16));
@@ -729,4 +860,88 @@ html[data-direction='apple'] body {
 
 .sg .ap-foot {
   padding-bottom: var(--cn-space-8);
+}
+
+/* ---------- Relic Pocket artwork ---------- */
+
+.art-handheld__mark {
+  font: 600 11px var(--cn-font);
+  letter-spacing: 0.28em;
+  fill: #6e6e73;
+}
+.art-handheld__labels text {
+  font: 600 10px var(--cn-font);
+  fill: #6e6e73;
+  text-anchor: middle;
+}
+.px-logo__word {
+  font: 700 9px var(--cn-font);
+  letter-spacing: 0.35em;
+  fill: #f5f5f7;
+}
+/* The screen is a nested <svg>; its size comes from its attributes, so
+   keep generic svg sizing rules off it, and clip whatever drifts out. */
+.art-handheld .art-handheld__screen {
+  max-width: none;
+  overflow: hidden;
+}
+
+/* Screens that are simply "on" (no boot sequence). */
+.is-booted .px-off,
+.is-booted .px-logo {
+  display: none;
+}
+.is-booted .art-handheld__led {
+  fill: var(--cn-success);
+}
+
+/* Loops run only while their screen is in view (.is-live via ScrollTrigger). */
+.px-cloud,
+.px-hero,
+.px-coin,
+.px-stars {
+  transform-box: view-box;
+}
+.is-live .px-cloud {
+  animation: px-drift 14s steps(56) infinite;
+}
+.is-live .px-hero {
+  animation: px-bob 0.8s steps(1) infinite;
+}
+.is-live .px-coin {
+  animation: px-spin 1.2s steps(1) infinite;
+}
+.is-live .px-stars {
+  animation: px-twinkle 2.4s steps(1) infinite;
+}
+@keyframes px-drift {
+  to {
+    transform: translateX(-56px);
+  }
+}
+@keyframes px-bob {
+  50% {
+    transform: translateY(-1px);
+  }
+}
+@keyframes px-spin {
+  50% {
+    transform: scaleX(0.4);
+  }
+}
+@keyframes px-twinkle {
+  50% {
+    opacity: 0.35;
+  }
+}
+.px-coin {
+  transform-origin: 49px 48px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-live .px-cloud,
+  .is-live .px-hero,
+  .is-live .px-coin,
+  .is-live .px-stars {
+    animation: none;
+  }
 }

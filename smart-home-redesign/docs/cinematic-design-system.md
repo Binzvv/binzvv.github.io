@@ -4,6 +4,9 @@ The Cinematic direction is an Apple-inspired language for product
 storytelling: one typeface, two greys, one accent, and motion that only
 ever explains the product.
 
+Examples use **Relic Pocket**, a fictional handheld game console. The
+system is product-agnostic, and none of its rules depend on the example.
+
 - **Tokens:** `src/directions/apple/tokens.css` (CSS) and `tokens.js` (GSAP)
 - **Implementation:** `src/directions/apple/apple.css`
 - **Living style guide:** `system.html`, built from the same CSS and run with `npm run dev`
@@ -24,7 +27,7 @@ this document.
    product. *Paper* (light) is for detail and decisions. Blue marks actions,
    nothing else.
 4. **Motion explains, never decorates.** Every animation demonstrates a
-   product truth (resolution, night vision, talk, sensors reporting in). If
+   product truth (the screen's sharpness, a save state, battery life). If
    you can't caption what an animation shows, cut it.
 5. **Precision over flourish.** Decelerating curves, no bounce, no
    overshoot. Scroll-scrubbed so the reader stays in control.
@@ -42,8 +45,8 @@ this document.
 
 - Each section belongs to one world. Change worlds at a section boundary
   with a hard cut, or inside a pinned scene by scrubbing the section's own
-  colour variables (the doorbell's day → night). Never use a gradient
-  between worlds.
+  colour variables (a screen powering on, day turning to night). Never use
+  a gradient between worlds.
 - Greys don't cross worlds. **`--cn-muted` is Stage-only.** On Paper it
   measures 3.5:1 and fails small text. Use `--cn-muted-ink` on Paper.
 
@@ -55,7 +58,7 @@ this document.
   white button text stays at 6.5:1.
 - The accent marks things you can act on. It is never used for headlines,
   large fills or decoration. One exception: a single product highlight per
-  viewport, such as the doorbell's LED glow or a sensor node.
+  viewport, such as a power LED or the active save slot.
 - `--cn-accent-wash` tints icon chips. That's its only use.
 
 ### Status
@@ -111,7 +114,7 @@ Rules:
 - A section intro is always *eyebrow (optional) → H2 → lede → meta*,
   left-aligned. Only the hero is centred.
 - Headlines run at most two lines on desktop. Break them by hand at the
-  sense break (`Someone's at the door. / You'll know first.`).
+  sense break (`Every pixel. / Exactly where you left it.`).
 - Ledes cap at `--cn-lede-measure` (36ch) and use the world's secondary
   grey.
 - Prices, times and counts use `font-variant-numeric: tabular-nums`.
@@ -122,8 +125,8 @@ Rules:
 
 Short declaratives. Sentence case. Headlines end with a full stop. No
 exclamation marks, no "revolutionary", no "seamless". Say what the product
-does in the reader's life: "Answer from anywhere.", not "Two-way audio
-functionality."
+does in the reader's life: "Pick up where you left off.", not "Advanced
+save-state functionality."
 
 ---
 
@@ -174,11 +177,11 @@ functionality."
 |---|---|
 | **Primary button** `.ap-btn` | 44px tall, pill, 0 22px padding, `--cn-accent-ink` fill, 17/500 white. Hover darkens. Press `scale: .97` over 0.25s `--cn-ease-ui`. At most one per viewport. |
 | **Link** `.ap-link` | Accent text, 17/500, chevron that nudges 3px right on hover, underline on hover. The secondary action next to a button. |
-| **Nav** `.ap-nav` | 48px, sticky, dark glass, wordmark left, 12.5px links, pill "Shop" CTA. Links collapse below 720px. |
+| **Nav** `.ap-nav` | 48px, sticky, dark glass, wordmark left, 12.5px links, pill "Buy" CTA. Links collapse below 720px. |
 | **Section intro** | Eyebrow → `.ap-h2` → `.ap-lede` → `.ap-meta`. Lines rise through a mask on entry. |
 | **Plan card** (Stage) | `--cn-surface-dark`, `--cn-ring-dark`, radius-lg. Name / includes / price (48px, tabular) / upfront note / "Choose" link. |
 | **Feature tile** (Paper) | `--cn-surface`, `--cn-shadow-card`, radius-lg, min 248px tall. Icon in a 40px wash chip; title and body bottom-anchored. Hover lifts 4px with a pointer-tracked accent glow. |
-| **Alert row** | `--cn-surface`, `--cn-shadow-row`, radius-md. Status dot, then device · room (caption, muted-ink), then alert (16/600), then time (tabular). |
+| **Event row** | `--cn-surface`, `--cn-shadow-row`, radius-md. Status dot, then source · context (caption, muted-ink), then event (16/600), then time (tabular). |
 | **Phone frame** `.phone` | Sized by `--phone-w`; every inner measure scales from it. Use it to show the app, not as decoration. |
 
 ---
@@ -225,10 +228,13 @@ already arriving as they appear.
   act plus a short hold (`PIN_PER_ACT`). Each act changes one idea and one
   line of copy. Show progress (the three-bar indicator) for multi-act
   scenes.
-- **Counting:** numbers that are the point (1080p) count up within an act.
-  Prices never animate.
-- **Loops** (waveforms, sensor pings) run only while their scene is
-  active.
+- **Counting:** numbers that are the point (1440p, 12 hours) count up
+  within an act. Prices never animate.
+- **Loops** (a screen's idle animation, status pings) run only while
+  their scene is in view.
+- **Boot sequences:** a device screen goes from off, to a logo with a
+  progress bar, to content. Scrub it on a pinned hero; play it once when
+  it arrives anywhere else.
 
 ### Engineering rules
 
@@ -253,7 +259,7 @@ already arriving as they appear.
 - Text contrast follows §2. Every pair in use meets WCAG AA (4.5:1 for text).
 - Focus: 2px accent outline at 3px offset on every interactive element.
 - Hit targets are at least `--cn-control-h` (44px).
-- Decorative art is `aria-hidden`. Real content (steps, alerts, plans)
+- Decorative art is `aria-hidden`. Real content (steps, events, plans)
   stays in the DOM as text in reading order, even when the visuals
   animate it.
 

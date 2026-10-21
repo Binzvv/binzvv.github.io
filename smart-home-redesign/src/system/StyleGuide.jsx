@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { gsap, SplitText, useGSAP } from '../lib/gsap.js';
+import { gsap, ScrollTrigger, SplitText, useGSAP } from '../lib/gsap.js';
 import { useSystemReducedMotion } from '../lib/motion.js';
 import { DURATION, EASE, SCRUB, STAGGER } from '../directions/apple/tokens.js';
-import { Doorbell, IndoorCamera } from '../components/art/Devices.jsx';
-import { DoorstepScene, Phone } from '../components/art/Scenes.jsx';
+import { Handheld, PixelScene } from '../components/art/Handheld.jsx';
 
-// Token values are read from the live CSS, so the guide can't drift from
-// tokens.css.
+// Examples use "Relic Pocket", a fictional handheld. Token values are read
+// from the live CSS, so the guide can't drift from tokens.css; motion uses
+// tokens.js, so the guide moves the way the system says it should.
 const readVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 function luminance(hex) {
@@ -74,9 +74,9 @@ const COLOURS = [
     group: 'Status',
     note: 'Data meaning only, always with a label.',
     items: [
-      ['--cn-live', 'Live'],
+      ['--cn-live', 'Live / recording'],
       ['--cn-warning', 'Needs attention'],
-      ['--cn-success', 'Online'],
+      ['--cn-success', 'Connected'],
     ],
   },
 ];
@@ -95,14 +95,14 @@ const PAIRS = [
 ];
 
 const TYPE = [
-  ['Display', 'display', 'Stay connected.', 'Hero only. Once per page.'],
-  ['H2', 'h2', 'You’ll know first.', 'Section headline. Max two lines.'],
-  ['H3', 'h3', 'Sensors that speak up.', 'Sub-section headline.'],
-  ['Card title', 'title', 'Smart alerts', 'Tiles, plans, rows.'],
-  ['Eyebrow', 'eyebrow', 'Smart Doorbell', 'Product name above an H2.'],
-  ['Lede', 'lede', 'A doorbell that sees, hears and speaks.', 'Max 36ch. Secondary grey.'],
-  ['Body', 'body', 'Every alert is saved as a clip, so nothing important slips by.', 'Card body copy.'],
-  ['Meta', 'meta', '£8 a month · £20 upfront', 'Prices and notes. Tabular figures.'],
+  ['Display', 'display', 'Play everything.', 'Hero only. Once per page.'],
+  ['H2', 'h2', 'Every pixel, exactly.', 'Section headline. Max two lines.'],
+  ['H3', 'h3', 'Your library, in your pocket.', 'Sub-section headline.'],
+  ['Card title', 'title', 'Save states', 'Tiles, plans, rows.'],
+  ['Eyebrow', 'eyebrow', 'Relic Pocket', 'Product name above an H2.'],
+  ['Lede', 'lede', 'A handheld built for the cartridges you already own.', 'Max 36ch. Secondary grey.'],
+  ['Body', 'body', 'Suspend any game mid-level and pick up exactly where you left off.', 'Card body copy.'],
+  ['Meta', 'meta', 'From £219 · Dock £89', 'Prices and notes. Tabular figures.'],
 ];
 
 const SPACES = ['--cn-space-1', '--cn-space-2', '--cn-space-3', '--cn-space-4', '--cn-space-5', '--cn-space-6', '--cn-space-7', '--cn-space-8'];
@@ -125,6 +125,25 @@ const DOS = [
   ['A static, readable layout for reduced motion.', 'Just shortening the animations.'],
 ];
 
+// Containers that rise into place as they arrive (one rule, used everywhere).
+const RISE = [
+  '.sg-principles li',
+  '.sg-world',
+  '.sg-swatchGroup',
+  '.sg-table tbody tr',
+  '.sg-rhythm > *',
+  '.sg-radii li',
+  '.sg-elev > *',
+  '.sg-spec__stage',
+  '.sg-cards > *',
+  '.sg-curve',
+  '.sg-demo',
+  '.sg-dos li',
+  '.sg-a11y li',
+  '.sg-note',
+  '.sg-h4',
+].join(', ');
+
 function Swatch({ token, label, dark }) {
   const [value, setValue] = useState('');
   useEffect(() => setValue(readVar(token)), [token]);
@@ -133,7 +152,7 @@ function Swatch({ token, label, dark }) {
       <span className={`sg-swatch__chip ${dark ? 'is-dark' : ''}`} style={{ background: `var(${token})` }} />
       <span className="sg-swatch__label">{label}</span>
       <code>{token}</code>
-      <span className="sg-swatch__hex">{value}</span>
+      <span className="sg-swatch__hex">{value || '\u00a0'}</span>
     </li>
   );
 }
@@ -197,19 +216,19 @@ function TypeRow({ name, role, sample, note }) {
       <div className="sg-type__meta">
         <strong>{name}</strong>
         <span>{note}</span>
-        <code>{meta} @ this width</code>
+        <code>{meta ? `${meta} @ this width` : '\u00a0'}</code>
       </div>
-      <p ref={ref} className={`sg-t-${role}`}>
+      <p ref={ref} className={`sg-t-${role} sg-type__sample`}>
         {sample}
       </p>
     </li>
   );
 }
 
-// Plots an ease from GSAP's own parsed function, so the curve shown is
-// the curve that runs.
+// Plots an ease from GSAP's own parsed function, so the curve shown is the
+// curve that runs. Draws itself and runs once on arrival.
 function Curve({ name, ease, label, use, reduced }) {
-  const dot = useRef(null);
+  const fig = useRef(null);
   const [path, setPath] = useState('');
   useEffect(() => {
     const fn = gsap.parseEase(ease);
@@ -219,17 +238,32 @@ function Curve({ name, ease, label, use, reduced }) {
     });
     setPath(`M${pts.join(' L')}`);
   }, [ease]);
-  const play = () => {
-    gsap.fromTo(dot.current, { x: 0 }, { x: () => dot.current.parentElement.clientWidth - 16, duration: reduced ? 0 : 1.2, ease });
-  };
+
+  const travel = () => fig.current.querySelector('.sg-curve__track').clientWidth - 16;
+
+  const { contextSafe } = useGSAP(
+    () => {
+      if (reduced || !path) return;
+      gsap
+        .timeline({ scrollTrigger: { trigger: fig.current, start: 'top 80%', once: true } })
+        .from('.sg-curve__line', { drawSVG: '0%', duration: DURATION.support, ease: 'cine' })
+        .fromTo('.sg-curve__dot', { x: 0 }, { x: travel, duration: 1.2, ease }, '-=0.4');
+    },
+    { scope: fig, dependencies: [path, reduced] },
+  );
+
+  const play = contextSafe(() => {
+    gsap.fromTo('.sg-curve__dot', { x: 0 }, { x: travel, duration: reduced ? 0 : 1.2, ease });
+  });
+
   return (
-    <figure className="sg-curve">
+    <figure className="sg-curve" ref={fig}>
       <svg viewBox="-6 -6 212 132" aria-hidden="true">
         <path d="M0 120 H200 M0 120 V10" className="sg-curve__axis" />
-        <path d={path} className="sg-curve__line" />
+        {path && <path d={path} className="sg-curve__line" />}
       </svg>
       <div className="sg-curve__track">
-        <span ref={dot} className="sg-curve__dot" />
+        <span className="sg-curve__dot" />
       </div>
       <figcaption>
         <strong>{name}</strong>
@@ -246,7 +280,14 @@ function Curve({ name, ease, label, use, reduced }) {
 function TextRevealDemo({ reduced }) {
   const scope = useRef(null);
   const split = useRef(null);
-  const { contextSafe } = useGSAP({ scope });
+  const playRef = useRef(null);
+  const { contextSafe } = useGSAP(
+    () => {
+      if (reduced) return;
+      ScrollTrigger.create({ trigger: scope.current, start: 'top 70%', once: true, onEnter: () => playRef.current?.() });
+    },
+    { scope, dependencies: [reduced] },
+  );
   const play = contextSafe(() => {
     const h = scope.current.querySelector('h3');
     split.current?.revert();
@@ -257,12 +298,13 @@ function TextRevealDemo({ reduced }) {
         gsap.fromTo(self.lines, { yPercent: 105 }, { yPercent: 0, duration: reduced ? 0 : DURATION.text, stagger: STAGGER.lines, ease: 'cine' }),
     });
   });
+  playRef.current = play;
   return (
     <div className="sg-demo" ref={scope}>
       <h3 className="sg-t-h2">
-        Someone’s at the door.
+        Every pixel.
         <br />
-        You’ll know first.
+        Exactly where you left it.
       </h3>
       <div className="sg-demo__bar">
         <span>
@@ -278,27 +320,27 @@ function TextRevealDemo({ reduced }) {
 
 function ImageRevealDemo({ reduced }) {
   const scope = useRef(null);
-  const { contextSafe } = useGSAP({ scope });
-  const play = contextSafe(() => {
-    const d = reduced ? 0 : 1.6;
-    gsap.fromTo('.sg-reveal__frame', { clipPath: 'inset(12% 14% 12% 14% round 48px)' }, { clipPath: 'inset(0% 0% 0% 0% round 32px)', duration: d, ease: 'cineInOut' });
-    gsap.fromTo('.sg-reveal__product', { yPercent: 14, scale: 1.08 }, { yPercent: 0, scale: 1, duration: d, ease: 'cine' });
-  });
+  useGSAP(
+    () => {
+      if (reduced) return;
+      const st = () => ({ trigger: scope.current, start: 'top 85%', end: 'center 45%', scrub: SCRUB.local });
+      gsap.fromTo('.sg-reveal__frame', { clipPath: 'inset(12% 14% 12% 14% round 48px)' }, { clipPath: 'inset(0% 0% 0% 0% round 32px)', ease: 'none', scrollTrigger: st() });
+      gsap.fromTo('.sg-reveal__product', { yPercent: 16, rotate: -6, scale: 1.08 }, { yPercent: -4, rotate: 0, scale: 1, ease: 'none', scrollTrigger: st() });
+    },
+    { scope, dependencies: [reduced] },
+  );
   return (
     <div className="sg-demo" ref={scope}>
-      <div className="sg-reveal__frame">
+      <div className="sg-reveal__frame sg-live">
         <div className="sg-reveal__product">
-          <IndoorCamera variant="apple" />
+          <Handheld className="is-booted" title="" />
         </div>
       </div>
       <div className="sg-demo__bar">
         <span>
-          Frame opens from a cropped inset while the product drifts against it. On the page this is scrubbed by scroll (
-          <code>scrub {SCRUB.local}</code>).
+          Scrubbed by scroll (<code>scrub {SCRUB.local}</code>): the frame opens from a cropped inset while the product
+          drifts and settles. Scroll back up to watch it reverse.
         </span>
-        <button type="button" className="ap-link sg-play" onClick={play}>
-          Replay
-        </button>
       </div>
     </div>
   );
@@ -311,10 +353,132 @@ const trackPointer = (e) => {
 };
 
 export default function StyleGuide() {
+  const root = useRef(null);
   const reduced = useSystemReducedMotion();
 
+  useGSAP(
+    () => {
+      const q = gsap.utils.selector(root);
+      const success = readVar('--cn-success');
+
+      // Created last, after the cover's pin exists, so their positions
+      // include the scroll space the pin adds.
+      const bindScrollState = () => {
+        // Loops (pixel clouds, hero, coin) run only while their screen is in view.
+        q('.sg-live').forEach((el) =>
+          ScrollTrigger.create({ trigger: el, start: 'top bottom', end: 'bottom top', toggleClass: 'is-live' }),
+        );
+        // Nav marks the section in view.
+        SECTIONS.forEach(([id]) => {
+          const link = q(`.sg-nav a[href="#${id}"]`)[0];
+          ScrollTrigger.create({
+            trigger: q(`#${id}`)[0],
+            start: 'top 50%',
+            end: 'bottom 50%',
+            onToggle: (self) => link?.classList.toggle('is-active', self.isActive),
+          });
+        });
+      };
+
+      if (reduced) {
+        gsap.set(q('.px-off, .px-logo'), { autoAlpha: 0 });
+        gsap.set(q('.art-handheld__led'), { attr: { fill: success } });
+        bindScrollState();
+        return;
+      }
+
+      // ---- Cover: load-in, then a pinned boot sequence -----------------
+      const title = SplitText.create(q('.sg-cover__title'), { type: 'lines', mask: 'lines', linesClass: 'sg-cover__line' });
+      root.current.classList.add('is-split');
+      gsap
+        .timeline({ defaults: { ease: 'cine' }, delay: 0.1 })
+        .from(q('.sg-cover .ap-eyebrow'), { autoAlpha: 0, y: 14, duration: DURATION.support })
+        .from(title.lines, { yPercent: 105, duration: DURATION.text, stagger: STAGGER.lines }, 0.1)
+        .from(q('.sg-cover__copy .ap-lede, .sg-cover__cue'), { autoAlpha: 0, y: 18, duration: DURATION.support, stagger: STAGGER.items }, 0.5)
+        .from(q('.sg-cover__device'), { autoAlpha: 0, yPercent: 12, duration: DURATION.object }, 0.3);
+
+      gsap
+        .timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: { trigger: q('.sg-cover__stage')[0], start: 'top top', end: '+=140%', scrub: SCRUB.story, pin: true },
+        })
+        .fromTo(q('.sg-cover__deviceWrap'), { rotate: -12, y: 40, scale: 0.94 }, { rotate: 0, y: 0, scale: 1.04, duration: 1, ease: 'power2.inOut' }, 0)
+        .to(q('.sg-cover__glow'), { opacity: 1, scale: 1.25, duration: 0.8 }, 0.15)
+        .to(q('.sg-cover__cue'), { autoAlpha: 0, y: -12, duration: 0.2 }, 0.05)
+        .to(q('.sg-cover .px-off'), { autoAlpha: 0, duration: 0.12 }, 0.3)
+        .to(q('.sg-cover .art-handheld__led'), { attr: { fill: success }, duration: 0.02 }, 0.3)
+        .fromTo(q('.sg-cover .px-logo__bar'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.3 }, 0.36)
+        .to(q('.sg-cover .px-logo'), { autoAlpha: 0, duration: 0.2 }, 0.72)
+        .fromTo(q('.sg-cover__caption'), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.25 }, 0.8)
+        .to({}, { duration: 0.25 });
+
+      // ---- Section intros: eyebrow, H2 lines, lede ----------------------
+      q('.sg-head').forEach((head) => {
+        const h2 = SplitText.create(head.querySelector('.ap-h2'), { type: 'lines', mask: 'lines' });
+        const tl = gsap
+          .timeline({ defaults: { ease: 'cine' }, scrollTrigger: { trigger: head, start: 'top 72%' } })
+          .from(head.querySelector('.ap-eyebrow'), { autoAlpha: 0, y: 12, duration: DURATION.support })
+          .from(h2.lines, { yPercent: 105, duration: DURATION.text, stagger: STAGGER.lines }, 0.05);
+        const lede = head.querySelector('.ap-lede');
+        if (lede) tl.from(lede, { autoAlpha: 0, y: 20, duration: DURATION.support }, 0.4);
+      });
+
+      // ---- Everything else rises into place as it arrives ---------------
+      const risers = q(RISE);
+      gsap.set(risers, { autoAlpha: 0, y: 40 });
+      ScrollTrigger.batch(risers, {
+        start: 'top 90%',
+        once: true,
+        onEnter: (batch) => gsap.to(batch, { autoAlpha: 1, y: 0, duration: DURATION.support, ease: 'cine', stagger: STAGGER.items }),
+      });
+
+      // Type specimens rise line by line.
+      q('.sg-type__sample').forEach((p) => {
+        const s = SplitText.create(p, { type: 'lines', mask: 'lines' });
+        gsap.from(s.lines, { yPercent: 105, duration: DURATION.text, ease: 'cine', stagger: STAGGER.lines, scrollTrigger: { trigger: p, start: 'top 88%' } });
+      });
+
+      // Spacing bars grow to their token width.
+      gsap.from(q('.sg-spaces__bar'), {
+        scaleX: 0,
+        transformOrigin: '0% 50%',
+        duration: DURATION.support,
+        ease: 'cine',
+        stagger: STAGGER.items,
+        scrollTrigger: { trigger: q('.sg-spaces')[0], start: 'top 80%' },
+      });
+
+      // Product stage: the device arrives, then boots.
+      const product = q('.sg-product__device')[0];
+      const p = gsap.utils.selector(product);
+      gsap
+        .timeline({ scrollTrigger: { trigger: product, start: 'top 75%' } })
+        .from(product, { autoAlpha: 0, y: 60, rotate: -6, duration: DURATION.object, ease: 'cine' })
+        .to(p('.px-off'), { autoAlpha: 0, duration: 0.2 }, 0.8)
+        .to(p('.art-handheld__led'), { attr: { fill: success }, duration: 0.01 }, 0.8)
+        .fromTo(p('.px-logo__bar'), { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.7, ease: 'cineInOut' }, 0.9)
+        .to(p('.px-logo'), { autoAlpha: 0, duration: 0.4 }, 1.8);
+      gsap.from(q('.sg-toast .ap-db__notif'), {
+        yPercent: -140,
+        autoAlpha: 0,
+        duration: DURATION.support,
+        ease: 'cine',
+        scrollTrigger: { trigger: q('.sg-toast')[0], start: 'top 70%' },
+      });
+
+      bindScrollState();
+    },
+    { scope: root, dependencies: [reduced] },
+  );
+
+  useEffect(() => {
+    const t = setTimeout(() => ScrollTrigger.refresh(), 300);
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    return () => clearTimeout(t);
+  }, [reduced]);
+
   return (
-    <div className="ap sg">
+    <div className={`ap sg ${reduced ? 'is-static' : 'is-motion'}`} ref={root}>
       <header className="ap-nav">
         <div className="ap-nav__inner">
           <a className="ap-nav__brand" href="#top">
@@ -334,17 +498,35 @@ export default function StyleGuide() {
       <main id="top">
         {/* Cover */}
         <section className="sg-cover" id="principles">
+          <div className="sg-cover__stage">
+            <div className="sg-cover__grid ap-wrap">
+              <div className="sg-cover__copy">
+                <p className="ap-eyebrow">Cinematic · Design language</p>
+                <h1 className="sg-cover__title">
+                  Design system
+                  <br />
+                  and rules.
+                </h1>
+                <p className="ap-lede">
+                  One typeface, two greys, one accent, and motion that only ever explains the product. Everything here
+                  renders from the same tokens and CSS it documents.
+                </p>
+                <p className="sg-cover__cue" aria-hidden="true">
+                  Scroll to power on
+                </p>
+              </div>
+              <div className="sg-cover__device">
+                <div className="sg-cover__glow" aria-hidden="true" />
+                <div className="sg-cover__deviceWrap sg-live">
+                  <Handheld />
+                </div>
+                <p className="sg-cover__caption">
+                  <strong>Relic Pocket</strong> A fictional handheld, used for every example in this guide.
+                </p>
+              </div>
+            </div>
+          </div>
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Smart Home · Cinematic direction</p>
-            <h1 className="sg-cover__title">
-              Design system
-              <br />
-              and rules.
-            </h1>
-            <p className="ap-lede">
-              One typeface, two greys, one accent, and motion that only ever explains the product. Everything here
-              renders from the same tokens and CSS as the prototype.
-            </p>
             <ol className="sg-principles">
               {PRINCIPLES.map(([t, b], i) => (
                 <li key={t}>
@@ -360,12 +542,14 @@ export default function StyleGuide() {
         {/* Colour */}
         <section className="sg-section" id="colour">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Colour</p>
-            <h2 className="ap-h2">Two worlds. One accent.</h2>
-            <p className="ap-lede">
-              Each section lives on Stage or on Paper. Change worlds with a hard cut at a section boundary, or by scrubbing
-              inside a pinned scene. Never with a gradient.
-            </p>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Colour</p>
+              <h2 className="ap-h2">Two worlds. One accent.</h2>
+              <p className="ap-lede">
+                Each section lives on Stage or on Paper. Change worlds with a hard cut at a section boundary, or by scrubbing
+                inside a pinned scene. Never with a gradient.
+              </p>
+            </header>
             <div className="sg-worlds">
               <div className="sg-world is-stage">
                 <span>Stage</span>
@@ -403,12 +587,14 @@ export default function StyleGuide() {
         {/* Type */}
         <section className="sg-section is-bright" id="type">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Typography</p>
-            <h2 className="ap-h2">One family. Tight at size.</h2>
-            <p className="ap-lede">
-              Inter Tight, weights 400–660. Tracking tightens as size grows; nothing is tracked positive. No italics, no
-              all-caps.
-            </p>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Typography</p>
+              <h2 className="ap-h2">One family. Tight at size.</h2>
+              <p className="ap-lede">
+                Inter Tight, weights 400–660. Tracking tightens as size grows; nothing is tracked positive. No italics, no
+                all-caps.
+              </p>
+            </header>
             <ul className="sg-typeList">
               {TYPE.map(([name, role, sample, note]) => (
                 <TypeRow key={role} name={name} role={role} sample={sample} note={note} />
@@ -420,8 +606,10 @@ export default function StyleGuide() {
         {/* Space */}
         <section className="sg-section" id="space">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Space and layout</p>
-            <h2 className="ap-h2">Space is the material.</h2>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Space and layout</p>
+              <h2 className="ap-h2">Space is the material.</h2>
+            </header>
             <div className="sg-split">
               <div>
                 <h3 className="sg-h4">Component scale · 4px base</h3>
@@ -463,8 +651,10 @@ export default function StyleGuide() {
         {/* Shape */}
         <section className="sg-section is-bright" id="shape">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Shape and elevation</p>
-            <h2 className="ap-h2">Shadows on Paper. Tone on Stage.</h2>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Shape and elevation</p>
+              <h2 className="ap-h2">Shadows on Paper. Tone on Stage.</h2>
+            </header>
             <ul className="sg-radii">
               {RADII.map(([t, use]) => (
                 <li key={t}>
@@ -496,26 +686,28 @@ export default function StyleGuide() {
         {/* Components */}
         <section className="sg-section" id="components">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Components</p>
-            <h2 className="ap-h2">Built from the same CSS.</h2>
-            <p className="ap-lede">These are the prototype’s real classes, not drawings of them. Hover and press them.</p>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Components</p>
+              <h2 className="ap-h2">Built from the same CSS.</h2>
+              <p className="ap-lede">These are the system’s real classes, not drawings of them. Hover and press them.</p>
+            </header>
 
             <h3 className="sg-h4">Actions</h3>
             <div className="sg-spec">
               <div className="sg-spec__stage is-paper">
                 <a className="ap-btn" href="#components">
-                  Shop Smart Home
+                  Buy Relic Pocket
                 </a>
                 <a className="ap-link" href="#components">
-                  Explore the doorbell
+                  Watch the film
                 </a>
               </div>
               <div className="sg-spec__stage is-dark">
                 <a className="ap-btn" href="#components">
-                  Shop Smart Home
+                  Buy Relic Pocket
                 </a>
                 <a className="ap-link" href="#components">
-                  Explore the doorbell
+                  Watch the film
                 </a>
               </div>
               <p className="sg-note">
@@ -527,14 +719,14 @@ export default function StyleGuide() {
             <h3 className="sg-h4">Section intro</h3>
             <div className="sg-spec">
               <div className="sg-spec__stage is-paper is-block">
-                <p className="ap-eyebrow">Smart Doorbell</p>
+                <p className="ap-eyebrow">Relic Pocket</p>
                 <h3 className="ap-h2">
-                  Someone’s at the door.
+                  Every pixel.
                   <br />
-                  You’ll know first.
+                  Exactly where you left it.
                 </h3>
-                <p className="ap-lede">A doorbell that sees, hears and speaks.</p>
-                <p className="ap-meta">Included with Smart Home Plan · £5 a month</p>
+                <p className="ap-lede">A handheld built for the cartridges you already own.</p>
+                <p className="ap-meta">From £219 · Dock £89</p>
               </div>
               <p className="sg-note">Always eyebrow → H2 → lede → meta, left-aligned. Headlines break by hand at the sense break and end with a full stop.</p>
             </div>
@@ -543,13 +735,13 @@ export default function StyleGuide() {
             <div className="sg-cards">
               <div className="sg-spec__stage is-dark">
                 <article className="ap-hero__plan">
-                  <h3>Smart Home Plan+</h3>
-                  <p className="ap-hero__planIncl">Smart Doorbell + Indoor Camera</p>
+                  <h3>Relic Pocket</h3>
+                  <p className="ap-hero__planIncl">Handheld + USB-C cable</p>
                   <p className="ap-hero__planPrice">
-                    <strong>£8</strong>
-                    <span>a month</span>
+                    <strong>£219</strong>
+                    <span>one-off</span>
                   </p>
-                  <p className="ap-hero__planUp">£20 upfront · Add sensor packs any time</p>
+                  <p className="ap-hero__planUp">Dock sold separately · £89</p>
                   <a className="ap-link" href="#components">
                     Choose
                   </a>
@@ -558,16 +750,16 @@ export default function StyleGuide() {
               <ul className="ap-tiles sg-oneTile">
                 <li className="ap-tile" onPointerMove={trackPointer}>
                   <svg className="ap-tile__icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 2h-14zM10 20.5a2 2 0 0 0 4 0" />
+                    <path d="M7 3.5h8l2 2v15H7zM9.5 7h5v5h-5zM10 16h4" />
                   </svg>
-                  <h4>Smart alerts</h4>
-                  <p>Know whether it was a person, a parcel or just the wind.</p>
+                  <h4>Save states</h4>
+                  <p>Suspend any game mid-level and pick up exactly where you left off.</p>
                 </li>
               </ul>
               <ol className="ap-in__feed sg-feed">
                 {[
-                  ['Contact sensor · Front door', 'Front door opened', '18:42', ''],
-                  ['Leak sensor · Kitchen', 'Water detected under the sink', '21:07', 'is-leak'],
+                  ['Cartridge · Slot 1', 'Save state written', '18:42', ''],
+                  ['Battery · 9%', 'Charge soon to keep playing', '21:07', 'is-warning'],
                 ].map(([d, a, t, c]) => (
                   <li key={a}>
                     <span className={`ap-in__dot ${c}`} aria-hidden="true" />
@@ -582,32 +774,32 @@ export default function StyleGuide() {
             </div>
             <p className="sg-note">
               Plan card (Stage): tone + 1px ring, price 48px tabular. Feature tile (Paper): icon chip, bottom-anchored text,
-              4px lift and pointer glow on hover. Alert row: status dot always beside a text label.
+              4px lift and pointer glow on hover. Event row: status dot always beside a text label.
             </p>
 
-            <h3 className="sg-h4">Product and app</h3>
+            <h3 className="sg-h4">Product and imagery</h3>
             <div className="sg-product">
-              <div className="sg-spec__stage is-dark sg-product__stage">
-                <Doorbell variant="apple" className="sg-product__device" />
+              <div className="sg-spec__stage is-dark sg-product__stage sg-live">
+                <Handheld className="sg-product__device" />
               </div>
               <div className="sg-spec__stage is-paper sg-product__stage">
-                <Phone className="sg-phone">
-                  <div className="ap-db__feed">
-                    <DoorstepScene />
-                  </div>
+                <div className="sg-toast sg-live is-booted">
+                  <svg className="sg-toast__screen" viewBox="0 0 80 72" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                    <PixelScene />
+                  </svg>
                   <div className="ap-db__notif">
-                    <span className="ap-db__appIcon" aria-hidden="true" />
+                    <span className="ap-db__appIcon sg-toast__icon" aria-hidden="true" />
                     <span>
-                      <strong>Front door</strong>
-                      Someone’s at your door
+                      <strong>Relic Pocket</strong>
+                      Game saved to slot 3
                     </span>
                     <time>now</time>
                   </div>
-                </Phone>
+                </div>
               </div>
               <p className="sg-note">
-                Product art is lit, not flat: a top-down sheen and a soft drop shadow on Stage. The phone frame scales every
-                inner measure from <code>--phone-w</code>. Glass is for UI floating over imagery, never for cards.
+                Product art is lit, not flat: a top-down sheen and a soft drop shadow on Stage. Here the device arrives,
+                then boots. Glass is for UI floating over imagery, like this toast, never for cards.
               </p>
             </div>
           </div>
@@ -616,12 +808,13 @@ export default function StyleGuide() {
         {/* Motion */}
         <section className="sg-section is-bright" id="motion">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Motion</p>
-            <h2 className="ap-h2">Motion explains.</h2>
-            <p className="ap-lede">
-              Long, soft decelerations. Scroll-scrubbed so the reader is in control. No bounce, no overshoot. Those belong to
-              the Playful direction.
-            </p>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Motion</p>
+              <h2 className="ap-h2">Motion explains.</h2>
+              <p className="ap-lede">
+                Long, soft decelerations. Scroll-scrubbed so the reader is in control. No bounce, no overshoot.
+              </p>
+            </header>
             <div className="sg-curves">
               <Curve name="cine" ease="cine" label={EASE.cine.replace('M0,0 C', 'C ')} use="Every entrance and reveal" reduced={reduced} />
               <Curve name="cineInOut" ease="cineInOut" label={EASE.cineInOut.replace('M0,0 C', 'C ')} use="Scene changes, curtain" reduced={reduced} />
@@ -653,8 +846,10 @@ export default function StyleGuide() {
         {/* Rules */}
         <section className="sg-section" id="rules">
           <div className="ap-wrap">
-            <p className="ap-eyebrow">Rules</p>
-            <h2 className="ap-h2">Do. Don’t.</h2>
+            <header className="sg-head">
+              <p className="ap-eyebrow">Rules</p>
+              <h2 className="ap-h2">Do. Don’t.</h2>
+            </header>
             <ul className="sg-dos">
               {DOS.map(([d, n]) => (
                 <li key={d}>
@@ -685,8 +880,8 @@ export default function StyleGuide() {
       <footer className="ap-foot">
         <p>
           Cinematic design system v1. Full rules: <code>docs/cinematic-design-system.md</code>. Tokens:{' '}
-          <code>src/directions/apple/tokens.css</code> and <code>tokens.js</code>. Independent design exploration, not
-          affiliated with Sky.
+          <code>src/directions/apple/tokens.css</code> and <code>tokens.js</code>. Relic Pocket is a fictional product;
+          all artwork is original.
         </p>
       </footer>
     </div>
@@ -696,5 +891,5 @@ export default function StyleGuide() {
 function SpaceValue({ token }) {
   const [v, setV] = useState('');
   useEffect(() => setV(readVar(token)), [token]);
-  return <span className="sg-spaces__v">{v}</span>;
+  return <span className="sg-spaces__v">{v || '\u00a0'}</span>;
 }
