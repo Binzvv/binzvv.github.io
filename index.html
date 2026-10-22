@@ -1,62 +1,66 @@
-<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Test</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GSAP Draggable Fan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Binz Tamang</title>
+  <meta name="description" content="Binz Tamang — Brand. Product. What’s next." />
+  <meta name="theme-color" content="#2a8ced" />
+  <link rel="preload" as="image" href="assets/head.webp" fetchpriority="high" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" />
   <link rel="stylesheet" href="style.css" />
+  <noscript><style>.is-loading .head-enter, .is-loading [data-reveal] { opacity: 1; }</style></noscript>
 </head>
-<body>
-  <div class="wrap">
-    <main class="stage">
-      <div class="bounds" id="bounds">
-        <div class="cloud" id="cloud">
-          <!-- Replace these images anytime -->
-          <div class="drag"><img alt="Mountain lake" src="https://picsum.photos/id/1015/800/600"></div>
-          <div class="drag"><img alt="Dog portrait"    src="https://picsum.photos/id/1025/800/600"></div>
-          <div class="drag"><img alt="Desert dunes"    src="https://picsum.photos/id/1003/800/600"></div>
-          <div class="drag"><img alt="Forest road"     src="https://picsum.photos/id/1005/800/600"></div>
-          <div class="drag"><img alt="Cliff and sea"   src="https://picsum.photos/id/1035/800/600"></div>
-        </div>
-
-        <!-- Center hero text (optional) -->
-        <div class="hero">
-          <h1>WEBFLOW<br>+ GSAP</h1>
-          <a href="#" class="btn">Learn More</a>
-        </div>
-      </div>
-
-      <!-- custom cursor overlay -->
-      <div class="cursor" aria-hidden="true">
-        <div class="dot" id="dot">drag</div>
-      </div>
-    </main>
-
-    <footer>
-      <div>© <span id="year"></span></div>
-      <div>Inspired by a Webflow + GSAP demo.</div>
-    </footer>
+<body class="is-loading">
+  <div class="sky" aria-hidden="true">
+    <div class="clouds" id="clouds"></div>
   </div>
 
-  <!-- GSAP + Draggable -->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js"></script>
+  <main class="intro" id="intro">
+    <div class="stage">
+      <!-- Each wrapper owns one transform so entrance, float, follow and tilt never overwrite each other -->
+      <div class="head-enter" id="headEnter">
+        <div class="head-float" id="headFloat">
+          <div class="head-follow" id="headFollow">
+            <div class="head-tilt" id="headTilt">
+              <div class="head" id="head">
+                <img class="socket socket-l" src="assets/socket-l.webp" alt="" decoding="async" />
+                <img class="socket socket-r" src="assets/socket-r.webp" alt="" decoding="async" />
+                <div class="eye eye-l"><img class="iris" src="assets/iris-l.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-l.webp" alt="" decoding="async" /></div>
+                <div class="eye eye-r"><img class="iris" src="assets/iris-r.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-r.webp" alt="" decoding="async" /></div>
+                <img class="face" src="assets/head.webp" width="776" height="1215" alt="Portrait of Binz Tamang as a glossy designer toy: curly hair with star, heart and flower clips, silver glasses and piercings" fetchpriority="high" decoding="async" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <div class="copy">
+      <h1 class="name" data-reveal>Binz Tamang</h1>
+      <p class="tagline" data-reveal>Brand. Product. What’s next.</p>
+      <div class="cta-wrap" data-reveal>
+        <button class="cta" id="explore" type="button"><span class="cta-label">Explore my work</span></button>
+      </div>
+    </div>
+  </main>
+
+  <section class="work" id="work" aria-labelledby="workTitle" hidden>
+    <div class="work-inner">
+      <h2 class="work-title" id="workTitle" tabindex="-1" data-work>Selected work</h2>
+      <ol class="work-list">
+        <li data-work><a href="#" class="work-item"><span class="work-index">01</span><span class="work-name">Project title</span><span class="work-meta">Brand</span></a></li>
+        <li data-work><a href="#" class="work-item"><span class="work-index">02</span><span class="work-name">Project title</span><span class="work-meta">Product</span></a></li>
+        <li data-work><a href="#" class="work-item"><span class="work-index">03</span><span class="work-name">Project title</span><span class="work-meta">Brand &amp; Product</span></a></li>
+        <li data-work><a href="#" class="work-item"><span class="work-index">04</span><span class="work-name">Project title</span><span class="work-meta">What’s next</span></a></li>
+      </ol>
+      <button class="back" id="back" type="button" data-work>Back</button>
+    </div>
+  </section>
+
+  <script src="assets/vendor/gsap.min.js"></script>
   <script src="script.js"></script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
-
 </body>
 </html>
