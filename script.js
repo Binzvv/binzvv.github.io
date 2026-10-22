@@ -33,7 +33,21 @@
     idleGlance: { after: 3.5, every: [2.4, 5.2], range: 0.22 }, // range is normalised gaze
     entrance: { rise: 35, fromScale: 0.96, duration: 1.2, overshoot: 1.1 },
     clouds: { speed: 7, parallax: 7 },           // px/s at depth 1, px of pointer parallax
+    trail: {
+      threshold: 90,        // px of pointer travel between images
+      travel: 0.9,          // s for an image to glide from the previous spot to the pointer
+      hold: 0.45,           // s fully visible before it leaves
+      out: 0.7,             // s to shrink and fade away
+      tilt: 6,              // deg of random rotation
+      pool: 10,             // reusable nodes
+    },
   };
+
+  // The CTA reads "Coming soon" for now; flip this to wire it to the projects section again
+  const WORK_ENABLED = false;
+
+  // Trail images, cropped from the artwork
+  const TRAIL_IMAGES = ["star", "eye", "heart", "septum", "flower", "earrings", "cloud"].map((n) => `assets/trail-${n}.webp`);
 
   // Geometry of the supplied artwork (head crop)
   const ART = {
@@ -79,17 +93,21 @@
     workItems: [...document.querySelectorAll("[data-work]")],
     back: $("#back"),
     clouds: $("#clouds"),
+    trail: $("#trail"),
   };
 
   const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function preload() {
     const imgs = [...document.querySelectorAll("img")];
-    const sprites = Object.keys(CLOUD_SPRITES).map((id) => {
-      const img = new Image();
-      img.src = `assets/cloud-${id}.webp`;
-      return img;
-    });
+    const sprites = Object.keys(CLOUD_SPRITES)
+      .map((id) => `assets/cloud-${id}.webp`)
+      .concat(TRAIL_IMAGES)
+      .map((src) => {
+        const img = new Image();
+        img.src = src;
+        return img;
+      });
     const all = imgs.concat(sprites).map((img) =>
       (img.decode ? img.decode() : Promise.resolve()).catch(
         () => new Promise((res) => (img.complete ? res() : img.addEventListener("load", res, { once: true })))
@@ -299,9 +317,67 @@
       }
     }
 
+    // ---------- image trail ----------
+    const trail = { nodes: [], next: 0, img: 0, z: 1, last: null, ready: false };
+    if (!reduced) {
+      el.trail.textContent = "";
+      for (let i = 0; i < MOTION.trail.pool; i++) {
+        const node = document.createElement("div");
+        node.className = "trail-item";
+        const img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        node.appendChild(img);
+        el.trail.appendChild(node);
+        trail.nodes.push({ node, img });
+      }
+    }
+
+    function spawnTrail(x, y) {
+      const cfg = MOTION.trail;
+      const item = trail.nodes[trail.next];
+      trail.next = (trail.next + 1) % trail.nodes.length;
+      item.img.src = TRAIL_IMAGES[trail.img];
+      trail.img = (trail.img + 1) % TRAIL_IMAGES.length;
+      const w = item.node.offsetWidth;
+      const h = item.node.offsetHeight;
+      const from = trail.last;
+      gsap.killTweensOf(item.node);
+      ctx.add(() => {
+        gsap
+          .timeline()
+          .set(item.node, {
+            x: from.x - w / 2,
+            y: from.y - h / 2,
+            rotation: rand(-cfg.tilt, cfg.tilt),
+            scale: 0.82,
+            opacity: 0,
+            zIndex: trail.z++,
+          })
+          .to(item.node, { x: x - w / 2, y: y - h / 2, duration: cfg.travel, ease: "expo.out" }, 0)
+          .to(item.node, { opacity: 1, duration: 0.2, ease: "power1.out" }, 0)
+          .to(item.node, { scale: 1, duration: 0.5, ease: "expo.out" }, 0)
+          .to(item.node, { opacity: 0, scale: 0.35, duration: cfg.out, ease: "power2.in" }, cfg.hold);
+      });
+    }
+
+    function updateTrail(x, y) {
+      if (reduced || !trail.ready || state.view !== "intro") return;
+      if (!trail.last) {
+        trail.last = { x, y };
+        return;
+      }
+      const dx = x - trail.last.x;
+      const dy = y - trail.last.y;
+      if (dx * dx + dy * dy < MOTION.trail.threshold ** 2) return;
+      spawnTrail(x, y);
+      trail.last = { x, y };
+    }
+
     // ---------- input ----------
     function onPointerMove(e) {
       if (e.pointerType === "touch") return;
+      updateTrail(e.clientX, e.clientY);
       state.pointer.x = e.clientX;
       state.pointer.y = e.clientY;
       state.pointer.active = true;
@@ -485,7 +561,8 @@
           // hand over to live tracking without snapping: the pointer is already being tracked,
           // its influence simply fades in as the head settles
           .to(state, { engage: 1, duration: 1.1, ease: "power2.inOut" }, en.duration * 0.45)
-          .add(startFloat, en.duration * 0.8);
+          .add(startFloat, en.duration * 0.8)
+          .add(() => (trail.ready = true), en.duration * 0.8);
       });
     }
 
@@ -494,7 +571,7 @@
     renderClouds(0);
 
     on(window, "resize", onResize);
-    on(el.explore, "click", explore);
+    if (WORK_ENABLED) on(el.explore, "click", explore);
     on(el.back, "click", backToIntro);
     on(document, "keydown", (e) => {
       if (e.key === "Escape" && state.view === "work") backToIntro();
