@@ -1,0 +1,195 @@
+/* ---------- Chrome: folio, kicker, progress ---------- */
+
+.chrome {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  container-type: size;
+  color: #fff;
+  mix-blend-mode: difference; /* stays legible when the stage inverts to paper */
+  --m: 4.5cqw;
+  --t-mono: clamp(9px, 0.7cqw, 13px);
+  --t-mono-track: 0.18em;
+}
+
+.chrome-top,
+.chrome-bottom {
+  position: absolute;
+  left: var(--m);
+  right: var(--m);
+}
+
+.chrome-top {
+  top: max(18px, 3.2cqh);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chrome-kicker {
+  opacity: 0.62;
+  animation: kicker-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes kicker-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.9em);
+  }
+}
+
+.chrome-action {
+  pointer-events: auto;
+  opacity: 0.62;
+  transition: opacity 0.3s;
+  padding: 8px 0 8px 16px;
+  margin: -8px 0;
+}
+
+.chrome-action:hover {
+  opacity: 1;
+}
+
+.chrome-bottom {
+  bottom: max(16px, 3cqh);
+}
+
+.chrome-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.chrome-progress span {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.chrome-progress i {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  transform-origin: left center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chrome-folio {
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.42;
+}
+
+@container (max-aspect-ratio: 1/1) {
+  .chrome {
+    --m: 6cqw;
+  }
+  .chrome-folio span:first-child {
+    display: none;
+  }
+  .chrome-folio {
+    justify-content: flex-end;
+  }
+}
+
+/* ---------- Explore ---------- */
+
+.ex-section {
+  position: relative;
+}
+
+.ex-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.ex-end {
+  min-height: 70svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 32px;
+  color: var(--fg-2);
+  --t-mono: 11px;
+  --t-mono-track: 0.18em;
+  border-top: 1px solid var(--line);
+}
+
+.ex-end p {
+  margin: 0;
+}
+
+.ex-end-actions {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ex-end-actions button {
+  color: var(--fg);
+  opacity: 0.7;
+  transition: opacity 0.3s;
+  padding: 10px 0;
+}
+
+.ex-end-actions button:hover {
+  opacity: 1;
+}
+
+/* ---------- Present ---------- */
+
+.present {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.pr-frame {
+  position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.pr-frame .chrome {
+  position: absolute;
+}
+
+.pr-slot {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+.pr-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  color: var(--fg-3);
+  --t-mono: clamp(9px, 0.7vw, 12px);
+  --t-mono-track: 0.18em;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 30;
+}
+
+.pr-hint.is-on {
+  opacity: 1;
+  transition-delay: 1.6s;
+}

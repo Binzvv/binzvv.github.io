@@ -1,0 +1,179 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ink);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  font-family: var(--font-display);
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+body.is-presenting {
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 1px solid var(--fg);
+  outline-offset: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  letter-spacing: var(--t-mono-track);
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* ---------- Stage ---------- */
+
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  container-type: size;
+  container-name: stage;
+  background: var(--ink);
+  isolation: isolate;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+}
+
+.light {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background: radial-gradient(48% 42% at var(--lx, 50%) var(--ly, 55%), rgba(255, 255, 255, 0.065), transparent 70%);
+  z-index: -1;
+}
+
+/* ---------- Type primitives ---------- */
+
+.line {
+  display: block;
+  overflow: hidden;
+  /* room for the masked glyphs without changing rhythm */
+  padding: 0.06em 0 0.08em;
+  margin: -0.06em 0 -0.08em;
+}
+
+.line-in {
+  display: block;
+  will-change: transform;
+}
+
+.letters {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.ch {
+  display: inline-block;
+  will-change: transform;
+}
+
+.display {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  margin: 0;
+}
+
+.head {
+  font-size: var(--t-head);
+  font-weight: 560;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  margin: 0;
+}
+
+.body {
+  font-size: var(--t-body);
+  line-height: 1.38;
+  letter-spacing: -0.012em;
+  font-weight: 420;
+  color: var(--fg-2);
+  margin: 0;
+}
+
+.serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.rule {
+  height: 1px;
+  background: var(--line);
+  transform-origin: left center;
+}
+
+/* ---------- Signals (ambient, gated) ---------- */
+
+.sig {
+  fill: none;
+  stroke: var(--fg);
+  stroke-linecap: round;
+  stroke-dasharray: 0.018 0.982;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+
+.stage[data-active='1'][data-live='1'] .sig {
+  opacity: 1;
+  animation: signal var(--sd, 2.4s) linear infinite;
+  animation-delay: var(--sdelay, 0s);
+}
+
+@keyframes signal {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage[data-active='1'][data-live='1'] .sig {
+    animation: none;
+    opacity: 0;
+  }
+}
