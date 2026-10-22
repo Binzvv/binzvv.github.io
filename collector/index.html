@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The Collector</title>
+  <meta name="description" content="A lone traveller crosses a barren landscape and collects a design artefact. A scroll-driven prototype.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=IBM+Plex+Mono:wght@400&family=Inter:wght@400;500&display=swap">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <section class="journey" id="journey" aria-label="The Collector: a scroll-driven journey">
+    <div class="stage" id="stage">
+      <canvas id="scene" aria-hidden="true"></canvas>
+
+      <div class="hud" aria-hidden="true">
+        <div class="hud__tl">
+          <span>Exp. 001 &mdash; The Collector</span>
+          <span id="coords">N 64&deg;12&prime;08&Prime; &nbsp;W 018&deg;44&prime;51&Prime;</span>
+        </div>
+        <div class="hud__tr"><span id="chapter">00 &mdash; Arrival</span></div>
+        <div class="hud__bl">
+          <span id="dist">Dist 3.20 km</span>
+          <span id="elev">Elev 1,284 m</span>
+        </div>
+        <div class="hud__br"><span class="hud__bar"><i id="bar"></i></span></div>
+      </div>
+
+      <header class="title" id="title">
+        <h1>The Collector</h1>
+        <p>Fragments of a practice.</p>
+      </header>
+
+      <div class="cue" id="cue"><span>Scroll to travel</span><i></i></div>
+
+      <div class="marker" id="marker" aria-hidden="true"><span>01 / Systems</span><i></i></div>
+
+      <p class="line" id="lineCollect">Separate ideas. Shared logic.</p>
+
+      <div class="finale" id="finale">
+        <p>What you collect changes what you can build.</p>
+        <button type="button" class="replay" id="replay">
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3.2 8a4.8 4.8 0 1 0 1.5-3.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4.4 1.8v3h3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          Replay journey
+        </button>
+      </div>
+    </div>
+  </section>
+  <script src="./main.js"></script>
+</body>
+</html>
