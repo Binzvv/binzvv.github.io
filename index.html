@@ -18,7 +18,8 @@
     <div class="clouds" id="clouds"></div>
   </div>
 
-  <div class="trail" id="trail" aria-hidden="true"></div>
+  <!-- Teaser tiles sit behind the head so it occludes them as they emerge -->
+  <div class="tiles" id="tiles" aria-hidden="true"></div>
 
   <main class="intro" id="intro">
     <div class="stage">
@@ -43,24 +44,9 @@
     <div class="copy">
       <h1 class="name" data-reveal>Binz Tamang</h1>
       <p class="tagline" data-reveal>Brand. Product. What’s next.</p>
-      <div class="cta-wrap" data-reveal>
-        <button class="cta" id="explore" type="button" aria-disabled="true"><span class="cta-label">Coming soon</span></button>
-      </div>
+      <p class="soon" data-reveal>Coming soon</p>
     </div>
   </main>
-
-  <section class="work" id="work" aria-labelledby="workTitle" hidden>
-    <div class="work-inner">
-      <h2 class="work-title" id="workTitle" tabindex="-1" data-work>Selected work</h2>
-      <ol class="work-list">
-        <li data-work><a href="#" class="work-item"><span class="work-index">01</span><span class="work-name">Project title</span><span class="work-meta">Brand</span></a></li>
-        <li data-work><a href="#" class="work-item"><span class="work-index">02</span><span class="work-name">Project title</span><span class="work-meta">Product</span></a></li>
-        <li data-work><a href="#" class="work-item"><span class="work-index">03</span><span class="work-name">Project title</span><span class="work-meta">Brand &amp; Product</span></a></li>
-        <li data-work><a href="#" class="work-item"><span class="work-index">04</span><span class="work-name">Project title</span><span class="work-meta">What’s next</span></a></li>
-      </ol>
-      <button class="back" id="back" type="button" data-work>Back</button>
-    </div>
-  </section>
 
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="script.js"></script>
