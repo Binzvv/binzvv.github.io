@@ -149,10 +149,10 @@ export function Explore({ scenes, start, onPresent }: Props) {
         <p className="ex-end-title">Agentic Brand Experience</p>
         <p className="ex-end-sub">Change the policy. Change the experience.</p>
         <div className="ex-end-actions">
-          <button className="pill pill-lg" onClick={() => onPresent({ scene: 0, time: 0 })}>
-            Present from the start
+          <button className="cta cta-lg" onClick={() => onPresent({ scene: 0, time: 0 })}>
+            Present from the start <span aria-hidden="true">›</span>
           </button>
-          <button className="link" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <button className="cta cta-lg cta-quiet" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
             Back to the question <span aria-hidden="true">›</span>
           </button>
         </div>

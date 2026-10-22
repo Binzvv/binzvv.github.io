@@ -701,69 +701,39 @@
   color: var(--grey);
 }
 
-/* Brand policy, rendered like a chip: a package, a die, and pins all round */
-.s05-chip {
+/* Brand policy: the same tile language as its neighbours, larger and lit */
+.s05-policy {
   position: absolute;
   left: 45.5cqw;
   width: 17cqw;
   top: calc(60cqh - 8.5cqw);
   height: 17cqw;
-  border-radius: 13%;
-  background: linear-gradient(145deg, #4a4a4f 0%, #1a1a1c 45%, #0e0e0f 60%, #35353a 100%);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 3cqw 9cqw -2cqw rgba(255, 106, 43, 0.38);
-}
-
-.s05-chip::before {
-  content: '';
-  position: absolute;
-  inset: -1.1cqw;
-  z-index: -1;
-  --pin: rgba(255, 255, 255, 0.22);
-  background:
-    repeating-linear-gradient(90deg, var(--pin) 0 2px, transparent 2px 0.85cqw) 50% 0 / 76% 0.7cqw no-repeat,
-    repeating-linear-gradient(90deg, var(--pin) 0 2px, transparent 2px 0.85cqw) 50% 100% / 76% 0.7cqw no-repeat,
-    repeating-linear-gradient(0deg, var(--pin) 0 2px, transparent 2px 0.85cqw) 0 50% / 0.7cqw 76% no-repeat,
-    repeating-linear-gradient(0deg, var(--pin) 0 2px, transparent 2px 0.85cqw) 100% 50% / 0.7cqw 76% no-repeat;
-}
-
-.s05-chip-in {
-  position: absolute;
-  inset: 7%;
-  border-radius: 10%;
-  background: linear-gradient(160deg, #1f1f22, #0a0a0b);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2.4cqh 1.6cqw;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 0 6%;
+  justify-content: flex-end;
+  gap: 1.2cqh;
+  box-shadow:
+    0 0 0 1px rgba(255, 138, 61, 0.28),
+    0 3cqw 9cqw -2cqw rgba(255, 106, 43, 0.3);
 }
 
-.s05-chip-top {
-  font-size: var(--t-small);
-  font-weight: 600;
-  color: var(--fg);
-}
-
-.s05-chip-name {
-  font-size: min(3.8cqw, 6.8cqh);
-  font-weight: 700;
-  letter-spacing: -0.045em;
-  line-height: 1;
+.s05-policy-name {
+  font-size: min(2.5cqw, 4.4cqh);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  align-self: flex-start;
 }
 
 .s05-verbs {
-  margin-top: 1.4cqh;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.2cqh 0.7cqw;
-  font-size: var(--t-caption);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--t-small);
   font-weight: 500;
-  color: var(--grey);
+  line-height: 1.45;
+  color: var(--fg);
 }
 
 .s05-state {
@@ -864,17 +834,21 @@
     left: auto;
     right: var(--m);
   }
-  .s05-chip {
-    left: 29cqw;
-    width: 42cqw;
-    height: 42cqw;
-    top: 51cqh;
+  .s05-policy {
+    left: var(--m);
+    right: var(--m);
+    width: auto;
+    height: 20cqh;
+    top: 50cqh;
+    padding: 2cqh 4cqw;
   }
-  .s05-chip::before {
-    inset: -3cqw;
+  .s05-policy-name {
+    font-size: 7cqw;
   }
-  .s05-chip-name {
-    font-size: 9cqw;
+  .s05-verbs {
+    display: flex;
+    gap: 0 1em;
+    flex-wrap: wrap;
   }
   .s05-state {
     top: calc(100% + 2cqh);

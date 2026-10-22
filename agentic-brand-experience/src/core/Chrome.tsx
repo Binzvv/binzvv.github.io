@@ -27,8 +27,8 @@ export function Chrome({ scenes, index, fills, mode, onJump, onAction }: Props) 
                 </button>
               ))}
             </div>
-            <button className="pill" onClick={onAction} title="Presentation mode (P)">
-              Present
+            <button className="cta" onClick={onAction} title="Presentation mode (P)">
+              Present <span aria-hidden="true">›</span>
             </button>
           </div>
         </nav>

@@ -8,7 +8,7 @@ import { POLICIES } from './experiment-data';
    so it maps 1:1 onto a 16:9 stage. */
 const AXIS = 60;
 const IN = { x0: 6, x1: 19 };
-const CHIP = { x0: 45.5, x1: 62.5 };
+const POLICY = { x0: 45.5, x1: 62.5 };
 const OUT_X = 70;
 const ROWS = [52, 60, 68];
 const X = (cqw: number) => +(cqw * 1.6).toFixed(2);
@@ -32,17 +32,17 @@ function Hypothesis({ portrait }: SceneProps) {
       <div className="s05-system">
         {!portrait && (
           <svg className="s05-svg" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true">
-            <path className="s05-in" d={`M${X(IN.x1)} ${Y(AXIS)} L${X(CHIP.x0)} ${Y(AXIS)}`} pathLength={1} />
+            <path className="s05-in" d={`M${X(IN.x1)} ${Y(AXIS)} L${X(POLICY.x0)} ${Y(AXIS)}`} pathLength={1} />
             {ROWS.map((y, i) => (
               <path
                 key={i}
                 className={`s05-out o${i}`}
-                d={`M${X(CHIP.x1)} ${Y(AXIS)} C${X(CHIP.x1 + 3.5)} ${Y(AXIS)} ${X(OUT_X - 4)} ${Y(y)} ${X(OUT_X - 1)} ${Y(y)}`}
+                d={`M${X(POLICY.x1)} ${Y(AXIS)} C${X(POLICY.x1 + 3.5)} ${Y(AXIS)} ${X(OUT_X - 4)} ${Y(y)} ${X(OUT_X - 1)} ${Y(y)}`}
                 pathLength={1}
               />
             ))}
             <g className="s05-signals">
-              <path className="sig" d={`M${X(IN.x1)} ${Y(AXIS)} L${X(CHIP.x0)} ${Y(AXIS)}`} pathLength={1} />
+              <path className="sig" d={`M${X(IN.x1)} ${Y(AXIS)} L${X(POLICY.x0)} ${Y(AXIS)}`} pathLength={1} />
             </g>
           </svg>
         )}
@@ -56,16 +56,13 @@ function Hypothesis({ portrait }: SceneProps) {
           <span className="s05-v">Same underlying capability</span>
         </div>
 
-        <div className="s05-chip" aria-label="Brand policy: prioritise, refuse, intervene, explain">
-          <div className="s05-chip-in">
-            <span className="s05-chip-top">Brand</span>
-            <span className="s05-chip-name grad">Policy</span>
-            <span className="s05-verbs">
-              {VERBS.map((v) => (
-                <span key={v}>{v}</span>
-              ))}
-            </span>
-          </div>
+        <div className="s05-policy tile" aria-label="Brand policy: prioritise, refuse, intervene, explain">
+          <span className="s05-policy-name grad">Brand policy</span>
+          <ul className="s05-verbs">
+            {VERBS.map((v) => (
+              <li key={v}>{v}</li>
+            ))}
+          </ul>
           <div className="s05-state">
             {POLICY_IDS.map((id) => (
               <span key={id} className={`st st-${id}`}>
@@ -115,10 +112,10 @@ export const s05: SceneDef = {
     gsap.set(root, { attr: { 'data-live': '0' } });
     gsap.set(q('.s05-head .eyebrow, .s05-head .headline, .s05-c1, .s05-c2'), { autoAlpha: 0, y: 40 });
     gsap.set(q('.s05-tile, .s05-decision, .s05-rows li'), { autoAlpha: 0, y: 30 });
-    gsap.set(q('.s05-chip'), { autoAlpha: 0, scale: 0.86, rotationX: 24, transformPerspective: 1400 });
-    gsap.set(q('.s05-verbs span, .st'), { autoAlpha: 0, y: 10 });
+    gsap.set(q('.s05-policy'), { autoAlpha: 0, y: 60, scale: 0.96 });
+    gsap.set(q('.s05-verbs li, .st'), { autoAlpha: 0, y: 10 });
     gsap.set(q('.s05-in, .s05-out'), { strokeDasharray: 1, strokeDashoffset: 1 });
-    gsap.set(q('.s05-chip-name'), { backgroundPosition: '100% 0' });
+    gsap.set(q('.s05-policy-name'), { backgroundPosition: '100% 0' });
 
     const tl = newTimeline();
     tl.to({}, { duration: 0.3 });
@@ -133,11 +130,11 @@ export const s05: SceneDef = {
       .addLabel('beat:2');
     hold(tl, 0.4);
 
-    // 3 — the intervention point: the chip rises into place and the light finds it
-    tl.to(q('.s05-chip'), { autoAlpha: 1, scale: 1, rotationX: 0, duration: 1.8, ease: 'expo.out' })
+    // 3 — the intervention point: brand policy rises into place and the light finds it
+    tl.to(q('.s05-policy'), { autoAlpha: 1, y: 0, scale: 1, duration: 1.6, ease: 'expo.out' })
       .to(q('.glow'), { autoAlpha: 1, duration: 1.4, ease: ease.quiet }, '<0.2')
-      .to(q('.s05-chip-name'), { backgroundPosition: '0% 0', duration: 2, ease: 'power2.inOut' }, '<')
-      .to(q('.s05-verbs span'), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out' }, '<0.4')
+      .to(q('.s05-policy-name'), { backgroundPosition: '0% 0', duration: 2, ease: 'power2.inOut' }, '<')
+      .to(q('.s05-verbs li'), { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out' }, '<0.4')
       .to(q('.s05-tile'), { autoAlpha: 0.5, duration: 0.8, ease: ease.quiet }, '<')
       .addLabel('beat:3');
     hold(tl, 0.4);
