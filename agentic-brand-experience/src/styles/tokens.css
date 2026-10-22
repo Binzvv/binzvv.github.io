@@ -1,43 +1,48 @@
 :root {
   --ink: #000;
-  --ink-2: #0a0a0b;
   --fg: #f5f5f7;
-  --fg-2: rgba(245, 245, 247, 0.56);
-  --fg-3: rgba(245, 245, 247, 0.3);
-  --fg-4: rgba(245, 245, 247, 0.14);
-  --line: rgba(245, 245, 247, 0.16);
-  --line-strong: rgba(245, 245, 247, 0.42);
-  --paper: #f3f2ee;
-  --paper-ink: #0b0b0b;
-  --metal: #d4d4d9;
-  --brand-hue: #ff4f1f;
+  --grey: #86868b;
+  --grey-2: #6e6e73;
+  --grey-3: #424245;
+  --tile: #1d1d1f;
+  --tile-2: #2a2a2d;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-2: rgba(255, 255, 255, 0.24);
+  --blue: #0071e3;
+  --link: #2997ff;
+  --light: #f5f5f7;
+  --light-ink: #1d1d1f;
+  --hot: #ff6a2b;
+  /* the one expressive colour: a warm, Pro-finish gradient reserved for climaxes */
+  --grad: linear-gradient(90deg, #ffc27a 0%, #ff8a3d 30%, #ff5a2c 62%, #f0386b 100%);
+  --brand-hue: #2f6bff;
 
-  --font-display: 'Inter Tight Variable', 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --ease-apple: cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 
-/* Stage-relative scale. Every value resolves against the stage container,
-   so a composition is identical in the 16:9 frame and the browser. */
+/* Stage-relative scale: every value resolves against the stage container,
+   so a composition is identical in the 16:9 frame and in the browser. */
 .stage {
-  --m: 4.5cqw;
-  --t-mono: clamp(9px, 0.7cqw, 13px);
-  --t-small: clamp(12px, 0.95cqw, 17px);
-  --t-body: clamp(15px, 1.3cqw, 24px);
-  --t-lede: clamp(18px, 1.75cqw, 32px);
-  --t-head: min(3.4cqw, 6.2cqh);
-  --t-display: min(5.6cqw, 10.5cqh);
-  --t-mono-track: 0.18em;
+  --m: 6cqw;
+  --t-caption: clamp(11px, 0.82cqw, 15px);
+  --t-small: clamp(13px, 1.05cqw, 19px);
+  --t-copy: clamp(17px, 1.55cqw, 28px);
+  --t-eyebrow: clamp(15px, 1.45cqw, 26px);
+  --t-headline: min(4.4cqw, 8cqh);
+  --t-hero: min(5.6cqw, 10cqh);
+  --t-mega: min(19cqw, 33cqh);
 }
 
 @container stage (max-aspect-ratio: 1/1) {
   .scene {
-    --m: 6cqw;
-    --t-mono: 10px;
+    --m: 6.5cqw;
+    --t-caption: 11px;
     --t-small: 13px;
-    --t-body: 15px;
-    --t-lede: 18px;
-    --t-head: 7.6cqw;
-    --t-display: 9.4cqw;
+    --t-copy: 17px;
+    --t-eyebrow: 15px;
+    --t-headline: 8.4cqw;
+    --t-hero: 9.6cqw;
+    --t-mega: 19cqw;
   }
 }

@@ -234,8 +234,8 @@ export function Present({ scenes, start, onExit }: Props) {
             />
           </div>
         ))}
-        <Chrome scenes={scenes} index={view.scene} fills={fills} action={{ label: 'Exit ✕', onClick: exit, hint: 'Exit presentation (Esc)' }} />
-        <div className={`pr-hint mono ${hint ? 'is-on' : ''}`} aria-hidden="true">
+        <Chrome scenes={scenes} index={view.scene} fills={fills} mode="present" onJump={jump} onAction={exit} />
+        <div className={`pr-hint ${hint ? 'is-on' : ''}`} aria-hidden="true">
           → / Space to advance · ← to go back · Esc to exit
         </div>
       </div>

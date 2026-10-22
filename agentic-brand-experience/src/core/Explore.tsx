@@ -102,6 +102,16 @@ export function Explore({ scenes, start, onPresent }: Props) {
     };
   }, []);
 
+  /** Scrolls to a scene's first composition. */
+  const jumpTo = useCallback((i: number) => {
+    const section = sections.current[i];
+    const tl = timelines.current[i];
+    if (!section) return;
+    const first = tl ? (beatTimes(tl)[0] ?? 0) / tl.duration() : 0;
+    const y = section.offsetTop + (section.offsetHeight - window.innerHeight) * first;
+    window.scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' });
+  }, [reduced]);
+
   const present = useCallback(() => {
     const i = indexRef.current;
     const tl = timelines.current[i];
@@ -119,7 +129,7 @@ export function Explore({ scenes, start, onPresent }: Props) {
 
   return (
     <main className="explore">
-      <Chrome scenes={scenes} index={index} fills={fills} action={{ label: 'Present ▸', onClick: present, hint: 'Presentation mode (P)' }} />
+      <Chrome scenes={scenes} index={index} fills={fills} mode="explore" onJump={jumpTo} onAction={present} />
       {scenes.map((def, i) => (
         <section
           key={def.id}
@@ -136,15 +146,17 @@ export function Explore({ scenes, start, onPresent }: Props) {
         </section>
       ))}
       <footer className="ex-end">
-        <p className="mono">Agentic Brand Experience / 001 — End</p>
+        <p className="ex-end-title">Agentic Brand Experience</p>
+        <p className="ex-end-sub">Change the policy. Change the experience.</p>
         <div className="ex-end-actions">
-          <button className="mono" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            Back to the question ↑
+          <button className="pill pill-lg" onClick={() => onPresent({ scene: 0, time: 0 })}>
+            Present from the start
           </button>
-          <button className="mono" onClick={() => onPresent({ scene: 0, time: 0 })}>
-            Present from the start ▸
+          <button className="link" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            Back to the question <span aria-hidden="true">›</span>
           </button>
         </div>
+        <p className="caption ex-end-note">Scene 06 outputs are illustrative, conceptual examples — not measured research findings.</p>
       </footer>
     </main>
   );

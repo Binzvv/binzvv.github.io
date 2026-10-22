@@ -1,98 +1,155 @@
-/* ---------- Chrome: folio, kicker, progress ---------- */
+/* ---------- Chrome ---------- */
 
 .chrome {
   position: fixed;
   inset: 0;
   z-index: 20;
   pointer-events: none;
-  container-type: size;
-  color: #fff;
-  mix-blend-mode: difference; /* stays legible when the stage inverts to paper */
-  --m: 4.5cqw;
-  --t-mono: clamp(9px, 0.7cqw, 13px);
-  --t-mono-track: 0.18em;
 }
 
-.chrome-top,
-.chrome-bottom {
+/* Local nav: Apple's sticky, translucent product bar */
+.localnav {
   position: absolute;
-  left: var(--m);
-  right: var(--m);
-}
-
-.chrome-top {
-  top: max(18px, 3.2cqh);
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.chrome-kicker {
-  opacity: 0.62;
-  animation: kicker-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes kicker-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.9em);
-  }
-}
-
-.chrome-action {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
   pointer-events: auto;
-  opacity: 0.62;
-  transition: opacity 0.3s;
-  padding: 8px 0 8px 16px;
-  margin: -8px 0;
+  background: rgba(22, 22, 23, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.chrome-action:hover {
-  opacity: 1;
-}
-
-.chrome-bottom {
-  bottom: max(16px, 3cqh);
-}
-
-.chrome-progress {
+.localnav-in {
+  height: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 22px;
   display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 24px;
 }
 
-.chrome-progress span {
-  position: relative;
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.16);
-  overflow: hidden;
+.localnav-title {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.011em;
+  margin-right: auto;
+  white-space: nowrap;
 }
 
-.chrome-progress i {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.75);
-  transform-origin: left center;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.chrome-folio {
+.localnav-links {
   display: flex;
-  justify-content: space-between;
-  opacity: 0.42;
+  gap: 22px;
 }
 
-@container (max-aspect-ratio: 1/1) {
-  .chrome {
-    --m: 6cqw;
-  }
-  .chrome-folio span:first-child {
+.localnav-links button {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.24s;
+}
+
+.localnav-links button:hover {
+  color: var(--link);
+}
+
+.localnav-links button.is-current {
+  color: rgba(255, 255, 255, 0.48);
+  cursor: default;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  padding: 6px 11px 6px;
+  border-radius: 980px;
+  transition: background 0.24s;
+}
+
+.pill:hover {
+  background: #0077ed;
+}
+
+.pill-lg {
+  font-size: 17px;
+  padding: 12px 22px;
+}
+
+.link {
+  color: var(--link);
+  font-size: 17px;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 860px) {
+  .localnav-links {
     display: none;
   }
-  .chrome-folio {
-    justify-content: flex-end;
+  .localnav-title {
+    font-size: 17px;
   }
+}
+
+/* Progress: Apple's carousel dots — the current scene stretches into a filling pill */
+.dots {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 980px;
+  background: rgba(66, 66, 69, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  pointer-events: auto;
+}
+
+.dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.42);
+  overflow: hidden;
+  transition: width 0.5s var(--ease-apple), background 0.3s;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dot.is-done {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dot.is-current {
+  width: 46px;
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.dot i {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border-radius: inherit;
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-apple);
 }
 
 /* ---------- Explore ---------- */
@@ -110,38 +167,47 @@
 }
 
 .ex-end {
-  min-height: 70svh;
+  min-height: 80svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 32px;
-  color: var(--fg-2);
-  --t-mono: 11px;
-  --t-mono-track: 0.18em;
-  border-top: 1px solid var(--line);
+  text-align: center;
+  gap: 14px;
+  padding: 120px 24px 160px;
+  background: var(--ink);
 }
 
 .ex-end p {
   margin: 0;
 }
 
+.ex-end-title {
+  font-size: clamp(40px, 6vw, 80px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.ex-end-sub {
+  font-size: clamp(19px, 2vw, 28px);
+  font-weight: 600;
+  color: var(--grey);
+  letter-spacing: -0.016em;
+}
+
 .ex-end-actions {
   display: flex;
-  gap: 40px;
+  gap: 32px;
+  align-items: center;
   flex-wrap: wrap;
   justify-content: center;
+  margin-top: 26px;
 }
 
-.ex-end-actions button {
-  color: var(--fg);
-  opacity: 0.7;
-  transition: opacity 0.3s;
-  padding: 10px 0;
-}
-
-.ex-end-actions button:hover {
-  opacity: 1;
+.ex-end-note {
+  margin-top: 40px !important;
+  font-size: 12px;
 }
 
 /* ---------- Present ---------- */
@@ -167,6 +233,11 @@
   position: absolute;
 }
 
+.pr-frame .dots {
+  bottom: 3.2%;
+  opacity: 0.85;
+}
+
 .pr-slot {
   position: absolute;
   inset: 0;
@@ -174,14 +245,42 @@
   will-change: transform, opacity;
 }
 
+.pr-close {
+  position: absolute;
+  top: 3%;
+  right: 2.2%;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(66, 66, 69, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+
+.pr-close:hover {
+  opacity: 1;
+}
+
+.pr-close svg {
+  width: 14px;
+  height: 14px;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
 .pr-hint {
   position: absolute;
   left: 50%;
-  bottom: 9%;
+  bottom: 10%;
   transform: translateX(-50%);
-  color: var(--fg-3);
-  --t-mono: clamp(9px, 0.7vw, 12px);
-  --t-mono-track: 0.18em;
+  color: var(--grey);
+  font-size: clamp(11px, 0.85vw, 14px);
   opacity: 0;
   transition: opacity 1.2s ease;
   pointer-events: none;

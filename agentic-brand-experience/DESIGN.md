@@ -49,73 +49,81 @@ inspection of the Duo page:
 
 ## Phase 2: Art direction
 
+> **Revision 2.** The first pass leaned on editorial conventions: monospace
+> folios, all-caps grotesk and hairline diagrams. Feedback was that it read as
+> conservative and template-like. This revision aligns with the Apple iPhone Pro
+> product page instead. That page could not be fetched from the build
+> environment, so the language below comes from Apple's established Pro-page
+> design system.
+
 ### Concept
 
-**Absence as a design device.** The piece starts with full brand trappings
-(planes, layers, a fictional identity) and removes them one by one until only
-behaviour is left. The final experiment has no identity at all: one neutral
-interface whose *decisions* change. The presentation is itself the proof.
+**Absence as a design device**, staged like a product launch. The "product" is
+brand behaviour. It gets the treatment Apple gives a chip or a camera: a hero
+reveal, a chip render, a bento grid and a segmented control.
 
 ### Colour
 
 | Token | Value | Use |
 |---|---|---|
-| `--ink` | `#000000` | canvas |
+| `--ink` | `#000` | canvas |
 | `--fg` | `#f5f5f7` | primary type |
-| `--fg-2` | `rgba(245,245,247,.56)` | secondary type |
-| `--fg-3` | `rgba(245,245,247,.30)` | tertiary, ghosted states |
-| `--line` | `rgba(245,245,247,.16)` | hairlines |
-| `--paper` | `#f3f2ee` | the deck's paper tone; used once, for the inversion at *Its behaviour* |
-| `--signal` | `#ffffff` | live signals and the selected policy |
-| `--brand-hue` | `#ff4f1f` | the only saturated colour in the piece: the fictional brand in Scene 04, which is then drained away |
+| `--grey` | `#86868b` | Apple's secondary grey: copy, captions |
+| `--tile` | `#1d1d1f` | rounded tiles, capsules, the interface |
+| `--light` | `#f5f5f7` | the light section at *Its behaviour.* |
+| `--grad` | `#ffc27a → #ff8a3d → #ff5a2c → #f0386b` | the Pro "finish": used only on climaxes (*decisions?*, *the final layer.*, *Policy*, *behaviour.*, *experience.*) |
+| `--blue` / `--link` | `#0071e3` / `#2997ff` | the Present pill and links, as on apple.com |
+| `--brand-hue` | `#2f6bff` | the fictional brand in Scene 04 only |
 
-No gradients except soft radial light (≤ 7% white) and the light sweep across
-*DECISIONS*.
+Light comes from soft orange radial glows behind the subject, which act as
+studio lighting.
 
 ### Typography
 
-- **Display:** Inter Tight Variable, 500–650, tracking −0.035 to −0.055em,
-  uppercase for argument headlines (as in the deck), line-height 0.88–0.95.
-- **Editorial accent:** Instrument Serif Italic. Used sparingly for the
-  human voice: explanations in the experiment, and *the experience.*
-- **Meta:** IBM Plex Mono 400, 10–12px equivalent, tracking +0.18em, uppercase.
-  It carries the deck's folio system (`AGENTIC BRAND EXPERIENCE / 001`,
-  `03—06`).
-
-Scale (container-relative, so the same values work in the 16:9 presentation
-frame and in the browser):
+- **Inter Variable with optical sizing**, the closest open match to SF Pro
+  Display. Display cuts are used at large sizes.
+- **Sentence case** throughout, with tight tracking (−0.03 to −0.055em) and
+  weights 600–700.
+- **Eyebrows** are set in orange, 600 weight, at 1.45cqw.
+- **Feature copy** is semibold grey with the point picked out in white,
+  which is Apple's signature paragraph treatment.
+- There is no monospace and no serif. The fictional brand's serif is the only
+  exception, because it exists to be removed.
 
 | Role | Size |
 |---|---|
-| Monumental | `min(15cqw, 30cqh)` |
-| Display | `min(6.2cqw, 11cqh)` |
-| Headline | `min(3.4cqw, 6cqh)` |
-| Body | `clamp(15px, 1.25cqw, 22px)` |
-| Meta | `clamp(9px, .72cqw, 12px)` |
+| Mega | `min(19cqw, 33cqh)` |
+| Hero | `min(5.6cqw, 10cqh)` |
+| Headline | `min(4.4cqw, 8cqh)` |
+| Copy | `clamp(17px, 1.55cqw, 28px)` |
 
-### Space and composition
+### Components
 
-- 12-column grid, 4.5cqw outer margin, hairline rules at the top and bottom of
-  the stage, as in the deck's folio layout.
-- Diagrams sit on one optical horizon: 52% of stage height.
-- Negative space is at least 40% of every composition.
+- **Local nav:** sticky and translucent (`blur(20px) saturate(180%)`), with the
+  title on the left, scene links, and a blue **Present** pill.
+- **Progress:** Apple's carousel dots. The current scene stretches into a pill
+  that fills as you progress.
+- **Tiles:** `#1d1d1f` with 30px radius, used for the bento grid in Scene 04
+  and the interface in Scene 06.
+- **Chip render:** Brand Policy is drawn as a silicon package with pins and a
+  gradient die label.
+- **Capsule nodes:** the Scene 03 flow. Decision is the white capsule.
+- **Segmented control:** a white pill slides between Performance, Recovery and
+  Instinct.
+- **iMessage bubble:** the person's intent, in the interface.
 
 ### Motion
 
 | Token | Curve | Use |
 |---|---|---|
-| `reveal` | `expo.out` | type rising out of masks |
-| `settle` | `power3.inOut` | camera moves, plane transforms |
-| `quiet` | `power2.out` | fades and dimming |
-| `signal` | `linear` (CSS) | travelling pulses |
+| fade-up | `power3.out`, 30–40px | Apple's default section entrance |
+| settle | `expo.out` | hero words and objects settling out of the camera |
+| camera | `power3.inOut` | plane flatten, chip rise |
+| finish sweep | `power2.inOut` on `background-position` | light travelling across gradient type |
 
-Rules:
-
-- A beat is roughly 0.9–1.6s of motion, then stillness.
-- Type uses masked reveals (`yPercent: 110 → 0`), never bounces.
-- Only one element moves at a time, unless elements are *responding* to each
-  other (a signal arriving lights its node).
-- Ambient loops (signals) run only while their scene is on screen.
+The rules are unchanged. Each composition resolves and holds. Only one thing
+moves at a time unless elements respond to each other. Ambient loops run only
+while their scene is on screen.
 
 ---
 

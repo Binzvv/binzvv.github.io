@@ -1,6 +1,5 @@
 import { gsap } from 'gsap';
 import type { SceneDef, SceneProps } from '../core/types';
-import { Line } from '../core/Type';
 import { ease, hold, newTimeline } from '../core/motion';
 
 const LAYERS = ['Visual identity', 'Interface', 'Experience'];
@@ -60,16 +59,29 @@ const ART = [IdentityArt, InterfaceArt, ExperienceArt];
 function Then(_: SceneProps) {
   return (
     <div className="scene s02">
-      <div className="light" style={{ ['--lx' as string]: '58%', ['--ly' as string]: '50%' }} />
-      <div className="s02-brand mono">Brand</div>
+      <div className="glow" style={{ ['--gx' as string]: '66%', ['--gy' as string]: '56%' }} />
+      <header className="s02-head">
+        <span className="eyebrow">Brand / Then</span>
+        <div className="s02-swap">
+          <h2 className="headline s02-h1">
+            We designed how a brand
+            <br />
+            looked, sounded and felt.
+          </h2>
+          <h2 className="headline s02-h2" aria-hidden="true">
+            AI changes
+            <br />
+            <span className="grad">the final layer.</span>
+          </h2>
+        </div>
+      </header>
       <ol className="s02-labels">
         {LAYERS.map((name, i) => (
           <li key={name} className={`s02-label k${i}`} style={{ ['--o' as string]: OFFSETS[i] }}>
-            <span className="mono s02-idx">{String(i + 1).padStart(2, '0')}</span>
-            <Line className="s02-name">{name}</Line>
+            <span className="s02-name">{name}</span>
             <i className="s02-lead" />
             {i === 2 && (
-              <span className="s02-sub mono">
+              <span className="s02-sub caption">
                 <span className="s02-designed">Designed</span>
                 <span className="s02-decided">Decided</span>
               </span>
@@ -89,19 +101,6 @@ function Then(_: SceneProps) {
           );
         })}
       </div>
-      <div className="s02-copy">
-        <p className="s02-lede">
-          <Line>We designed how</Line>
-          <Line>a brand looked,</Line>
-          <Line>sounded and felt.</Line>
-        </p>
-      </div>
-      <div className="s02-ai">
-        <p className="head">
-          <Line>AI changes</Line>
-          <Line>the final layer.</Line>
-        </p>
-      </div>
     </div>
   );
 }
@@ -110,65 +109,66 @@ export const s02: SceneDef = {
   id: 'then',
   kicker: 'Brand / Then',
   title: 'Brand then',
+  nav: 'Then',
   length: 4.5,
   Component: Then,
   build({ q, root, portrait }) {
     const planes = q('.s02-plane');
     const faces = q('.s02-face');
-    const name = (i: number) => q(`.k${i} .s02-name .line-in`);
-    const idx = (i: number) => q(`.k${i} .s02-idx`);
+    const label = (i: number) => q(`.k${i} .s02-name`);
     const lead = (i: number) => q(`.k${i} .s02-lead`);
+    const fadeUp = { autoAlpha: 1, y: 0, duration: 1.1, ease: 'power3.out' };
 
     gsap.set(root, { attr: { 'data-live': '0' } });
-    planes.forEach((p, i) => gsap.set(p, { rotationX: 60, yPercent: OFFSETS[i], y: -90, autoAlpha: 0, transformPerspective: 2600 }));
+    planes.forEach((p, i) => gsap.set(p, { rotationX: 58, yPercent: OFFSETS[i], y: -120, autoAlpha: 0, transformPerspective: 2600 }));
     gsap.set(faces, { rotation: -45 });
-    gsap.set(q('.s02-name .line-in, .s02-copy .line-in, .s02-ai .line-in'), { yPercent: 112 });
-    gsap.set(q('.s02-idx, .s02-brand, .s02-sub'), { autoAlpha: 0 });
+    gsap.set(q('.s02-head .eyebrow, .s02-h1, .s02-name, .s02-sub'), { autoAlpha: 0, y: 30 });
+    gsap.set(q('.s02-h2'), { autoAlpha: 0, y: 40 });
     gsap.set(q('.s02-lead'), { scaleX: 0 });
-    gsap.set(q('.s02-decided'), { autoAlpha: 0, yPercent: 60 });
+    gsap.set(q('.s02-decided'), { autoAlpha: 0, y: 8 });
     gsap.set(q('.s02-field'), { autoAlpha: 0 });
 
     const layer = (tl: gsap.core.Timeline, i: number) =>
       tl
-        .to(planes[i], { y: 0, autoAlpha: 1, duration: 1.4, ease: 'expo.out' })
-        .to(lead(i), { scaleX: 1, duration: 0.9, ease: ease.settle }, '<0.25')
-        .to(idx(i), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '<')
-        .to(name(i), { yPercent: 0, duration: 1 }, '<0.1');
+        .to(planes[i], { y: 0, autoAlpha: 1, duration: 1.5, ease: 'expo.out' })
+        .to(lead(i), { scaleX: 1, duration: 1, ease: ease.settle }, '<0.25')
+        .to(label(i), fadeUp, '<0.1');
 
     const tl = newTimeline();
-    tl.to({}, { duration: 0.3 }).to(q('.s02-brand'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet });
+    tl.to({}, { duration: 0.3 })
+      .to(q('.s02-head .eyebrow'), fadeUp)
+      .to(q('.s02-h1'), fadeUp, '<0.1');
 
     layer(tl, 0).addLabel('beat:1');
     hold(tl, 0.4);
-    // earlier layers settle back as new ones arrive
     layer(tl, 1)
-      .to(name(0), { color: 'var(--fg-2)', duration: 0.6, ease: ease.quiet }, '<')
+      .to(label(0), { color: 'var(--grey)', duration: 0.6, ease: ease.quiet }, '<')
       .addLabel('beat:2');
     hold(tl, 0.4);
     layer(tl, 2)
-      .to(name(1), { color: 'var(--fg-2)', duration: 0.6, ease: ease.quiet }, '<')
-      .to(q('.s02-sub'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '<0.4')
-      .to(q('.s02-copy .line-in'), { yPercent: 0, stagger: 0.08 }, '<0.2')
+      .to(label(1), { color: 'var(--grey)', duration: 0.6, ease: ease.quiet }, '<')
+      .to(q('.s02-sub'), fadeUp, '<0.3')
       .addLabel('beat:3');
     hold(tl, 0.6);
 
-    // 4 — AI changes the final layer: the camera pulls it out of the stack and faces it
-    tl.to(planes.slice(0, 2), { yPercent: (i) => OFFSETS[i] - 70, autoAlpha: 0.12, duration: 1.6, ease: ease.settle })
-      .to(q('.k0, .k1'), { autoAlpha: 0.3, duration: 1, ease: ease.quiet }, '<')
-      .to(planes[2], { rotationX: 0, yPercent: 0, scale: portrait ? 1 : 1.12, duration: 1.8, ease: ease.settle }, '<')
-      .to(faces[2], { rotation: 0, duration: 1.8, ease: ease.settle }, '<')
-      .to(q('.s02-journey'), { autoAlpha: 0, duration: 0.6, ease: ease.quiet }, '<0.6')
-      .to(q('.s02-field'), { autoAlpha: 1, duration: 0.8, ease: ease.quiet }, '>-0.2')
+    // 4 — AI changes the final layer: the camera lifts it out of the stack and faces it
+    tl.to(planes.slice(0, 2), { yPercent: (i) => OFFSETS[i] - 80, autoAlpha: 0.1, duration: 1.7, ease: ease.settle })
+      .to(q('.k0, .k1'), { autoAlpha: 0.25, duration: 1, ease: ease.quiet }, '<')
+      .to(q('.s02-h1'), { autoAlpha: 0, y: -30, duration: 0.7, ease: ease.exit }, '<')
+      .to(planes[2], { rotationX: 0, yPercent: 0, scale: portrait ? 1.05 : 1.22, duration: 1.9, ease: ease.settle }, '<')
+      .to(faces[2], { rotation: 0, duration: 1.9, ease: ease.settle }, '<')
+      .to(q('.glow'), { autoAlpha: 1, duration: 1.6, ease: ease.quiet }, '<0.4')
+      .to(q('.s02-h2'), fadeUp, '<0.3')
+      .to(q('.s02-journey'), { autoAlpha: 0, duration: 0.6, ease: ease.quiet }, '<')
+      .to(q('.s02-field'), { autoAlpha: 1, duration: 0.8, ease: ease.quiet }, '>-0.3')
       .set(root, { attr: { 'data-live': '1' } }, '<')
-      .to(q('.s02-designed'), { color: 'var(--fg-3)', backgroundSize: '100% 1px', duration: 0.6, ease: ease.settle }, '<')
-      .to(q('.s02-decided'), { autoAlpha: 1, yPercent: 0, duration: 0.8, ease: ease.reveal }, '>-0.1')
-      .to(q(portrait ? '.s02-copy' : '.s02-copy .line-in'), portrait ? { autoAlpha: 0, duration: 0.5 } : { color: 'var(--fg-3)', duration: 0.8, ease: ease.quiet }, '<')
-      .to(q('.s02-ai .line-in'), { yPercent: 0, stagger: 0.1, duration: 1.2 }, '<0.2')
+      .to(q('.s02-designed'), { color: 'var(--grey-2)', backgroundSize: '100% 1px', duration: 0.6, ease: ease.settle }, '<')
+      .to(q('.s02-decided'), { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '>-0.1')
       .addLabel('beat:4');
 
     hold(tl, 1.2);
-    tl.to(planes[2], { scale: portrait ? 2.4 : 3.2, autoAlpha: 0, duration: 1.6, ease: 'power2.in' }).to(
-      q('.s02-labels, .s02-copy, .s02-ai, .s02-brand, .s02-plane.p0, .s02-plane.p1'),
+    tl.to(planes[2], { scale: portrait ? 2.6 : 3.4, autoAlpha: 0, duration: 1.6, ease: 'power2.in' }).to(
+      q('.s02-labels, .s02-head, .s02-plane.p0, .s02-plane.p1, .glow'),
       { autoAlpha: 0, duration: 0.8, ease: ease.quiet },
       '<',
     );

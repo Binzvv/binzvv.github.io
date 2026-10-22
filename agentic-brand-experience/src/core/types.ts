@@ -27,6 +27,8 @@ export interface SceneDef {
   id: string;
   kicker: string;
   title: string;
+  /** Short label for the local nav. */
+  nav: string;
   /** Scroll length in Explore mode, in viewport heights. */
   length: number;
   Component: FC<SceneProps>;

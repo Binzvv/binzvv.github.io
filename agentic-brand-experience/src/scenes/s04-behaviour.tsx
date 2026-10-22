@@ -1,76 +1,80 @@
 import { gsap } from 'gsap';
 import type { SceneDef, SceneProps } from '../core/types';
-import { Letters, Line } from '../core/Type';
 import { ease, hold, newTimeline } from '../core/motion';
 
-const NOTS = ['Not its logo.', 'Not its colour.', 'Not its typography.', 'Not even its name.'];
+/* A fictional identity in a bento grid, dismantled one tile at a time, in the deck's order. */
+const TILES = [
+  { id: 'logo', label: 'Logo', not: 'Not its logo.' },
+  { id: 'colour', label: 'Colour', not: 'Not its colour.' },
+  { id: 'type', label: 'Typography', not: 'Not its typography.' },
+  { id: 'name', label: 'Name', not: 'Not even its name.' },
+];
 
-function Ghost({ label }: { label: string }) {
-  return (
-    <span className="s04-ghost" aria-hidden="true">
-      <span className="mono">{label}</span>
-    </span>
-  );
+function TileBody({ id }: { id: string }) {
+  switch (id) {
+    case 'logo':
+      return (
+        <svg viewBox="0 0 60 60" className="s04-mark" aria-hidden="true">
+          <circle cx="30" cy="30" r="26" />
+          <path d="M30 4 A26 26 0 0 1 56 30 L30 30 Z" />
+        </svg>
+      );
+    case 'colour':
+      return (
+        <>
+          <span className="s04-field" />
+          <span className="s04-hex">Halden Blue · #2F6BFF</span>
+        </>
+      );
+    case 'type':
+      return (
+        <>
+          <span className="s04-specimen">Aa</span>
+          <span className="s04-specimen-meta">Halden Serif Italic</span>
+        </>
+      );
+    default:
+      return (
+        <>
+          <span className="s04-name s04-name-serif">Halden</span>
+          <span className="s04-name s04-name-plain">Halden</span>
+        </>
+      );
+  }
 }
 
 function Behaviour(_: SceneProps) {
   return (
     <div className="scene s04">
-      <div className="light" style={{ ['--lx' as string]: '74%', ['--ly' as string]: '48%' }} />
-      <h2 className="s04-q head">
-        <Line>Can a brand be</Line>
-        <Line>recognised by</Line>
-        <Line>what it decides?</Line>
-      </h2>
+      <header className="s04-head">
+        <span className="eyebrow">Recognition</span>
+        <h2 className="headline">
+          Can a brand be recognised
+          <br />
+          by what it decides?
+        </h2>
+      </header>
 
-      <ul className="s04-nots">
-        {NOTS.map((t, i) => (
-          <li key={t} className={`n${i}`}>
-            <Line>{t}</Line>
-          </li>
+      <div className="s04-bento" aria-label="A fictional brand identity whose logo, colour, typography and name are removed in turn.">
+        {TILES.map((t) => (
+          <div key={t.id} className={`s04-tile tile t-${t.id}`}>
+            <div className="s04-body">
+              <TileBody id={t.id} />
+            </div>
+            <span className="s04-ghost" aria-hidden="true" />
+            <span className="s04-cap">
+              <span className="s04-cap-label">{t.label}</span>
+              <span className="s04-cap-not">{t.not}</span>
+            </span>
+          </div>
         ))}
-      </ul>
+        <span className="s04-fict caption">Fictional brand, for illustration.</span>
+      </div>
 
-      {/* A fictional identity, dismantled one element at a time. */}
-      <figure className="s04-brand" aria-label="A fictional brand identity whose logo, colour, typography and name are removed in turn.">
-        <div className="s04-frame" />
-        <div className="s04-zone z-logo">
-          <svg viewBox="0 0 60 60" className="s04-mark" aria-hidden="true">
-            <circle cx="30" cy="30" r="27" />
-            <path d="M30 3 A27 27 0 0 1 57 30 L30 30 Z" />
-          </svg>
-          <Ghost label="Logo" />
-        </div>
-        <div className="s04-zone z-type">
-          <span className="s04-specimen">Aa</span>
-          <span className="s04-specimen-meta mono">Halden Serif · Italic</span>
-          <Ghost label="Typography" />
-        </div>
-        <div className="s04-zone z-name">
-          <span className="s04-name s04-name-serif">Halden</span>
-          <span className="s04-name s04-name-plain">HALDEN</span>
-          <Ghost label="Name" />
-        </div>
-        <div className="s04-zone z-colour">
-          <span className="s04-field" />
-          <span className="s04-field-meta mono">#FF4F1F</span>
-          <Ghost label="Colour" />
-        </div>
-        <figcaption className="s04-caption mono">Fictional brand · for illustration</figcaption>
-      </figure>
-
-      <div className="s04-paper">
-        <p className="s04-answer display">
-          <span className="line">
-            <span className="line-in">
-              <Letters text="ITS" />
-            </span>
-          </span>
-          <span className="line">
-            <span className="line-in">
-              <Letters text="BEHAVIOUR." />
-            </span>
-          </span>
+      <div className="s04-light">
+        <p className="mega s04-answer">
+          <span className="s04-its">Its</span>
+          <span className="grad s04-beh">behaviour.</span>
         </p>
       </div>
     </div>
@@ -81,82 +85,71 @@ export const s04: SceneDef = {
   id: 'behaviour',
   kicker: 'Recognition',
   title: 'What makes a brand recognisable?',
+  nav: 'Behaviour',
   length: 6,
   Component: Behaviour,
   build({ q }) {
-    const not = (i: number) => q(`.s04-nots .n${i} .line-in`);
-    const ghost = (z: string) => q(`.${z} .s04-ghost`);
-    const letters = q('.s04-answer .ch');
+    const tile = (id: string) => q(`.t-${id}`)[0];
+    const fadeUp = { autoAlpha: 1, y: 0, duration: 1.1, ease: 'power3.out' };
 
-    gsap.set(q('.s04-q .line-in, .s04-nots .line-in'), { yPercent: 112 });
-    gsap.set(q('.s04-frame'), { scaleY: 0, transformOrigin: '50% 0%' });
-    gsap.set(q('.s04-mark'), { clipPath: 'inset(0% 0% 0% 0%)' });
-    gsap.set(q('.s04-zone > *:not(.s04-ghost), .s04-caption'), { autoAlpha: 0 });
-    gsap.set(q('.s04-field'), { scaleY: 0, transformOrigin: '50% 100%' });
-    gsap.set(q('.s04-ghost'), { autoAlpha: 0 });
-    gsap.set(q('.s04-paper'), { clipPath: 'inset(100% 0% 0% 0%)' });
-    gsap.set(letters, { yPercent: 115 });
+    gsap.set(q('.s04-head .eyebrow, .s04-head .headline'), { autoAlpha: 0, y: 30 });
+    gsap.set(q('.s04-tile'), { autoAlpha: 0, y: 60, scale: 0.96 });
+    gsap.set(q('.s04-fict'), { autoAlpha: 0 });
+    gsap.set(q('.s04-ghost, .s04-cap-not, .s04-name-plain'), { autoAlpha: 0 });
+    gsap.set(q('.s04-light'), { clipPath: 'inset(100% 0% 0% 0%)' });
+    gsap.set(q('.s04-its, .s04-beh'), { autoAlpha: 0, y: 80 });
+    gsap.set(q('.s04-beh'), { backgroundPosition: '100% 0' });
 
     const tl = newTimeline();
     tl.to({}, { duration: 0.3 });
 
     // 1 — the question
-    tl.to(q('.s04-q .line-in'), { yPercent: 0, stagger: 0.1, duration: 1.2 }).addLabel('beat:1');
+    tl.to(q('.s04-head .eyebrow'), fadeUp).to(q('.s04-head .headline'), fadeUp, '<0.1').addLabel('beat:1');
     hold(tl, 0.4);
 
-    // 2 — a familiar kind of brand assembles
-    tl.to(q('.s04-frame'), { scaleY: 1, duration: 1.1, ease: ease.settle })
-      .to(q('.s04-field'), { autoAlpha: 1, scaleY: 1, duration: 1.1, ease: ease.settle }, '<0.3')
-      .to(q('.s04-mark'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '<0.4')
-      .fromTo(q('.s04-mark'), { rotation: -90 }, { rotation: 0, duration: 1.2, ease: ease.reveal }, '<')
-      .to(q('.s04-name-serif'), { autoAlpha: 1, duration: 0.8, ease: ease.quiet }, '<0.2')
-      .to(q('.s04-specimen, .s04-specimen-meta, .s04-field-meta, .s04-caption'), { autoAlpha: 1, duration: 0.8, stagger: 0.08, ease: ease.quiet }, '<0.1')
+    // 2 — a familiar kind of brand assembles, tile by tile
+    tl.to(q('.s04-tile'), { autoAlpha: 1, y: 0, scale: 1, duration: 1.3, stagger: 0.12, ease: 'expo.out' })
+      .to(q('.s04-fict'), { autoAlpha: 1, duration: 0.6 }, '>-0.6')
       .addLabel('beat:2');
     hold(tl, 0.5);
 
-    const remove = (i: number, body: (t: gsap.core.Timeline) => void) => {
-      tl.to(not(i), { yPercent: 0, duration: 0.9 });
-      if (i > 0) tl.to(not(i - 1), { color: 'var(--fg-3)', duration: 0.6, ease: ease.quiet }, '<');
-      body(tl);
+    // 3–6 — absence as a design device: each tile empties to a dashed ghost
+    TILES.forEach((t, i) => {
+      const el = tile(t.id);
+      const q2 = (s: string) => el.querySelectorAll(s);
+      if (t.id === 'type') {
+        // typography leaves twice: the specimen, and the name's typeface
+        tl.to(q2('.s04-body'), { autoAlpha: 0, scale: 0.94, duration: 0.7, ease: ease.quiet })
+          .to(q('.s04-name-serif'), { autoAlpha: 0, duration: 0.5, ease: ease.quiet }, '<')
+          .to(q('.s04-name-plain'), { autoAlpha: 1, duration: 0.5, ease: ease.quiet }, '<0.25');
+      } else if (t.id === 'colour') {
+        tl.to(q('.s04-field'), { backgroundColor: '#3a3a3c', duration: 0.7, ease: 'sine.inOut' }).to(q2('.s04-body'), {
+          autoAlpha: 0,
+          duration: 0.5,
+          ease: ease.quiet,
+        });
+      } else {
+        tl.to(q2('.s04-body'), { autoAlpha: 0, scale: 0.94, duration: 0.7, ease: ease.quiet });
+      }
+      tl.to(el, { backgroundColor: 'rgba(29,29,31,0)', duration: 0.6, ease: ease.quiet }, '<0.1')
+        .to(q2('.s04-ghost'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '<')
+        .to(q2('.s04-cap-label'), { autoAlpha: 0, y: -10, duration: 0.4, ease: ease.quiet }, '<')
+        .fromTo(q2('.s04-cap-not'), { y: 12 }, { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '<0.2');
+      if (i === TILES.length - 1) tl.to(q('.s04-fict'), { autoAlpha: 0, duration: 0.4 }, '<');
       tl.addLabel(`beat:${i + 3}`);
       hold(tl, 0.5);
-    };
+    });
 
-    // 3–6 — absence as a design device: each element leaves a hairline ghost
-    remove(0, (t) =>
-      t
-        .to(q('.s04-mark'), { clipPath: 'inset(0% 100% 0% 0%)', duration: 0.9, ease: ease.settle }, '<0.15')
-        .to(ghost('z-logo'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '>-0.3'),
-    );
-    remove(1, (t) =>
-      t
-        .to(q('.s04-field'), { backgroundColor: '#3a3a3c', duration: 0.8, ease: 'sine.inOut' }, '<0.15')
-        .to(q('.s04-field'), { autoAlpha: 0, duration: 0.6, ease: ease.quiet })
-        .to(q('.s04-field-meta'), { autoAlpha: 0, duration: 0.4 }, '<')
-        .to(ghost('z-colour'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '>-0.3'),
-    );
-    remove(2, (t) =>
-      t
-        .to(q('.s04-specimen, .s04-specimen-meta'), { autoAlpha: 0, y: -8, duration: 0.6, ease: ease.quiet }, '<0.15')
-        .to(q('.s04-name-serif'), { autoAlpha: 0, duration: 0.5, ease: ease.quiet }, '<')
-        .to(q('.s04-name-plain'), { autoAlpha: 1, duration: 0.5, ease: ease.quiet }, '<0.2')
-        .to(ghost('z-type'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '<'),
-    );
-    remove(3, (t) =>
-      t
-        .to(q('.s04-name-plain'), { autoAlpha: 0, duration: 0.6, ease: ease.quiet }, '<0.15')
-        .to(ghost('z-name'), { autoAlpha: 1, duration: 0.6, ease: ease.quiet }, '>-0.3')
-        .to(q('.s04-caption'), { autoAlpha: 0, duration: 0.4 }, '<'),
-    );
-
-    // 7 — the answer, at the scale of the whole frame, on paper
-    tl.to(q('.s04-paper'), { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut' })
-      .to(letters, { yPercent: 0, duration: 1.4, stagger: 0.04, ease: ease.reveal }, '>-0.45')
+    // 7 — the answer, on light, at the scale of the whole frame
+    tl.to(q('.s04-light'), { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut' })
+      .to(q('.s04-its'), { autoAlpha: 1, y: 0, duration: 1.4, ease: 'expo.out' }, '>-0.4')
+      .to(q('.s04-beh'), { autoAlpha: 1, y: 0, duration: 1.5, ease: 'expo.out' }, '<0.12')
+      .to(q('.s04-beh'), { backgroundPosition: '0% 0', duration: 2, ease: 'power2.inOut' }, '<')
       .addLabel('beat:7');
 
     hold(tl, 1.2);
-    tl.to(q('.s04-answer .line-in'), { yPercent: -112, duration: 0.9, stagger: 0.08, ease: ease.exit }).to(
-      q('.s04-paper'),
+    tl.to(q('.s04-answer'), { autoAlpha: 0, y: -60, duration: 0.9, ease: ease.exit }).to(
+      q('.s04-light'),
       { clipPath: 'inset(0% 0% 100% 0%)', duration: 1.1, ease: 'expo.inOut' },
       '>-0.3',
     );

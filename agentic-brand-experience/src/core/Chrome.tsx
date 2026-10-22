@@ -1,44 +1,51 @@
-import type { SceneDef } from './types';
+import type { Mode, SceneDef } from './types';
 
 interface Props {
   scenes: SceneDef[];
   index: number;
-  /** 0–1 progress through each scene, for the segmented rule. */
+  /** 0–1 progress through each scene. */
   fills: number[];
-  action?: { label: string; onClick: () => void; hint?: string };
+  mode: Mode;
+  onJump: (i: number) => void;
+  onAction: () => void;
 }
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** The deck's folio system: kicker top-left, title and page bottom, a hairline that doubles as progress. */
-export function Chrome({ scenes, index, fills, action }: Props) {
-  const def = scenes[index];
+/** Apple-style chrome: a blurred local nav in Explore, a close button in Present, and pill progress dots in both. */
+export function Chrome({ scenes, index, fills, mode, onJump, onAction }: Props) {
   return (
-    <div className="chrome">
-      <div className="chrome-top">
-        <span className="mono chrome-kicker" key={def.id}>
-          {def.kicker}
-        </span>
-        {action && (
-          <button className="mono chrome-action" onClick={action.onClick} title={action.hint}>
-            {action.label}
+    <div className={`chrome chrome-${mode}`}>
+      {mode === 'explore' ? (
+        <nav className="localnav" aria-label="Scenes">
+          <div className="localnav-in">
+            <button className="localnav-title" onClick={() => onJump(0)}>
+              Agentic Brand Experience
+            </button>
+            <div className="localnav-links">
+              {scenes.map((s, i) => (
+                <button key={s.id} className={i === index ? 'is-current' : ''} onClick={() => onJump(i)} aria-current={i === index ? 'step' : undefined}>
+                  {s.nav}
+                </button>
+              ))}
+            </div>
+            <button className="pill" onClick={onAction} title="Presentation mode (P)">
+              Present
+            </button>
+          </div>
+        </nav>
+      ) : (
+        <button className="pr-close" onClick={onAction} aria-label="Exit presentation (Esc)">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M5 5l10 10M15 5L5 15" />
+          </svg>
+        </button>
+      )}
+
+      <div className="dots" aria-hidden="true">
+        {scenes.map((s, i) => (
+          <button key={s.id} className={`dot ${i === index ? 'is-current' : ''} ${fills[i] >= 1 && i !== index ? 'is-done' : ''}`} tabIndex={-1} onClick={() => onJump(i)}>
+            <i style={{ transform: `scaleX(${i === index ? fills[i] ?? 0 : 0})` }} />
           </button>
-        )}
-      </div>
-      <div className="chrome-bottom">
-        <div className="chrome-progress" aria-hidden="true">
-          {scenes.map((s, i) => (
-            <span key={s.id} className={i === index ? 'is-current' : ''}>
-              <i style={{ transform: `scaleX(${fills[i] ?? 0})` }} />
-            </span>
-          ))}
-        </div>
-        <div className="chrome-folio">
-          <span className="mono">Agentic Brand Experience / 001</span>
-          <span className="mono" aria-label={`Scene ${index + 1} of ${scenes.length}`}>
-            {pad(index + 1)}—{pad(scenes.length)}
-          </span>
-        </div>
+        ))}
       </div>
     </div>
   );

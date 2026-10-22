@@ -15,8 +15,9 @@ html {
 body {
   margin: 0;
   background: var(--ink);
-  font-family: var(--font-display);
-  font-feature-settings: 'ss01', 'cv11';
+  font-family: var(--font);
+  font-optical-sizing: auto;
+  letter-spacing: -0.011em;
 }
 
 body.is-presenting {
@@ -26,6 +27,7 @@ body.is-presenting {
 button {
   font: inherit;
   color: inherit;
+  letter-spacing: inherit;
   background: none;
   border: 0;
   padding: 0;
@@ -33,25 +35,8 @@ button {
 }
 
 :focus-visible {
-  outline: 1px solid var(--fg);
-  outline-offset: 4px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-.mono {
-  font-family: var(--font-mono);
-  font-size: var(--t-mono);
-  letter-spacing: var(--t-mono-track);
-  text-transform: uppercase;
-  font-weight: 400;
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
 }
 
 /* ---------- Stage ---------- */
@@ -72,22 +57,23 @@ button {
   inset: 0;
 }
 
-.light {
+/* soft studio light behind the subject */
+.glow {
   position: absolute;
-  inset: -20%;
+  inset: 0;
   pointer-events: none;
-  background: radial-gradient(48% 42% at var(--lx, 50%) var(--ly, 55%), rgba(255, 255, 255, 0.065), transparent 70%);
   z-index: -1;
+  background: radial-gradient(42% 46% at var(--gx, 50%) var(--gy, 60%), var(--gc, rgba(255, 106, 43, 0.16)), transparent 70%);
+  opacity: 0;
 }
 
-/* ---------- Type primitives ---------- */
+/* ---------- Type ---------- */
 
 .line {
   display: block;
   overflow: hidden;
-  /* room for the masked glyphs without changing rhythm */
-  padding: 0.06em 0 0.08em;
-  margin: -0.06em 0 -0.08em;
+  padding: 0.08em 0 0.12em;
+  margin: -0.08em 0 -0.12em;
 }
 
 .line-in {
@@ -95,63 +81,91 @@ button {
   will-change: transform;
 }
 
-.letters {
-  display: inline-block;
-  white-space: nowrap;
-}
-
-.ch {
-  display: inline-block;
-  will-change: transform;
-}
-
-.display {
+.eyebrow {
+  display: block;
+  font-size: var(--t-eyebrow);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: -0.045em;
-  line-height: 0.92;
+  letter-spacing: 0.002em;
+  line-height: 1.1;
+  color: var(--hot);
+  margin: 0 0 1.4cqh;
+}
+
+.headline {
+  font-size: var(--t-headline);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  line-height: 1.06;
   margin: 0;
 }
 
-.head {
-  font-size: var(--t-head);
-  font-weight: 560;
-  text-transform: uppercase;
-  letter-spacing: -0.035em;
-  line-height: 0.98;
+.hero {
+  font-size: var(--t-hero);
+  font-weight: 650;
+  letter-spacing: -0.032em;
+  line-height: 1.04;
   margin: 0;
 }
 
-.body {
-  font-size: var(--t-body);
-  line-height: 1.38;
-  letter-spacing: -0.012em;
-  font-weight: 420;
-  color: var(--fg-2);
+.mega {
+  font-size: var(--t-mega);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
   margin: 0;
 }
 
-.serif {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  text-transform: none;
+/* Apple's feature copy: semibold grey, with the point picked out in white */
+.copy {
+  font-size: var(--t-copy);
+  font-weight: 600;
+  line-height: 1.24;
+  letter-spacing: -0.016em;
+  color: var(--grey);
+  margin: 0;
 }
 
-.rule {
-  height: 1px;
-  background: var(--line);
-  transform-origin: left center;
+.copy strong,
+.copy b {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.caption {
+  font-size: var(--t-caption);
+  font-weight: 500;
+  color: var(--grey);
+  letter-spacing: -0.005em;
+}
+
+.grey {
+  color: var(--grey);
+}
+
+.grad {
+  background: var(--grad);
+  background-size: 200% 100%;
+  background-position: 0% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  /* keep descenders and italics inside the painted box */
+  padding: 0 0.04em 0.08em 0;
+}
+
+.tile {
+  background: var(--tile);
+  border-radius: clamp(14px, 1.75cqw, 30px);
 }
 
 /* ---------- Signals (ambient, gated) ---------- */
 
 .sig {
   fill: none;
-  stroke: var(--fg);
+  stroke: #ff8a3d;
   stroke-linecap: round;
-  stroke-dasharray: 0.018 0.982;
+  stroke-dasharray: 0.03 0.97;
   stroke-dashoffset: 1;
   opacity: 0;
 }
