@@ -1,0 +1,14 @@
+{
+  "name": "sky-smart-home-walkthrough",
+  "private": true,
+  "type": "module",
+  "description": "Records a cinematic walkthrough of the live Sky Smart Home page with Playwright.",
+  "scripts": {
+    "inspect": "node inspect.mjs",
+    "sample": "node capture.mjs --sample",
+    "record": "node capture.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
