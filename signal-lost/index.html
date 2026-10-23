@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Night City // Signal Lost</title>
+  <meta name="description" content="An unofficial, experimental concept for Cyberpunk: Edgerunners season two. A scroll-driven descent through Night City." />
+  <meta name="theme-color" content="#030305" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=Chakra+Petch:wght@400;500;600&family=Dela+Gothic+One&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
+</head>
+<body>
+  <a class="skip" href="#archive">Skip to the character archive</a>
+
+  <!-- 01 SYSTEM BOOT -->
+  <div class="boot" id="boot" role="dialog" aria-label="System boot" aria-live="polite">
+    <div class="boot__term" id="bootTerm"><span class="boot__cursor" aria-hidden="true"></span></div>
+    <button class="boot__skip" id="bootSkip" type="button">Skip intro</button>
+  </div>
+
+  <!-- global post-processing -->
+  <div class="fx fx--grain" aria-hidden="true"></div>
+  <div class="fx fx--scan" aria-hidden="true"></div>
+  <div class="fx fx--vignette" aria-hidden="true"></div>
+  <div class="fx fx--tear" id="tear" aria-hidden="true"></div>
+  <div class="fx fx--flash" id="flash" aria-hidden="true"></div>
+
+  <!-- persistent HUD -->
+  <header class="hud" aria-label="Interface">
+    <div class="hud__mark">NC<span>//</span>SL</div>
+    <div class="hud__meta">
+      <span>Edgerunners season 2</span>
+      <span class="hud__dim">Unofficial concept</span>
+    </div>
+    <div class="hud__gauge" role="meter" aria-label="Humanity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="gauge">
+      <div class="hud__gauge-track"><div class="hud__gauge-fill" id="gaugeFill"></div></div>
+      <div class="hud__gauge-read"><b id="humanity">100</b><span>% humanity</span></div>
+    </div>
+    <div class="hud__depth">
+      <span class="hud__dim" id="sceneName">Skyline</span>
+      <span><b id="alt">812</b> m</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- 02 + 03 NIGHT CITY / DESCENT -->
+    <section class="descent" id="city" aria-label="Night City">
+      <div class="stage" id="stage">
+        <div class="sky" id="sky"><div class="sky__glow sky__glow--a"></div><div class="sky__glow sky__glow--b"></div></div>
+        <div class="layer layer--far" data-depth="0.25"><div class="layer__in"></div></div>
+        <div class="layer layer--mid" data-depth="0.55"><div class="layer__in"></div></div>
+        <div class="haze haze--mid" aria-hidden="true"></div>
+        <div class="layer layer--near" data-depth="1"><div class="layer__in"></div></div>
+        <canvas class="rain" id="rain" aria-hidden="true"></canvas>
+        <div class="haze haze--floor" aria-hidden="true"></div>
+
+        <div class="hero">
+          <h1 class="hero__title" aria-label="No happy endings.">
+            <span class="hero__line" aria-hidden="true"><span>NO</span></span>
+            <span class="hero__line" aria-hidden="true"><span>HAPPY</span></span>
+            <span class="hero__line" aria-hidden="true"><span>ENDINGS.</span></span>
+            <span class="hero__slice" aria-hidden="true">NO<br />HAPPY<br />ENDINGS.</span>
+          </h1>
+          <p class="hero__jp" lang="ja" aria-hidden="true">ハッピーエンドはない</p>
+          <p class="hero__sub">Cyberpunk: Edgerunners, season two.<br />Scroll to descend. The city is listening.</p>
+        </div>
+
+        <div class="frags">
+          <p class="frag frag--1"><span>The sky belongs</span><span>to the corps.</span></p>
+          <p class="frag frag--2"><span>Everything below</span><span>is for sale.</span></p>
+          <p class="frag frag--3"><span>Chrome is cheap.</span><span>Flesh is not.</span></p>
+          <p class="frag frag--4"><span>Street level.</span><span>Nobody looks up.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 CHARACTER ARCHIVE -->
+    <section class="archive" id="archive" aria-label="Character archive">
+      <div class="archive__track" id="archiveTrack">
+        <div class="archive__intro">
+          <p class="archive__kicker" lang="ja">記録保管所</p>
+          <h2 class="archive__title">Four files<br />survived<br />the purge.</h2>
+          <p class="archive__lede">Recovered from a dead fixer's deck. Records are partial and partly corrupted. Point at a file, or tab to it, to decrypt it.</p>
+        </div>
+        <!-- dossiers injected by main.js -->
+      </div>
+    </section>
+
+    <!-- 05 CYBERPSYCHOSIS -->
+    <section class="psy" id="psychosis" aria-label="Cyberpsychosis">
+      <div class="psy__stage" id="psyStage">
+        <div class="psy__city" id="psyCity" aria-hidden="true"></div>
+        <svg class="psy__ecg" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+          <path class="ecg ecg--calm" d="" />
+          <path class="ecg ecg--wild" d="" />
+          <path class="ecg ecg--flat" d="M0 100 H1200" />
+        </svg>
+        <p class="psy__line" id="psyLine" aria-label="I can still feel my hands">I CAN STILL FEEL MY HANDS</p>
+        <div class="psy__panels" id="psyPanels" aria-hidden="true"></div>
+        <div class="psy__black" id="psyBlack">
+          <p class="psy__q">HOW MUCH HUMAN IS LEFT?</p>
+          <p class="psy__q-read">Humanity <b id="finalHumanity">03</b>%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 FINAL SCENE -->
+    <section class="end" id="end" aria-label="End">
+      <h2 class="end__title">THE CITY<br />ALWAYS WINS.</h2>
+      <button class="reconnect" id="reconnect" type="button"><span>RECONNECT</span></button>
+      <p class="end__legal">An unofficial creative exploration. Not affiliated with Netflix, Studio Trigger or CD PROJEKT RED. Cyberpunk: Edgerunners belongs to its owners. Every character, logo and image on this page is an original placeholder drawn in code.</p>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
