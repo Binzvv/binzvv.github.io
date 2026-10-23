@@ -70,7 +70,7 @@ function Mockup({ id, label, number, viewport, onOpen, reduced }) {
       <div className="mock-label mt-9 flex items-baseline justify-between">
         <span className="flex items-baseline gap-5">
           <span className="text-[18px] tabular-nums text-black/35">{number}</span>
-          <span className="text-[44px] font-semibold tracking-[-0.035em]">{label}</span>
+          <span className="font-headline text-[44px] font-medium tracking-[-0.02em]">{label}</span>
         </span>
         <span className="flex items-center gap-3 text-[18px] text-black/45 transition-colors duration-300 group-hover:text-ink">
           Open
@@ -115,7 +115,7 @@ export default function Experience({ active, viewport, onOpen }) {
 
       <h2
         data-fade
-        className="headline absolute left-[120px] top-[150px] text-[112px] font-semibold leading-none tracking-[-0.05em]"
+        className="headline absolute left-[120px] top-[150px] font-headline text-[108px] font-medium leading-none tracking-[-0.03em]"
       >
         <SplitText text="From discovery to product." by="word" />
       </h2>

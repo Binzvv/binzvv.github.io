@@ -3,13 +3,27 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
+      // Sky's brand faces first: "Sky Text Web" are the bundled files in
+      // public/fonts (when supplied), "Sky Text" an installed copy.
       fontFamily: {
         sans: [
+          '"Sky Text Web"',
+          '"Sky Text"',
           '-apple-system',
           'BlinkMacSystemFont',
-          '"SF Pro Display"',
           '"Segoe UI"',
-          'Inter',
+          '"Helvetica Neue"',
+          'Arial',
+          'sans-serif',
+        ],
+        headline: [
+          '"Sky Text Headline Web"',
+          '"Sky Text Headline"',
+          '"Sky Text Web"',
+          '"Sky Text"',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
           '"Helvetica Neue"',
           'Arial',
           'sans-serif',

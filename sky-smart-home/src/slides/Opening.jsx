@@ -65,10 +65,10 @@ export default function Opening({ active }) {
       </div>
 
       <div className="absolute bottom-[190px] left-[120px]">
-        <h1 data-fade className="title text-[224px] font-semibold leading-[0.9] tracking-[-0.055em]">
+        <h1 data-fade className="title font-headline text-[208px] font-medium leading-[0.92] tracking-[-0.035em]">
           <SplitText text="Sky Smart Home" />
         </h1>
-        <p data-fade className="subtitle mt-10 text-[48px] font-normal tracking-[-0.025em] text-white/55">
+        <p data-fade className="subtitle mt-10 text-[48px] font-normal tracking-[-0.01em] text-white/55">
           <SplitText text="A more connected experience." by="word" />
         </p>
       </div>

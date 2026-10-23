@@ -44,7 +44,7 @@ export default function Challenge({ active }) {
       </p>
 
       <div className="page absolute inset-x-[120px] top-[170px]">
-        <h2 data-fade className="headline text-[152px] font-semibold leading-[0.94] tracking-[-0.05em]">
+        <h2 data-fade className="headline font-headline text-[148px] font-medium leading-[0.96] tracking-[-0.03em]">
           <SplitText text="Inspiration" by="word" />
           <br />
           <SplitText text="meets information." by="word" />
@@ -55,7 +55,7 @@ export default function Challenge({ active }) {
             <div data-fade key={label} className="col">
               <div className="rule h-px origin-left bg-black/25" />
               <p className="col-label mt-6 text-[19px] text-black/45">{label}</p>
-              <p className="col-text mt-5 max-w-[640px] text-[60px] font-medium leading-[1.04] tracking-[-0.035em]">
+              <p className="col-text mt-5 max-w-[640px] text-[58px] font-normal leading-[1.08] tracking-[-0.02em]">
                 {text}
               </p>
             </div>
@@ -65,7 +65,7 @@ export default function Challenge({ active }) {
 
       <p
         data-fade
-        className="finale absolute bottom-[130px] right-[120px] text-[96px] font-semibold leading-none tracking-[-0.05em]"
+        className="finale absolute bottom-[130px] right-[120px] font-headline text-[96px] font-medium leading-none tracking-[-0.03em]"
       >
         <SplitText text="Both mattered." />
       </p>
