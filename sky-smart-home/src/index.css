@@ -18,6 +18,22 @@ body {
 }
 
 /* Masked text reveal. Padding keeps descenders inside the mask. */
+/* Sky Spectrum, sampled from sky.com. Never applied to type. */
+:root {
+  --sky-spectrum: linear-gradient(
+    90deg,
+    #ffc937 0%,
+    #fb571c 20%,
+    #ff0c9e 42%,
+    #b416f0 60%,
+    #0012fd 80%,
+    #32cbff 100%
+  );
+}
+.spectrum {
+  background-image: var(--sky-spectrum);
+}
+
 .split-mask {
   display: inline-block;
   overflow: hidden;

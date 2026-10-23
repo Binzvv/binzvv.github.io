@@ -6,6 +6,7 @@ import { useReducedMotion, useSlideIntro } from '../lib/hooks.js';
 function DevicePlaceholder() {
   return (
     <div className="device absolute right-[170px] top-[64px] h-[480px] w-[380px]">
+      <div className="spectrum-glow spectrum absolute -left-[20px] bottom-[40px] h-[150px] w-[420px] rounded-[50%] opacity-40 blur-[64px]" />
       <div className="device-float absolute inset-0">
         <div className="absolute inset-x-[64px] bottom-[96px] top-0 overflow-hidden rounded-[68px] bg-[#0F0F0F] ring-1 ring-white/[0.07]">
           <div className="absolute inset-x-[56px] top-0 h-px bg-white/25" />
@@ -37,6 +38,7 @@ export default function Opening({ active }) {
       }
       gsap
         .timeline({ delay: 0.35 })
+        .from('.spectrum-line', { clipPath: 'inset(0% 100% 0% 0%)', duration: 1.8, ease: 'expo.inOut' }, 0)
         .from('.device', { opacity: 0, y: 50, scale: 0.94, filter: 'blur(14px)', duration: 2.4, ease: 'power3.out' }, 0)
         .from('.title .split-char', { yPercent: 115, duration: 1.6, ease: 'expo.out', stagger: 0.035 }, 0.15)
         .from('.subtitle .split-word', { yPercent: 115, duration: 1.2, ease: 'expo.out', stagger: 0.07 }, 1.0)
@@ -50,6 +52,7 @@ export default function Opening({ active }) {
     if (reduced) return;
     const ctx = gsap.context(() => {
       gsap.to('.device-float', { y: -14, duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+      gsap.to('.spectrum-glow', { opacity: 0.6, scaleX: 1.12, duration: 4.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
       gsap.to('.glow', { opacity: 0.55, duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
       gsap.fromTo('.led', { opacity: 0.35, scaleX: 0.7 }, { opacity: 0.95, scaleX: 1, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1 });
       gsap.fromTo('.sweep', { xPercent: -160 }, { xPercent: 420, duration: 2.8, ease: 'power2.inOut', repeat: -1, repeatDelay: 4.5, delay: 2.5 });
@@ -60,6 +63,8 @@ export default function Opening({ active }) {
 
   return (
     <div ref={root} className="absolute inset-0 bg-black text-white">
+      <div data-fade className="spectrum-line spectrum absolute inset-x-0 top-0 h-[6px]" />
+
       <div data-fade>
         <DevicePlaceholder />
       </div>
