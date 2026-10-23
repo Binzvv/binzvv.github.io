@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halden Meridian</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400&display=swap">
+<style>
+/* Layout: cinematic pinned scenes in black for the object, then a cool paper section for the facts.
+   Hero is centred like a product reveal; everything after sits on a left-weighted editorial grid. */
+:root {
+  --vinyl: #000000;          /* the stage: the record's own black */
+  --stage-2: #0d0e10;        /* lifted surface on the stage */
+  --alu: #c9ccd0;            /* anodised aluminium */
+  --paper: #eef0ee;          /* cool paper for the spec sheet */
+  --ink: #15171a;            /* text on paper */
+  --mist: #8a8f96;           /* secondary text, cool bias */
+  --label: #3348d4;          /* ultramarine record label: the only accent */
+  --label-soft: #8e9cff;     /* accent tuned for black backgrounds */
+  --brass: #b59a6a;          /* counterweight */
+  --plinth-hi: #e9ebee;
+  --plinth: #c3c7cc;
+  --plinth-lo: #8d9298;
+
+  --display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --text: "Hanken Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3125rem;
+  --step-2: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  --step-3: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
+  --step-4: clamp(3.1rem, 1.6rem + 6vw, 7.5rem);
+
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --measure: 34rem;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--vinyl);
+  color: var(--alu);
+  font-family: var(--text);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--vinyl);
+}
+h1, h2, h3, p, dl, dd, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--label-soft); outline-offset: 3px; border-radius: 4px; }
+.wrap {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter-r);
+}
+
+/* ---------- Product nav ---------- */
+.subnav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: color-mix(in srgb, var(--vinyl) 72%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+  border-bottom: 1px solid color-mix(in srgb, var(--alu) 14%, transparent);
+}
+.subnav .wrap { display: flex; align-items: center; gap: 1.5rem; height: 3.25rem; }
+.subnav .name { font-family: var(--display); font-size: 1.375rem; font-weight: 400; text-decoration: none; letter-spacing: -0.01em; margin-right: auto; color: var(--plinth-hi); }
+.subnav nav { display: flex; gap: 1.5rem; font-size: var(--step--1); }
+.subnav nav a { text-decoration: none; color: var(--mist); }
+.subnav nav a:hover { color: var(--plinth-hi); }
+.pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  font: 500 var(--step--1)/1 var(--text);
+  padding: 0.55rem 0.95rem; border-radius: 999px; border: 0;
+  background: var(--label); color: #fff; text-decoration: none; cursor: pointer;
+}
+.pill:hover { background: color-mix(in srgb, var(--label) 86%, #fff); }
+@media (max-width: 600px) { .subnav nav { display: none; } }
+
+/* ---------- Turntable drawing ---------- */
+.tt { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative; height: 100svh; min-height: 34rem; overflow: hidden;
+  background: radial-gradient(60% 55% at 50% 62%, #1d2026 0%, var(--vinyl) 70%);
+}
+.hero-copy {
+  position: absolute; inset: 0 0 auto; z-index: 2; text-align: center;
+  padding-top: clamp(2.5rem, 7svh, 5rem);
+  padding-left: var(--gutter); padding-right: var(--gutter-r);
+}
+.hero h1 {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-4);
+  line-height: 0.92; letter-spacing: -0.035em; color: var(--plinth-hi); text-wrap: balance;
+}
+.hero h1 .line { display: block; }
+.hero .lede { max-width: 31rem; margin: 1.5rem auto 0; color: var(--mist); text-wrap: pretty; }
+.hero-stage {
+  position: absolute; left: 50%; top: 70%; z-index: 1;
+  width: min(92vw, calc(58svh * 440 / 340), 820px);
+  translate: -50% -30%;
+  filter: drop-shadow(0 40px 60px rgba(0,0,0,.7));
+}
+.hero-caption {
+  position: absolute; left: 0; right: 0; bottom: clamp(1.5rem, 6svh, 3.5rem); z-index: 2;
+  text-align: center; padding-left: var(--gutter); padding-right: var(--gutter-r);
+}
+.hero-caption p {
+  max-width: 30rem; margin-inline: auto; color: var(--alu); font-size: var(--step-0);
+  opacity: 0;
+}
+.hero-caption strong { color: var(--plinth-hi); font-weight: 500; }
+
+/* ---------- Statement ---------- */
+.statement { padding-block: clamp(7rem, 22vh, 13rem); }
+.statement p {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-3);
+  line-height: 1.08; letter-spacing: -0.02em; color: var(--plinth-hi);
+  max-width: 20ch; text-wrap: balance;
+}
+.statement .w { opacity: 1; }
+.js-motion .statement .w { opacity: 0.16; }
+
+/* ---------- Exploded view ---------- */
+.anatomy { height: 100svh; min-height: 36rem; display: flex; align-items: center; background: var(--vinyl); }
+.anatomy .wrap {
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 5rem); align-items: center;
+}
+.anatomy h2, .speed h2, .groove h2 {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-2);
+  line-height: 1.08; letter-spacing: -0.015em; color: var(--plinth-hi); text-wrap: balance;
+}
+.anatomy figure { margin: 0; min-width: 0; }
+.anatomy figure svg { width: 100%; height: auto; max-height: 78svh; display: block; }
+.anatomy .part { transition: opacity .35s ease; }
+.anatomy .copy { min-width: 0; display: grid; gap: 2rem; }
+.layers { display: grid; gap: 1.1rem; }
+.layers li {
+  display: grid; gap: .2rem; padding-left: 1rem;
+  border-left: 1px solid color-mix(in srgb, var(--alu) 18%, transparent);
+  color: var(--mist); transition: color .3s ease, border-color .3s ease;
+}
+.layers li h3 { font: 500 var(--step-0)/1.3 var(--text); color: inherit; }
+.layers li p { font-size: var(--step--1); line-height: 1.5; max-width: 28rem; }
+.layers li.is-active { color: var(--plinth-hi); border-left-color: var(--label-soft); }
+.layers li.is-active p { color: var(--alu); }
+
+/* ---------- Groove macro ---------- */
+.groove { position: relative; height: 100svh; min-height: 34rem; overflow: hidden; background: var(--vinyl); }
+.groove svg.macro { position: absolute; inset: 0; width: 100%; height: 100%; }
+.groove .stylus {
+  position: absolute; left: 50%; top: 0; width: clamp(54px, 7vw, 84px);
+  translate: -50% 0; opacity: 0; z-index: 1;
+}
+.groove .copy {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: clamp(2rem, 9svh, 5rem);
+}
+.groove .copy .wrap { display: grid; }
+.groove .copy p {
+  grid-area: 1 / 1; max-width: 22ch;
+  font-family: var(--display); font-weight: 300; font-size: var(--step-2);
+  line-height: 1.1; letter-spacing: -0.015em; color: var(--plinth-hi); text-wrap: balance;
+  text-shadow: 0 2px 30px #000;
+}
+.js-motion .groove .copy p + p { opacity: 0; }
+
+/* ---------- Speed ---------- */
+.speed { padding-block: clamp(6rem, 16vh, 10rem); background: var(--stage-2); }
+.speed .wrap {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem); align-items: center;
+}
+.speed .copy { display: grid; gap: 1.5rem; min-width: 0; }
+.speed .copy > p { color: var(--mist); max-width: var(--measure); }
+.readout {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-4);
+  line-height: 1; letter-spacing: -0.03em; color: var(--plinth-hi);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.readout small { font-family: var(--text); font-size: var(--step-0); letter-spacing: 0; color: var(--mist); margin-left: .4rem; }
+.segmented {
+  display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; justify-self: start;
+  background: color-mix(in srgb, var(--alu) 9%, transparent);
+}
+.segmented button {
+  font: 500 var(--step--1)/1 var(--text); color: var(--alu);
+  background: transparent; border: 0; border-radius: 999px; padding: .7rem 1.1rem; cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.segmented button[aria-pressed="true"] { background: var(--plinth-hi); color: var(--ink); }
+.speed figure { margin: 0; min-width: 0; }
+
+/* ---------- Spec sheet (paper) ---------- */
+.paper { background: var(--paper); color: var(--ink); color-scheme: light; }
+.specs { padding-block: clamp(6rem, 14vh, 9rem) clamp(4rem, 10vh, 6rem); }
+.specs .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: clamp(2rem, 6vw, 6rem); }
+.specs h2 {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-3);
+  line-height: 1; letter-spacing: -0.025em;
+}
+.specs dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(1.5rem, 4vw, 3.5rem); }
+.specs .row {
+  display: grid; gap: .15rem; padding-block: 1rem 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+}
+.specs dt { font-size: var(--step--1); color: #5c6168; }
+.specs dd { font-size: var(--step-0); font-variant-numeric: tabular-nums; }
+
+/* ---------- Pre-order ---------- */
+.order { padding-block: clamp(3rem, 8vh, 5rem) clamp(6rem, 14vh, 9rem); }
+.order .wrap {
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem); align-items: center;
+}
+.order figure { margin: 0; min-width: 0; filter: drop-shadow(0 30px 40px rgba(20,24,30,.22)); }
+.order .copy { display: grid; gap: 1.75rem; min-width: 0; }
+.order h2 {
+  font-family: var(--display); font-weight: 300; font-size: var(--step-3);
+  line-height: 1; letter-spacing: -0.025em;
+}
+.order .price { font-size: var(--step-1); font-variant-numeric: tabular-nums; }
+.order .price span { display: block; font-size: var(--step--1); color: #5c6168; margin-top: .25rem; }
+.finishes { border: 0; padding: 0; margin: 0; display: grid; gap: .75rem; }
+.finishes legend { font-size: var(--step--1); color: #5c6168; padding: 0; margin-bottom: .75rem; }
+.finishes legend b { color: var(--ink); font-weight: 500; }
+.swatches { display: flex; gap: .85rem; }
+.swatch { position: relative; }
+.swatch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.swatch span {
+  display: block; width: 2.25rem; height: 2.25rem; border-radius: 50%;
+  background: linear-gradient(135deg, var(--hi), var(--mid) 55%, var(--lo));
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+}
+.swatch input:checked + span { outline: 2px solid var(--ink); outline-offset: 3px; }
+.swatch input:focus-visible + span { outline: 2px solid var(--label); outline-offset: 3px; }
+.order .pill { justify-self: start; padding: .95rem 1.5rem; font-size: var(--step-0); }
+.order .status { font-size: var(--step--1); color: #3d4248; min-height: 1.5em; }
+
+footer { background: var(--paper); color: #5c6168; font-size: var(--step--1); }
+footer .wrap { padding-block: 1.75rem 2.5rem; border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 760px) {
+  .hero-stage { top: 68%; width: min(104vw, 560px); }
+  .anatomy { height: auto; min-height: 100svh; padding-block: 4.5rem 2rem; align-items: flex-start; }
+  .anatomy .wrap { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+  .anatomy figure { order: 2; }
+  .anatomy figure svg { max-height: 44svh; }
+  .anatomy .copy { order: 1; gap: 1rem; }
+  .js-motion .layers li:not(.is-active) { display: none; }
+  .speed .wrap, .specs .wrap, .order .wrap { grid-template-columns: minmax(0, 1fr); }
+  .speed figure { order: -1; max-width: 26rem; }
+  .specs dl { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-caption p { opacity: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="subnav">
+  <div class="wrap">
+    <a class="name" href="#top">Meridian</a>
+    <nav aria-label="Meridian">
+      <a href="#design">Design</a>
+      <a href="#speed">Speeds</a>
+      <a href="#specs">Specs</a>
+    </nav>
+    <a class="pill" href="#order">Pre-order</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title"><span class="line">Put the</span><span class="line">needle down.</span></h1>
+      <p class="lede">Meridian is a belt-driven turntable machined from nine kilograms of aluminium. It plays records, and keeps out of the way while it does.</p>
+    </div>
+    <div class="hero-stage" data-turntable="hero" data-label="Meridian turntable seen from above, with a record on the platter"></div>
+    <div class="hero-caption">
+      <p>The cueing lever is oil-damped, so the stylus <strong>settles into the lead-in groove</strong> instead of dropping onto it.</p>
+    </div>
+  </section>
+
+  <section class="statement">
+    <div class="wrap">
+      <p data-words>Most of what you hear from a turntable is the turntable. Meridian is built so the only thing moving is the record.</p>
+    </div>
+  </section>
+
+  <section class="anatomy" id="design" aria-labelledby="anatomy-title">
+    <div class="wrap">
+      <figure>
+        <svg id="exploded" viewBox="0 0 600 560" role="img" aria-label="Side view of Meridian separating into its layers: record, felt mat, platter, bearing, plinth and feet"></svg>
+      </figure>
+      <div class="copy">
+        <h2 id="anatomy-title">Every layer is there to keep vibration away from the stylus.</h2>
+        <ul class="layers">
+          <li data-part="mat"><h3>Wool felt mat</h3><p>3 mm of pressed wool absorbs what the record picks up from the room.</p></li>
+          <li data-part="platter"><h3>Platter</h3><p>2.1 kg of turned aluminium, balanced to within a hundredth of a gram so it spins without wobble.</p></li>
+          <li data-part="bearing"><h3>Inverted bearing</h3><p>A hardened steel shaft turns on a single ceramic ball, running in oil it never needs topped up.</p></li>
+          <li data-part="plinth"><h3>Plinth</h3><p>Machined from one 9 kg aluminium billet. No joins, no glue, nothing to ring.</p></li>
+          <li data-part="feet"><h3>Isolation feet</h3><p>Sorbothane cores tuned below 10 Hz, so footsteps and bass stay out of the groove.</p></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="groove" aria-label="A record groove up close">
+    <svg class="macro" id="macro" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <svg class="stylus" viewBox="0 0 80 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="stylus-g" x1="0" x2="1">
+          <stop offset="0" stop-color="#6c5a3b"/><stop offset=".45" stop-color="#e3cf9f"/><stop offset="1" stop-color="#7d6a48"/>
+        </linearGradient>
+      </defs>
+      <rect x="30" y="0" width="20" height="210" fill="url(#stylus-g)"/>
+      <path d="M26 206 L54 206 L42 296 Q40 300 38 296 Z" fill="url(#stylus-g)"/>
+    </svg>
+    <div class="copy">
+      <div class="wrap">
+        <p>At this distance, a groove is 0.04 mm wide.</p>
+        <p>The stylus follows it at 1.8 grams of tracking force, for about 480 metres a side.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="speed" id="speed" aria-labelledby="speed-title">
+    <div class="wrap">
+      <div class="copy">
+        <h2 id="speed-title">Change speed with a button, not by moving the belt.</h2>
+        <p>A quartz-locked motor holds both speeds to within 0.1%, and brings the platter up to speed in under two seconds.</p>
+        <div class="readout" aria-live="polite"><span id="rpm">33.33</span><small>rpm</small></div>
+        <div class="segmented" role="group" aria-label="Platter speed">
+          <button type="button" id="speed-33" data-rpm="33.333" aria-pressed="true">33⅓</button>
+          <button type="button" id="speed-45" data-rpm="45" aria-pressed="false">45</button>
+          <button type="button" id="speed-stop" data-rpm="0" aria-pressed="false">Stop</button>
+        </div>
+      </div>
+      <figure data-turntable="speed" data-label="Meridian from above, spinning at the selected speed"></figure>
+    </div>
+  </section>
+
+  <div class="paper">
+    <section class="specs" id="specs" aria-labelledby="specs-title">
+      <div class="wrap">
+        <h2 id="specs-title">Specifications</h2>
+        <dl>
+          <div class="row"><dt>Drive</dt><dd>Belt, quartz-locked DC motor</dd></div>
+          <div class="row"><dt>Speeds</dt><dd>33⅓ and 45 rpm</dd></div>
+          <div class="row"><dt>Wow and flutter</dt><dd>0.04% weighted</dd></div>
+          <div class="row"><dt>Rumble</dt><dd>−72 dB</dd></div>
+          <div class="row"><dt>Tonearm</dt><dd>9-inch carbon fibre, 8 g effective mass</dd></div>
+          <div class="row"><dt>Cartridge</dt><dd>Moving magnet, elliptical stylus</dd></div>
+          <div class="row"><dt>Tracking force</dt><dd>1.8 g</dd></div>
+          <div class="row"><dt>Platter</dt><dd>2.1 kg aluminium, 3 mm wool felt mat</dd></div>
+          <div class="row"><dt>Outputs</dt><dd>RCA line or phono, ground terminal</dd></div>
+          <div class="row"><dt>Power</dt><dd>External 12 V supply</dd></div>
+          <div class="row"><dt>Dimensions</dt><dd>440 × 340 × 120 mm</dd></div>
+          <div class="row"><dt>Weight</dt><dd>9.2 kg</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="order" id="order" aria-labelledby="order-title">
+      <div class="wrap">
+        <figure data-turntable="order" data-static data-label="Meridian in the selected finish"></figure>
+        <div class="copy">
+          <h2 id="order-title">Meridian</h2>
+          <p class="price">$1,450<span>Ships from February 2027. Cartridge and felt mat included.</span></p>
+          <fieldset class="finishes">
+            <legend>Finish: <b id="finish-name">Silver</b></legend>
+            <div class="swatches">
+              <label class="swatch" style="--hi:#eceef0;--mid:#c3c7cc;--lo:#8d9298">
+                <input type="radio" name="finish" id="finish-silver" value="silver" checked aria-label="Silver"><span></span>
+              </label>
+              <label class="swatch" style="--hi:#6b6f75;--mid:#45484d;--lo:#26282b">
+                <input type="radio" name="finish" id="finish-graphite" value="graphite" aria-label="Graphite"><span></span>
+              </label>
+              <label class="swatch" style="--hi:#e6ddcf;--mid:#c9bfae;--lo:#9a8f7e">
+                <input type="radio" name="finish" id="finish-sand" value="sand" aria-label="Sand"><span></span>
+              </label>
+            </div>
+          </fieldset>
+          <button type="button" class="pill" id="preorder">Pre-order Meridian</button>
+          <p class="status" id="order-status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">Halden Meridian is a design prototype. The product, specifications and prices are fictional.</div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(() => {
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const NS = "http://www.w3.org/2000/svg";
+  const hasGsap = typeof window.gsap !== "undefined";
+
+  /* ---------- Top-down turntable, drawn in millimetres (440 x 340) ---------- */
+  // Record centre (170,170). Tonearm pivot (380,70), 235 mm to the stylus.
+  // At 28° the stylus sits on the lead-in groove, 146 mm from the spindle.
+  function turntable(id, label) {
+    let grooves = "";
+    for (let r = 56; r <= 146; r += 1.8) {
+      grooves += `<circle r="${r.toFixed(1)}" cx="170" cy="170" fill="none" stroke="#fff" stroke-opacity="${(0.035 + (r % 7) * 0.004).toFixed(3)}" stroke-width=".55"/>`;
+    }
+    [84, 108, 129].forEach(r => {
+      grooves += `<circle r="${r}" cx="170" cy="170" fill="none" stroke="#000" stroke-width="2.2"/>`;
+    });
+    return `
+<svg class="tt" viewBox="0 0 440 340" role="img" aria-label="${label}">
+  <defs>
+    <linearGradient id="${id}-plinth" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" style="stop-color:var(--plinth-hi)"/>
+      <stop offset=".55" style="stop-color:var(--plinth)"/>
+      <stop offset="1" style="stop-color:var(--plinth-lo)"/>
+    </linearGradient>
+    <radialGradient id="${id}-platter" cx=".4" cy=".35" r=".8">
+      <stop offset="0" stop-color="#f4f5f6"/><stop offset=".7" stop-color="#b9bdc2"/><stop offset="1" stop-color="#7e8389"/>
+    </radialGradient>
+    <linearGradient id="${id}-sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset=".25" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".44" stop-color="#fff" stop-opacity=".13"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".62" stop-color="#fff" stop-opacity=".06"/>
+      <stop offset=".72" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <path id="${id}-labelpath" d="M170,170 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0"/>
+    <filter id="${id}-blur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <rect x="0" y="0" width="440" height="340" rx="14" fill="url(#${id}-plinth)"/>
+  <rect x="1.5" y="1.5" width="437" height="337" rx="12.5" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width=".8"/>
+  <circle cx="170" cy="172" r="156" fill="#000" opacity=".28" filter="url(#${id}-blur)"/>
+  <circle cx="170" cy="170" r="153" fill="url(#${id}-platter)"/>
+  <g class="record">
+    <circle cx="170" cy="170" r="150" fill="#050505"/>
+    ${grooves}
+    <circle cx="170" cy="170" r="50" fill="var(--label)"/>
+    <circle cx="170" cy="170" r="50" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
+    <text font-family="Hanken Grotesk, Helvetica, Arial, sans-serif" font-size="6.6" letter-spacing="1.2" fill="#f2f3ff" fill-opacity=".85">
+      <textPath href="#${id}-labelpath">Halden Recordings   Side one   33⅓ rpm   Stereo</textPath>
+    </text>
+    <text x="170" y="196" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-size="9" fill="#f2f3ff" fill-opacity=".9">Meridian</text>
+  </g>
+  <circle cx="170" cy="170" r="150" fill="url(#${id}-sheen)" pointer-events="none"/>
+  <circle cx="170" cy="170" r="3.4" fill="#e3e5e8"/>
+  <circle cx="34" cy="314" r="5.5" style="fill:var(--plinth-lo)"/>
+  <circle cx="52" cy="314" r="5.5" style="fill:var(--plinth-lo)"/>
+  <circle class="led" cx="68" cy="314" r="1.7" fill="var(--label-soft)"/>
+  <line x1="414" y1="112" x2="414" y2="158" stroke="#26282b" stroke-width="4.5" stroke-linecap="round"/>
+  <rect x="371" y="270" width="18" height="11" rx="3" fill="#2a2c30"/>
+  <circle cx="380" cy="70" r="25" style="fill:var(--plinth-lo)"/>
+  <circle cx="380" cy="70" r="25" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".8"/>
+  <circle cx="380" cy="70" r="12" fill="#1f2124"/>
+  <g class="arm">
+    <g class="arm-shadow" transform="translate(7 10)" opacity=".45" filter="url(#${id}-blur)">
+      <line x1="380" y1="48" x2="380" y2="284" stroke="#000" stroke-width="5" stroke-linecap="round"/>
+      <rect x="369" y="280" width="22" height="34" rx="3" fill="#000" transform="rotate(-18 380 284)"/>
+    </g>
+    <rect x="368" y="16" width="24" height="30" rx="5" fill="var(--brass)"/>
+    <line x1="380" y1="46" x2="380" y2="284" stroke="#d6d9dd" stroke-width="4.5" stroke-linecap="round"/>
+    <line x1="380" y1="46" x2="380" y2="284" stroke="#fff" stroke-opacity=".6" stroke-width="1.2" stroke-linecap="round"/>
+    <g transform="rotate(-18 380 284)">
+      <rect x="369" y="280" width="22" height="34" rx="3" fill="#2b2d31"/>
+      <rect x="388" y="286" width="12" height="2.6" rx="1.3" fill="#2b2d31"/>
+      <rect x="374" y="300" width="12" height="9" rx="1.5" fill="var(--label)"/>
+    </g>
+    <circle cx="380" cy="70" r="6" fill="#d6d9dd"/>
+  </g>
+</svg>`;
+  }
+
+  document.querySelectorAll("[data-turntable]").forEach(el => {
+    el.innerHTML = turntable("tt-" + el.dataset.turntable, el.dataset.label);
+  });
+
+  /* ---------- Exploded side view ---------- */
+  const ex = document.getElementById("exploded");
+  function cyl(cx, top, rx, ry, h, side, topFill, extra = "") {
+    return `<path d="M${cx - rx},${top} L${cx - rx},${top + h} A${rx},${ry} 0 0 0 ${cx + rx},${top + h} L${cx + rx},${top} Z" fill="${side}"/>
+            <ellipse cx="${cx}" cy="${top}" rx="${rx}" ry="${ry}" fill="${topFill}"/>${extra}`;
+  }
+  const alu = "url(#ex-alu)";
+  ex.innerHTML = `
+    <defs>
+      <linearGradient id="ex-alu" x1="0" x2="1"><stop offset="0" stop-color="#7e838a"/><stop offset=".35" stop-color="#e6e8eb"/><stop offset=".6" stop-color="#c3c7cc"/><stop offset="1" stop-color="#6f747a"/></linearGradient>
+      <linearGradient id="ex-top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9da2a8"/><stop offset="1" stop-color="#d9dcdf"/></linearGradient>
+      <linearGradient id="ex-dark" x1="0" x2="1"><stop offset="0" stop-color="#121315"/><stop offset=".4" stop-color="#3a3d42"/><stop offset="1" stop-color="#101113"/></linearGradient>
+    </defs>
+    <g class="part" data-part="feet">
+      ${cyl(130, 480, 22, 6, 22, "url(#ex-dark)", "#2a2c30")}
+      ${cyl(470, 480, 22, 6, 22, "url(#ex-dark)", "#2a2c30")}
+      ${cyl(300, 470, 22, 6, 18, "url(#ex-dark)", "#2a2c30")}
+    </g>
+    <g class="part" data-part="plinth">
+      <polygon points="70,410 530,410 488,350 112,350" fill="url(#ex-top)"/>
+      <rect x="70" y="410" width="460" height="70" fill="${alu}"/>
+      <line x1="70" y1="410.5" x2="530" y2="410.5" stroke="#fff" stroke-opacity=".7"/>
+      <ellipse cx="300" cy="380" rx="34" ry="8" fill="#5d6268"/>
+    </g>
+    <g class="part" data-part="bearing">
+      ${cyl(300, 346, 16, 4, 34, alu, "#e9ebee")}
+      <rect x="297" y="300" width="6" height="46" fill="#d6d9dd"/>
+      <circle cx="300" cy="300" r="5" fill="#f4f5f6"/>
+    </g>
+    <g class="part" data-part="platter">
+      ${cyl(300, 336, 168, 34, 26, alu, "url(#ex-top)")}
+      <ellipse cx="300" cy="336" rx="10" ry="2.4" fill="#5d6268"/>
+    </g>
+    <g class="part" data-part="mat">
+      ${cyl(300, 331, 158, 32, 5, "#2b2d31", "#3a3c41")}
+    </g>
+    <g class="part" data-part="record">
+      ${cyl(300, 327, 156, 31.5, 3, "#000", "#060606")}
+      <ellipse cx="300" cy="327" rx="120" ry="24" fill="none" stroke="#fff" stroke-opacity=".08"/>
+      <ellipse cx="300" cy="327" rx="88" ry="17.5" fill="none" stroke="#fff" stroke-opacity=".06"/>
+      <ellipse cx="300" cy="327" rx="52" ry="10.4" fill="var(--label)"/>
+      <ellipse cx="300" cy="327" rx="3.5" ry="1" fill="#d6d9dd"/>
+    </g>`;
+
+  /* ---------- Groove macro: modulated grooves near a record's edge ---------- */
+  const macro = document.getElementById("macro");
+  (function drawGrooves() {
+    const cx = 500, cy = 1720;
+    let paths = "";
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 120; i++) {
+      const r = 1060 + i * 5.2;
+      const f1 = 40 + rand() * 120, f2 = 300 + rand() * 500, a1 = 0.35 + rand() * 0.5, a2 = 0.12 + rand() * 0.2;
+      let d = "";
+      for (let s = 0; s <= 360; s++) {
+        const t = -0.42 + (s / 360) * 0.84;
+        const rr = r + a1 * Math.sin(t * f1 + i) + a2 * Math.sin(t * f2 + i * 2.1);
+        d += (s ? "L" : "M") + (cx + rr * Math.sin(t)).toFixed(2) + "," + (cy - rr * Math.cos(t)).toFixed(2);
+      }
+      paths += `<path d="${d}"/>`;
+    }
+    macro.innerHTML = `
+      <defs>
+        <radialGradient id="macro-light" cx=".5" cy=".38" r=".7">
+          <stop offset="0" stop-color="#2a2e36"/><stop offset="1" stop-color="#000"/>
+        </radialGradient>
+      </defs>
+      <rect width="1000" height="1000" fill="url(#macro-light)"/>
+      <g id="macro-grooves" fill="none">
+        <g stroke="#000" stroke-width="3.4">${paths}</g>
+        <g stroke="#c9ccd0" stroke-opacity=".22" stroke-width=".7" transform="translate(0 -1.4)">${paths}</g>
+      </g>`;
+  })();
+
+  /* ---------- Word split for the statement ---------- */
+  document.querySelectorAll("[data-words]").forEach(p => {
+    p.innerHTML = p.textContent.trim().split(/\s+/).map(w => `<span class="w">${w}</span>`).join(" ");
+  });
+
+  /* ---------- Speed control ---------- */
+  const spinners = [];
+  const rpmEl = document.getElementById("rpm");
+  const speedButtons = document.querySelectorAll(".segmented button");
+  let currentRpm = 33.333;
+
+  function setRpm(rpm) {
+    speedButtons.forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.rpm === rpm)));
+    const from = { v: currentRpm };
+    currentRpm = rpm;
+    const speedSpinner = spinners.find(s => s.name === "speed");
+    if (hasGsap) {
+      gsap.to(from, { v: rpm, duration: reduce ? 0 : 1.6, ease: "power2.inOut",
+        onUpdate: () => { rpmEl.textContent = from.v.toFixed(2); } });
+      if (speedSpinner) gsap.to(speedSpinner.tween, { timeScale: rpm / 33.333, duration: 1.6, ease: "power2.inOut" });
+    } else {
+      rpmEl.textContent = rpm.toFixed(2);
+    }
+    const led = document.querySelector('[data-turntable="speed"] .led');
+    if (led) led.style.opacity = rpm ? 1 : 0.15;
+  }
+  speedButtons.forEach(b => b.addEventListener("click", () => setRpm(+b.dataset.rpm)));
+
+  /* ---------- Finish + pre-order ---------- */
+  const finishes = {
+    silver:   { name: "Silver",   hi: "#e9ebee", mid: "#c3c7cc", lo: "#8d9298" },
+    graphite: { name: "Graphite", hi: "#6b6f75", mid: "#45484d", lo: "#26282b" },
+    sand:     { name: "Sand",     hi: "#e6ddcf", mid: "#c9bfae", lo: "#9a8f7e" }
+  };
+  const orderFig = document.querySelector('[data-turntable="order"]');
+  const status = document.getElementById("order-status");
+  const preorder = document.getElementById("preorder");
+  document.querySelectorAll('input[name="finish"]').forEach(input => {
+    input.addEventListener("change", () => {
+      const f = finishes[input.value];
+      orderFig.style.setProperty("--plinth-hi", f.hi);
+      orderFig.style.setProperty("--plinth", f.mid);
+      orderFig.style.setProperty("--plinth-lo", f.lo);
+      document.getElementById("finish-name").textContent = f.name;
+      preorder.textContent = "Pre-order Meridian";
+      status.textContent = "";
+    });
+  });
+  preorder.addEventListener("click", () => {
+    const f = finishes[document.querySelector('input[name="finish"]:checked').value];
+    preorder.textContent = "Pre-ordered";
+    status.textContent = `Meridian in ${f.name} is reserved. We'll email you before it ships in February.`;
+  });
+
+  if (!hasGsap) return;
+
+  /* Resting arm position on the order and speed drawings: stylus on the record */
+  ["speed", "order"].forEach(n => {
+    gsap.set(`[data-turntable="${n}"] .arm`, { rotation: 31, svgOrigin: "380 70" });
+    gsap.set(`[data-turntable="${n}"] .arm-shadow`, { x: 2, y: 3 });
+  });
+
+  if (reduce) {
+    gsap.set('[data-turntable="hero"] .arm', { rotation: 28, svgOrigin: "380 70" });
+    return;
+  }
+
+  document.documentElement.classList.add("js-motion");
+  gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
+  /* Records spin at 33⅓ rpm: one turn every 1.8 s */
+  ["hero", "speed"].forEach(n => {
+    const rec = document.querySelector(`[data-turntable="${n}"] .record`);
+    const tween = gsap.to(rec, { rotation: 360, svgOrigin: "170 170", duration: 1.8, ease: "none", repeat: -1 });
+    spinners.push({ name: n, tween });
+  });
+
+  const stage = document.querySelector(".hero-stage");
+  stage.style.translate = "none";
+  gsap.set(stage, { xPercent: -50, yPercent: -30, x: 0, y: 0 });
+
+  /* Load: the turntable comes up out of the dark once */
+  gsap.from(stage, { opacity: 0, y: 40, duration: 1.6, ease: "power3.out" });
+  gsap.from(".hero h1 .line", { yPercent: 40, opacity: 0, duration: 1.2, ease: "power3.out", stagger: 0.12, delay: 0.15 });
+  gsap.from(".hero .lede", { opacity: 0, duration: 1, delay: 0.6 });
+
+  /* Hero: needle drop */
+  const heroArm = '[data-turntable="hero"] .arm';
+  gsap.set(heroArm, { rotation: 0, svgOrigin: "380 70" });
+  gsap.timeline({
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "+=220%", pin: true, scrub: 0.8 }
+  })
+    .to(".hero-copy", { yPercent: -35, opacity: 0, duration: 0.3, ease: "power1.in" }, 0)
+    .to(stage, { top: "52%", yPercent: -50, scale: window.innerWidth < 761 ? 0.94 : 1.12, duration: 0.55, ease: "power2.inOut" }, 0.05)
+    .to(heroArm, { rotation: 28, duration: 0.3, ease: "power1.inOut" }, 0.35)
+    .to('[data-turntable="hero"] .arm-shadow', { x: 2, y: 3, opacity: 0.6, duration: 0.15, ease: "power1.out" }, 0.62)
+    .to(".hero-caption p", { opacity: 1, duration: 0.15 }, 0.7)
+    .to(heroArm, { rotation: 30.5, duration: 0.25, ease: "none" }, 0.75);
+
+  /* Statement: words light up as they are read */
+  gsap.to(".statement .w", {
+    opacity: 1, stagger: 0.1, ease: "none",
+    scrollTrigger: { trigger: ".statement", start: "top 70%", end: "bottom 60%", scrub: true }
+  });
+
+  /* Anatomy: the stack separates, one layer at a time */
+  const offsets = { record: -265, mat: -205, platter: -140, bearing: -70, plinth: 0, feet: 34 };
+  const order = ["mat", "platter", "bearing", "plinth", "feet"];
+  const items = [...document.querySelectorAll(".layers li")];
+  const parts = [...ex.querySelectorAll(".part")];
+  function activate(i) {
+    items.forEach((li, j) => li.classList.toggle("is-active", j === i));
+    const name = order[i];
+    parts.forEach(p => {
+      const on = p.dataset.part === name || (name === "mat" && p.dataset.part === "record");
+      p.style.opacity = on ? 1 : 0.42;
+    });
+  }
+  activate(0);
+  const exTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".anatomy", start: "top top", end: "+=260%", pin: true, scrub: 0.8,
+      onUpdate: self => activate(Math.min(order.length - 1, Math.floor(Math.max(0, self.progress - 0.18) / 0.82 * order.length)))
+    }
+  });
+  Object.entries(offsets).forEach(([name, y]) => {
+    exTl.to(ex.querySelector(`[data-part="${name}"]`), { y, duration: 0.3, ease: "power2.inOut" }, 0);
+  });
+  exTl.to({}, { duration: 0.7 });
+
+  /* Groove: zoom from the record's edge down into a single groove */
+  const grooveTl = gsap.timeline({
+    scrollTrigger: { trigger: ".groove", start: "top top", end: "+=240%", pin: true, scrub: 1 }
+  });
+  grooveTl
+    .fromTo("#macro-grooves", { scale: 1, svgOrigin: "500 300" }, { scale: 14, svgOrigin: "500 300", duration: 0.6, ease: "power2.in" }, 0)
+    .fromTo(".groove .stylus", { yPercent: -110, opacity: 0 }, { yPercent: -18, opacity: 1, duration: 0.25, ease: "power2.out" }, 0.55)
+    .to(".groove .copy p:first-child", { opacity: 0, duration: 0.1 }, 0.62)
+    .to(".groove .copy p + p", { opacity: 1, duration: 0.12 }, 0.7)
+    .to({}, { duration: 0.2 });
+
+  /* Speed drawing only spins while it is on screen */
+  ScrollTrigger.create({
+    trigger: ".speed", start: "top bottom", end: "bottom top",
+    onToggle: self => { const s = spinners.find(x => x.name === "speed").tween; self.isActive ? s.resume() : s.pause(); }
+  });
+  ScrollTrigger.create({
+    trigger: ".hero", start: "top top", end: "+=240%",
+    onToggle: self => { const s = spinners.find(x => x.name === "hero").tween; self.isActive ? s.resume() : s.pause(); }
+  });
+
+  window.addEventListener("load", () => ScrollTrigger.refresh());
+})();
+</script>
+</body>
+</html>
