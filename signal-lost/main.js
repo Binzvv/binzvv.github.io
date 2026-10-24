@@ -4,11 +4,13 @@
      01 boot       fixed overlay, scroll locked, typed system messages
      02 city       procedural parallax skyline, pointer-reactive
      03 descent    pinned, scrubbed camera travel through three depth layers
+        NC-OS      cyberware application system (engine.js, operator.js, ncos.js)
      04 archive    pinned horizontal dossier run (vertical on mobile)
      05 psychosis  pinned, interface loses stability, cut to black
      06 end        silence, one red RECONNECT
    One value, psy (0..1), is derived from scroll and drives colour,
    instability, grain and glitch frequency across every scene.
+   Humanity itself comes from NC-OS state; scroll only projects its collapse.
    ========================================================================== */
 (() => {
   const root = document.documentElement;
@@ -61,14 +63,20 @@
     psy = v;
     const heat = smooth(0.38, 0.88, v);
     const instab = Math.pow(smooth(0.22, 1, v), 1.4);
-    const hum = Math.max(3, Math.round(100 - v * 97));
     root.style.setProperty('--psy', v.toFixed(3));
     root.style.setProperty('--heat', heat.toFixed(3));
     root.style.setProperty('--instab', instab.toFixed(3));
+    renderHum();
+    psyHook(instab);
+  }
+  /* the gauge shows real humanity from NC-OS; only the psychosis scene projects it toward zero */
+  let humanityBase = 100;
+  function renderHum() {
+    const drain = smooth(0.44, 1, Math.max(psy, 0));
+    const hum = Math.max(3, Math.round(humanityBase - drain * (humanityBase - 3)));
     root.style.setProperty('--hum', (hum / 100).toFixed(3));
     ui.hum.textContent = hum;
     ui.gauge.setAttribute('aria-valuenow', hum);
-    psyHook(instab);
   }
   let psyHook = () => {};
 
@@ -494,7 +502,12 @@
   }
   function skipBoot() { if (boot.style.display !== 'none') exitBoot(bootRun); }
   $('#bootSkip').addEventListener('click', skipBoot);
-  addEventListener('keydown', (e) => { if (root.classList.contains('is-locked') && ['Escape', 'Enter', ' '].includes(e.key)) { e.preventDefault(); skipBoot(); } });
+  addEventListener('keydown', (e) => {
+    if (root.classList.contains('is-locked') && ['Escape', 'Enter', ' '].includes(e.key)) {
+      e.preventDefault(); skipBoot();
+      if (window.NCOS) window.NCOS.signals.skippedBootByKey = true;
+    }
+  });
 
   function heroIn() {
     gsap.fromTo('.hero__line > span', { yPercent: 110 }, { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08 });
@@ -513,12 +526,33 @@
   buildPsy();
   seedJitter($$('.hud > *, .d__id, .d__data, .d__ware, .warn'));
   setPsy(0, 'Skyline', 812);
+  window.SL = { glitch };
+
+  /* NC-OS state flows into the rest of the experience */
+  if (window.NCOS) {
+    const warns = $$('.warn');
+    const setWarn = (i, title, body) => { if (warns[i]) warns[i].innerHTML = `<b>${title}</b>${body}`; };
+    window.NCOS.subscribe((s) => {
+      humanityBase = s.background ? s.humanity : 100; renderHum();
+      $('#hudPath').textContent = s.background ? `Path: ${window.NCOS_ENGINE.BACKGROUNDS[s.background].name}` : 'Unofficial concept';
+      const open = s.obligations.filter((o) => o.status === 'open');
+      const last = s.cyberware[s.cyberware.length - 1];
+      setWarn(0, 'Threshold breached', s.background ? `Humanity ${s.humanity}%. ${s.cyberware.length} implant${s.cyberware.length === 1 ? '' : 's'}. ${open.length} debt${open.length === 1 ? '' : 's'} unpaid.` : WARNINGS[0][1]);
+      setWarn(6, last ? last.name : WARNINGS[6][0], last ? `Running hot. Installed by ${last.how}. Nobody checked the firmware.` : WARNINGS[6][1]);
+      setWarn(7, 'Psycho squad', s.exposure >= 60 ? `Your exposure is ${s.exposure}%. They already know where you are.` : WARNINGS[7][1]);
+      $('#finalHumanity').textContent = String(s.background ? s.humanity : 3).padStart(2, '0');
+      $('#psySub').textContent = s.background ? `${s.cyberware.length} upgrade${s.cyberware.length === 1 ? '' : 's'}. ${s.debt ? '\u20ac$' + s.debt.toLocaleString() + ' owed. ' : ''}${open.length} obligation${open.length === 1 ? '' : 's'}. Exposure ${s.exposure}%.` : '';
+      const lines = window.NCOS_ENGINE.summary(s);
+      $('#endLedger').innerHTML = (lines || ['You never told the system who you were. It decided anyway.']).map((l) => `<p>${l}</p>`).join('');
+    });
+  }
   sizeRain(); drawRain(false);
 
   $('#reconnect').addEventListener('click', () => {
     glitch(1, 420, true);
     const go = () => {
       root.classList.remove('is-silent');
+      if (window.NCOS) window.NCOS.reset();
       window.scrollTo(0, 0);
       if (!isStatic) ScrollTrigger.update();
       setPsy(0, 'Skyline', 812);
@@ -584,7 +618,8 @@
   const mm = gsap.matchMedia();
   mm.add({ desk: '(min-width: 761px)', mob: '(max-width: 760px)' }, (ctx) => {
     const { mob } = ctx.conditions;
-    const st = {};
+    const st = {}; let inNcos = false;
+    ScrollTrigger.create({ trigger: '#ncos', start: 'top 55%', end: 'bottom 45%', onToggle: (s) => { inNcos = s.isActive; update(); } });
     const update = () => {
       const p1 = st.descent ? st.descent.progress : 0;
       const p2 = st.archive ? st.archive.progress : 0;
@@ -592,6 +627,7 @@
       let v; let scene;
       if (p3 > 0) { v = 0.44 + 0.56 * Math.min(1, p3 / 0.8); scene = p3 < 0.83 ? 'Breach' : 'Flatline'; }
       else if (p2 > 0) { v = 0.15 + 0.29 * p2; scene = 'Archive'; }
+      else if (inNcos) { v = 0.15; scene = 'NC-OS'; }
       else { v = 0.15 * p1; scene = p1 < 0.18 ? 'Skyline' : p1 < 0.8 ? 'Descent' : 'Street level'; }
       setPsy(v, scene, 812 - 850 * p1 - 14 * p2 - 30 * p3);
       root.classList.toggle('is-silent', p3 > 0.83);
@@ -697,6 +733,15 @@
     update();
     return () => { root.classList.remove('is-silent'); };
   });
+
+  /* NC-OS grows as the conversation does; pinned scenes below it need fresh positions */
+  if (window.ResizeObserver && $('#ncos')) {
+    let rh; let lastH = 0;
+    new ResizeObserver(([entry]) => {
+      const h = Math.round(entry.contentRect.height); if (h === lastH) return; lastH = h;
+      clearTimeout(rh); rh = setTimeout(() => ScrollTrigger.refresh(), 160);
+    }).observe($('#ncos'));
+  }
 
   /* rebuild the procedural city when the width changes meaningfully */
   let lastW = innerWidth; let rt;

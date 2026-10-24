@@ -33,7 +33,7 @@
     <div class="hud__mark">NC<span>//</span>SL</div>
     <div class="hud__meta">
       <span>Edgerunners season 2</span>
-      <span class="hud__dim">Unofficial concept</span>
+      <span class="hud__dim" id="hudPath">Unofficial concept</span>
     </div>
     <div class="hud__gauge" role="meter" aria-label="Humanity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="gauge">
       <div class="hud__gauge-track"><div class="hud__gauge-fill" id="gaugeFill"></div></div>
@@ -81,6 +81,26 @@
       </div>
     </section>
 
+    <!-- NC-OS: the cyberware application system (engine.js, operator.js, ncos.js) -->
+    <section class="ncos" id="ncos" aria-labelledby="ncosTitle" data-path="none">
+      <header class="ncos__head">
+        <p class="ncos__kicker" lang="ja">義体申請</p>
+        <h2 class="ncos__title" id="ncosTitle">Every upgrade<br />costs something.</h2>
+        <p class="ncos__lede">In Night City you don't browse for chrome. You apply for it, and the system decides what you're worth.</p>
+      </header>
+      <div class="ncos__body">
+        <figure class="ncos__op">
+          <img id="ncosOpImg" src="img/char-rust.jpg" alt="" hidden />
+          <figcaption id="ncosOpName"></figcaption>
+        </figure>
+        <div class="ncos__console">
+          <ol class="ncos__feed" id="ncosFeed" aria-live="polite" aria-label="Conversation with the operator"></ol>
+          <div class="ncos__prompt" id="ncosPrompt"></div>
+        </div>
+        <aside class="ncos__ledger" id="ncosLedger" aria-label="Your record"></aside>
+      </div>
+    </section>
+
     <!-- 04 CHARACTER ARCHIVE -->
     <section class="archive" id="archive" aria-label="Character archive">
       <div class="archive__track" id="archiveTrack">
@@ -108,6 +128,7 @@
         <div class="psy__black" id="psyBlack">
           <p class="psy__q">HOW MUCH HUMAN IS LEFT?</p>
           <p class="psy__q-read">Humanity <b id="finalHumanity">03</b>%</p>
+          <p class="psy__q-sub" id="psySub"></p>
         </div>
       </div>
     </section>
@@ -115,6 +136,7 @@
     <!-- 06 FINAL SCENE -->
     <section class="end" id="end" aria-label="End">
       <h2 class="end__title">THE CITY<br />ALWAYS WINS.</h2>
+      <div class="end__ledger" id="endLedger"></div>
       <button class="reconnect" id="reconnect" type="button"><span>RECONNECT</span></button>
       <p class="end__legal">An unofficial creative exploration. Not affiliated with Netflix, Studio Trigger or CD PROJEKT RED. Cyberpunk: Edgerunners belongs to its owners. The characters and artwork here are original concepts made for this project, and the city, brands and interface are drawn in code.</p>
     </section>
@@ -122,6 +144,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="engine.js"></script>
+  <script src="operator.js"></script>
+  <script src="ncos.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
