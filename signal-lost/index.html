@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#030305" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=Chakra+Petch:wght@400;500;600&family=Dela+Gothic+One&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@500;800;900&family=Chakra+Petch:wght@400;500;600&family=Dela+Gothic+One&display=swap" />
   <link rel="stylesheet" href="style.css" />
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
@@ -50,6 +50,10 @@
     <section class="descent" id="city" aria-label="Night City">
       <div class="stage" id="stage">
         <div class="sky" id="sky"><div class="sky__glow sky__glow--a"></div><div class="sky__glow sky__glow--b"></div></div>
+        <div class="still" id="heroStill" aria-hidden="true">
+          <img class="still__img" src="img/city.jpg" alt="" decoding="async" fetchpriority="high" />
+          <img class="still__ghost" src="img/city.jpg" alt="" decoding="async" />
+        </div>
         <div class="layer layer--far" data-depth="0.25"><div class="layer__in"></div></div>
         <div class="layer layer--mid" data-depth="0.55"><div class="layer__in"></div></div>
         <div class="haze haze--mid" aria-hidden="true"></div>
@@ -82,8 +86,8 @@
       <div class="archive__track" id="archiveTrack">
         <div class="archive__intro">
           <p class="archive__kicker" lang="ja">記録保管所</p>
-          <h2 class="archive__title">Four files<br />survived<br />the purge.</h2>
-          <p class="archive__lede">Recovered from a dead fixer's deck. Records are partial and partly corrupted. Point at a file, or tab to it, to decrypt it.</p>
+          <h2 class="archive__title">Five files<br />survived<br />the purge.</h2>
+          <p class="archive__lede">Pulled from a dead fixer's deck. The records are partial and partly corrupted. Point at a file, or tab to it, to decrypt it.</p>
         </div>
         <!-- dossiers injected by main.js -->
       </div>
@@ -100,6 +104,7 @@
         </svg>
         <p class="psy__line" id="psyLine" aria-label="I can still feel my hands">I CAN STILL FEEL MY HANDS</p>
         <div class="psy__panels" id="psyPanels" aria-hidden="true"></div>
+        <div class="psy__flash" id="psyFlash" aria-hidden="true"><img src="img/flash-domino.jpg" alt="" decoding="async" /></div>
         <div class="psy__black" id="psyBlack">
           <p class="psy__q">HOW MUCH HUMAN IS LEFT?</p>
           <p class="psy__q-read">Humanity <b id="finalHumanity">03</b>%</p>
@@ -111,7 +116,7 @@
     <section class="end" id="end" aria-label="End">
       <h2 class="end__title">THE CITY<br />ALWAYS WINS.</h2>
       <button class="reconnect" id="reconnect" type="button"><span>RECONNECT</span></button>
-      <p class="end__legal">An unofficial creative exploration. Not affiliated with Netflix, Studio Trigger or CD PROJEKT RED. Cyberpunk: Edgerunners belongs to its owners. Every character, logo and image on this page is an original placeholder drawn in code.</p>
+      <p class="end__legal">An unofficial creative exploration. Not affiliated with Netflix, Studio Trigger or CD PROJEKT RED. Cyberpunk: Edgerunners belongs to its owners. The characters and artwork here are original concepts made for this project, and the city, brands and interface are drawn in code.</p>
     </section>
   </main>
 

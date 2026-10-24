@@ -99,6 +99,7 @@
       html += `<i style="top:${(Math.random() * 100).toFixed(1)}%;height:${(2 + Math.random() * (6 + power * 70)).toFixed(0)}px;background:${cols[i % 4]};opacity:${(0.4 + Math.random() * 0.6).toFixed(2)};transform:translateX(${((Math.random() - 0.5) * 20).toFixed(1)}%)"></i>`;
     }
     tear.innerHTML = html;
+    if (psy > 0.55 && Math.random() < psy * 0.55) flashFrame(dur);
     if (power > 0.65) gsap.fromTo(flash, { opacity: 0.32 * power }, { opacity: 0, duration: 0.35, ease: 'power2.out' });
     const signs = $$('.sign:not(.is-dead)');
     if (signs.length) {
@@ -108,6 +109,14 @@
     clearTimeout(glitchTimer);
     glitchTimer = setTimeout(() => { root.classList.remove('is-glitch'); tear.innerHTML = ''; }, dur);
   }
+  /* a near-subliminal cut to the psycho frame */
+  const psyFlash = $('#psyFlash');
+  function flashFrame(ms = 90) {
+    psyFlash.style.setProperty('--fx', ((Math.random() - 0.5) * 6).toFixed(1) + '%');
+    psyFlash.classList.add('is-on');
+    setTimeout(() => psyFlash.classList.remove('is-on'), Math.min(ms, 160));
+  }
+
   /* ambient malfunction: rare at first, constant near the end */
   function ambient() {
     if (!document.hidden && Math.random() < 0.06 + Math.max(psy, 0) * 0.9) glitch(0.15 + Math.max(psy, 0) * 0.85);
@@ -232,11 +241,11 @@
       [0.7, 1.4, 1.95, 2.85].forEach((f, i) => dom += sign(vx(L * 0.45), H * f, SIGNS_V[(i * 3) % SIGNS_V.length], (22 + R() * 14) * s, { c: pick(NEON, R) }));
       [0.62, 1.5, 2.25, 2.95].forEach((f, i) => dom += sign(vx(Rr + 0.04), H * f, SIGNS_V[(i * 3 + 1) % SIGNS_V.length], (22 + R() * 14) * s, { c: pick(NEON, R) }));
       /* billboards (original placeholder brands) */
-      const bw = Math.max(VW * 0.36, 250);
-      dom += `<div class="board" style="left:${vx(0.04)}px;top:${H * 1.42}px;width:${bw}px;height:${H * 0.4}px;--c:var(--yellow);--c2:var(--cyan);--fd:11s">
-        <span class="board__small">Sundown Pharmaceuticals</span><span class="board__big">FEEL<br>NOTHING.</span><span class="board__jp">痛みのない明日</span></div>`;
+      const bw = Math.max(VW * 0.4, 260);
+      dom += `<div class="board board--img" style="left:${vx(0.04)}px;top:${H * 1.42}px;width:${bw}px;height:${H * 0.4}px;--c:var(--yellow);--c2:var(--cyan);--fd:11s">
+        <img src="img/board-vesna.jpg" alt="" style="object-position:55% 35%" decoding="async" /><span class="board__small">Sundown Pharmaceuticals</span><span class="board__big">FEEL<br>NOTHING.</span><span class="board__jp">痛みのない明日</span></div>`;
       dom += `<div class="board" style="left:${vx(mob ? 0.96 : 0.58) - (mob ? bw : 0)}px;top:${H * 1.98}px;width:${bw}px;height:${H * 0.38}px;--c:var(--cyan);--c2:#ff2a8a;--fd:8s">
-        <span class="board__small">Hakuren Chrome. Finance from 0%</span><span class="board__big">NEW ARMS<br>BY FRIDAY.</span><span class="board__jp">義体ローン</span></div>`;
+        <img src="img/board-kid.jpg" alt="" style="object-position:55% 35%" decoding="async" /><span class="board__small">Hakuren Chrome. Finance from 0%</span><span class="board__big">NEW ARMS<br>BY FRIDAY.</span><span class="board__jp">義体ローン</span></div>`;
       /* train on the rail */
       dom += `<div class="train" style="top:${ry - H * 0.05}px;height:${H * 0.05}px"></div>`;
       /* street level shopfronts and steam */
@@ -291,85 +300,54 @@
      ------------------------------------------------------------------ */
   const FILES = [
     {
-      id: '0417', first: 'VESNA', last: 'KOI', alias: '"Static Saint"', role: 'netrunner', jp: 'ヴェスナ・コイ',
-      c: 'var(--cyan)', status: 'Signal lost', sc: 'var(--red)', hair: 'long', ware: 'ports', skew: -4,
-      quote: "The net doesn't kill you. It just stops giving you back.",
-      fields: [['Real name', 'Vesna Koibuchi', 1], ['Affiliation', 'Freelance. Formerly corp netsec', 0], ['Last seen', 'Sub-level 3, Old Ferry Market, 02:14', 1], ['Bounty', '€$ 40,000. Alive preferred', 0]],
-      implants: [['Neural port array, 3 slots', 62], ['Cooling spine, custom', 48], ['Optic relay, left eye', 30], ['Black ICE buffer, pirated', 81]], cost: 61,
+      id: '0417', first: 'VESNA', last: 'KOI', alias: 'Operator 01', role: 'netrunner', jp: 'ヴェスナ・コイ',
+      c: 'var(--yellow)', status: 'Active', sc: 'var(--cyan)',
+      img: 'img/char-vesna.jpg', pos: '60% 30%', rx: 66, ry: 58, match: '98.4',
+      quote: 'The city remembers everything.',
+      fields: [['Role', 'Netrunner', 0], ['Affiliation', 'Halcyon crew', 1], ['Clearance', 'Level 4', 0], ['Combat style', 'Network infiltration', 0]],
+      implants: [['Neural link', 72], ['Optical suite', 40], ['Synaptic accelerator', 64], ['Thermal control', 30]], cost: 58,
     },
     {
-      id: '0932', first: 'DOMINO', last: 'RECK', alias: '"Lastcall"', role: 'solo', jp: 'ドミノ・レック',
-      c: 'var(--red)', status: 'Active', sc: 'var(--yellow)', hair: 'buzz', ware: 'jaw', skew: 3,
-      quote: 'I replaced my hands twice. Kept the scars both times.',
-      fields: [['Real name', '[Redacted by corp security]', 0], ['Affiliation', 'Contract work. Anyone who pays', 0], ['Last seen', 'Elevated rail, car 6, 23:40', 1], ['Kills on file', '41 confirmed. 9 disputed', 1]],
-      implants: [['Reflex accelerator, Kairos type', 88], ['Subdermal armour mesh', 54], ['Forearm blade housings', 70], ['Pain editor', 92]], cost: 74,
+      id: '1188', first: 'KID', last: 'HALCYON', alias: 'Operator 02', role: 'solo', jp: 'キッド・ハルシオン',
+      c: 'var(--red)', status: 'Wanted', sc: 'var(--yellow)',
+      img: 'img/char-kid.jpg', pos: '50% 30%', rx: 60, ry: 46, match: '91.0',
+      quote: 'Stay fast. Stay gone.',
+      fields: [['Role', 'Solo', 0], ['Combat style', 'Close quarters, mobility', 0], ['Last seen', 'Elevated rail, car 6, 23:40', 1], ['Bounty', '€$ 40,000. Alive preferred', 1]],
+      implants: [['Skeleton reinforcement', 66], ['Reflex booster', 82], ['Leg actuators', 70], ['Subdermal armour', 54]], cost: 71,
     },
     {
-      id: '1188', first: 'AUNTIE', last: 'RUST', alias: '"The Surgeon"', role: 'ripperdoc', jp: 'アンティ・ラスト',
-      c: 'var(--yellow)', status: 'Under contract', sc: 'var(--cyan)', hair: 'wrap', ware: 'monocle', skew: -2,
-      quote: 'Everyone wants chrome. Nobody asks what it costs to take it out.',
-      fields: [['Real name', 'Adaeze Okonkwo-Rust', 1], ['Affiliation', 'Independent clinic, back of a noodle bar', 0], ['Last seen', 'Behind the steam vents. Always', 0], ['Licence', 'Revoked 2071. Still operating', 1]],
-      implants: [['Surgical micro-hands', 40], ['Diagnostic monocle', 22], ['Toxin filter, throat', 18], ['Memory vault, patient records', 35]], cost: 29,
+      id: '2001', first: 'AUNTIE', last: 'RUST', alias: 'Operator 03', role: 'heavy gunner', jp: 'アンティ・ラスト',
+      c: 'var(--cyan)', status: 'Under contract', sc: 'var(--red)',
+      img: 'img/char-rust.jpg', pos: '50% 30%', rx: 50, ry: 41, match: '88.7',
+      quote: 'Jobs pay. Attachments get you killed.',
+      fields: [['Real name', 'Adaeze Okonkwo-Rust', 1], ['Role', 'Heavy weapons', 0], ['Combat style', 'Mid range, suppressive', 0], ['Licence', 'Revoked 2071. Still working', 1]],
+      implants: [['Smart weapon interface', 60], ['Targeting optic', 35], ['Adrenaline regulator', 48], ['Pain editor', 92]], cost: 63,
     },
     {
-      id: '2001', first: 'KID', last: 'HALCYON', alias: '"Rail Rat"', role: 'driver', jp: 'キッド・ハルシオン',
-      c: 'var(--cyan)', status: 'Unknown', sc: 'var(--dim)', hair: 'crest', ware: 'jack', skew: 5,
-      quote: 'Born under the rail. Never saw the sky without an ad in it.',
-      fields: [['Real name', 'None registered', 0], ['Age', '17, claimed', 1], ['Last seen', 'Stolen AV, northbound, no plates', 1], ['Crew', 'Whoever is still alive', 0]],
-      implants: [['Vehicle neural jack', 58], ['Optic overlay, both eyes', 34], ['Inner ear gyro', 26], ['Cheap pain dampener', 47]], cost: 44,
+      id: '0932', first: 'DOMINO', last: 'RECK', alias: 'Operator 04', role: 'infiltrator', jp: 'ドミノ・レック',
+      c: '#ff2a8a', status: 'Signal lost', sc: 'var(--red)',
+      img: 'img/char-domino.jpg', pos: '50% 30%', rx: 55, ry: 37, match: '76.3',
+      quote: 'Silence is a weapon.',
+      fields: [['Real name', '[Redacted by corp security]', 0], ['Role', 'Infiltrator', 0], ['Combat style', 'Stealth, assassination', 0], ['Kills on file', '41 confirmed. 9 disputed', 1]],
+      implants: [['Cardio booster', 44], ['Thermal cloak', 76], ['Audio masking', 38], ['Balance control', 30]], cost: 52,
+    },
+    {
+      id: '0664', first: 'RAIL', last: 'RAT', alias: 'Operator 05', role: 'tech', jp: 'レイルラット',
+      c: '#b6ff1f', status: 'Unknown', sc: 'var(--dim)',
+      img: 'img/char-railrat.jpg', pos: '50% 30%', rx: 60, ry: 45, match: '64.9',
+      quote: 'Some people see ghosts. I see opportunity.',
+      fields: [['Real name', 'None registered', 0], ['Age', '17, claimed', 1], ['Combat style', 'Recon, support', 0], ['Last seen', 'Stolen AV, northbound, no plates', 1]],
+      implants: [['Drone interface', 50], ['Signal scrambler', 34], ['Environmental scan', 22], ['Utility arm', 46]], cost: 39,
     },
   ];
 
-  const HEAD = 'M200 86 C252 86 282 130 282 186 C282 244 254 292 200 298 C146 292 118 244 118 186 C118 130 148 86 200 86 Z';
-  const BODY = 'M164 280 L236 280 L238 342 C286 356 352 392 368 520 L32 520 C48 392 114 356 162 342 Z';
-  const HAIR = {
-    long: 'M114 196 C104 112 150 66 206 68 C268 70 300 118 290 204 L304 338 L266 334 L270 210 C258 156 226 132 200 132 C168 132 140 162 134 214 L132 346 L92 334 Z',
-    buzz: 'M120 176 C122 112 158 80 200 80 C246 80 280 112 282 176 C262 142 232 126 200 126 C168 126 138 142 120 176 Z',
-    wrap: 'M114 182 C106 98 156 58 204 60 C262 62 296 104 288 182 C272 132 240 110 200 110 C158 110 130 132 114 182 Z M170 66 a34 30 0 1 1 64 0 a34 30 0 1 1 -64 0 Z',
-    crest: 'M184 30 L216 30 L224 150 L176 150 Z M124 170 C130 128 150 104 176 96 L176 140 C150 146 134 156 124 170 Z',
-  };
-  const WARE = {
-    ports: '<circle cx="128" cy="168" r="4"/><circle cx="126" cy="186" r="4"/><circle cx="127" cy="204" r="4"/><path d="M127 208 C120 258 150 300 168 342 M131 170 L150 150 L176 150"/>',
-    jaw: '<path d="M140 236 L200 286 L260 236 M152 252 L200 270 L248 252 M60 448 L118 392 M74 470 L132 410 M340 448 L282 392"/><rect x="146" y="180" width="108" height="20"/>',
-    monocle: '<circle cx="232" cy="190" r="17"/><circle cx="232" cy="190" r="11"/><path d="M249 190 L282 176 M176 300 L176 336 M188 300 L188 338 M212 300 L212 338 M224 300 L224 336"/>',
-    jack: '<rect x="186" y="300" width="28" height="26"/><path d="M200 326 L200 360 M146 220 L146 236 M152 218 L152 238 M158 220 L158 236 M164 218 L164 238"/>',
-  };
-  const EYES = {
-    ports: '<circle class="p-eye" cx="168" cy="191" r="6"/>',
-    jaw: '<rect class="p-eye" x="152" y="186" width="96" height="7"/>',
-    monocle: '<circle class="p-eye" cx="232" cy="190" r="5"/>',
-    jack: '<circle class="p-eye" cx="168" cy="192" r="4"/><circle class="p-eye" cx="232" cy="192" r="4"/>',
-  };
-  function portrait(f, i) {
-    const light = i % 2 ? '1 0 0 1' : '0 0 1 1';
-    const [x1, y1, x2, y2] = light.split(' ');
-    let ticks = '';
-    for (let y = 40; y < 520; y += 40) ticks += `<rect class="p-tick" x="0" y="${y}" width="${y % 120 ? 6 : 14}" height="1"/>`;
-    let spine = '';
-    for (let y = 300; y < 520; y += 18) spine += `<rect x="193" y="${y}" width="14" height="10"/>`;
-    return `<svg viewBox="0 0 400 520" role="img" aria-label="Procedural portrait of ${f.first} ${f.last}">
-      <defs>
-        <pattern id="dt${i}" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(28)"><circle cx="3.5" cy="3.5" r="1.8" style="fill:var(--c)"/></pattern>
-        <linearGradient id="lg${i}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-        <mask id="mk${i}"><rect width="400" height="520" fill="url(#lg${i})"/></mask>
-        <clipPath id="cp${i}"><path d="${HEAD} ${BODY}"/></clipPath>
-        <filter id="gl${i}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      </defs>
-      <rect class="p-frame" x="0.5" y="0.5" width="399" height="519"/>${ticks}
-      <text class="p-tick" x="20" y="24">REC ${f.id}</text><text class="p-tick" x="380" y="510" text-anchor="end">${(Math.random() * 90).toFixed(4)} N</text>
-      <g transform="skewX(${f.skew}) translate(${-f.skew * 4} 0)">
-        <path class="p-sil" d="${HEAD} ${BODY}"/>
-        <g clip-path="url(#cp${i})"><rect class="p-dots" width="400" height="520" fill="url(#dt${i})" mask="url(#mk${i})"/></g>
-        <path class="p-hair" d="${HAIR[f.hair]}"/>
-        <g class="p-ware">${WARE[f.ware]}</g>
-        <g filter="url(#gl${i})">${EYES[f.ware]}</g>
-        <g class="p-xray">
-          <ellipse cx="200" cy="176" rx="68" ry="84"/><ellipse cx="170" cy="192" rx="15" ry="11"/><ellipse cx="230" cy="192" rx="15" ry="11"/>
-          <path d="M146 232 C160 284 240 284 254 232 M178 262 H222 M70 360 L190 344 M330 360 L210 344"/>${spine}
-        </g>
-        <rect class="p-scan" x="0" y="0" width="400" height="2"/>
-      </g>
-    </svg>`;
+  /* each file is a portrait graded in the file's colour until decrypted */
+  function portrait(f) {
+    return `<img src="${f.img}" alt="Portrait of ${f.first} ${f.last}, ${f.role}" style="object-position:${f.pos}" decoding="async" loading="lazy" />
+      <span class="d__duo" aria-hidden="true"></span>
+      <span class="d__reticle" aria-hidden="true" style="left:${f.rx}%;top:${f.ry}%"><i></i><b>Match ${f.match}%</b></span>
+      <span class="d__scan" aria-hidden="true"></span>
+      <figcaption>REC ${f.id}<span>${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}</span></figcaption>`;
   }
   const NOISE = '▓▒░#%&/\\';
   const corrupt = (t) => t.replace(/[^ ]/g, () => NOISE[Math.floor(Math.random() * NOISE.length)]);
@@ -380,7 +358,7 @@
       <article class="dossier dossier--${i % 2 ? 'b' : 'a'}" tabindex="0" style="--c:${f.c};--sc:${f.sc}" aria-labelledby="dn${i}" aria-describedby="dq${i}">
         <div class="d__id"><span>File <b>${f.id}</b></span><span class="d__status">${f.status}</span></div>
         <p class="d__jp" lang="ja" aria-hidden="true">${f.jp}</p>
-        <div class="d__portrait">${portrait(f, i)}</div>
+        <figure class="d__portrait">${portrait(f)}</figure>
         <h3 class="d__name" id="dn${i}"><span class="d__alias">${f.alias}, ${f.role}</span><span>${f.first}</span><span>${f.last}</span></h3>
         <div class="d__data">
           <p class="d__quote" id="dq${i}">${f.quote}</p>
@@ -522,6 +500,7 @@
     gsap.fromTo('.hero__line > span', { yPercent: 110 }, { yPercent: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08 });
     gsap.fromTo('.hero__jp, .hero__sub', { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.8, delay: 0.5, stagger: 0.1, ease: 'power3.out' });
     gsap.fromTo('.layer--near .layer__in', { scale: 1.06 }, { scale: 1, duration: 2.2, ease: 'expo.out' });
+    gsap.fromTo('#heroStill', { scale: 1.12, filter: 'brightness(2.4) contrast(1.6)' }, { scale: 1, filter: 'brightness(1) contrast(1)', duration: 1.8, ease: 'expo.out', clearProps: 'filter' });
     gsap.delayedCall(0.9, () => glitch(0.45, 140));
   }
 
@@ -575,12 +554,15 @@
     return { d, x: gsap.quickTo(inn, 'x', { duration: 1.2, ease: 'power3.out' }), y: gsap.quickTo(inn, 'y', { duration: 1.2, ease: 'power3.out' }) };
   });
   const heroX = gsap.quickTo('.hero__title', 'x', { duration: 1.4, ease: 'power3.out' });
+  const stillX = gsap.quickTo('.still__img', 'x', { duration: 1.6, ease: 'power3.out' });
+  const stillY = gsap.quickTo('.still__img', 'y', { duration: 1.6, ease: 'power3.out' });
   let pointerWind = 0;
   addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
     const px = e.clientX / innerWidth - 0.5; const py = e.clientY / innerHeight - 0.5;
     movers.forEach((m) => { m.x(-px * m.d * 46); m.y(-py * m.d * 20); });
     heroX(px * 14);
+    stillX(-px * 26); stillY(-py * 14);
     pointerWind = px * 0.3;
   }, { passive: true });
 
@@ -637,7 +619,9 @@
       .fromTo('.hero__line:nth-child(3)', { xPercent: 0, yPercent: 0, opacity: 1 }, { xPercent: -18, yPercent: -60, opacity: 0, duration: 1.4, immediateRender: false }, 0.35)
       .fromTo('.hero__slice', { opacity: 1, xPercent: 0 }, { opacity: 0, xPercent: 12, duration: 0.6, immediateRender: false }, 0.15)
       .fromTo('.hero__jp, .hero__sub', { opacity: 1 }, { opacity: 0, duration: 0.6, immediateRender: false }, 0.1)
-      .call(() => glitch(0.5), null, 0.5);
+      .fromTo('#heroStill', { yPercent: 0, opacity: 1 }, { yPercent: -22, opacity: 0.2, duration: 10, immediateRender: false }, 0)
+      .call(() => glitch(0.5), null, 0.5)
+      .call(() => glitch(0.7), null, 1.6);
 
     $$('.frag').forEach((f, i) => {
       const t = [1.8, 3.9, 6.0, 8.2][i];
@@ -700,6 +684,9 @@
       const t = 0.8 + i * 0.68;
       p.fromTo(w, { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: 0.18, ease: 'steps(3)' }, t)
         .call(() => glitch(0.3 + i * 0.07), null, t);
+    });
+    [4.6, 5.9, 6.8, 7.4, 7.8, 8.05].forEach((t, i) => {
+      p.set('#psyFlash', { className: 'psy__flash is-on' }, t).set('#psyFlash', { className: 'psy__flash' }, t + 0.06 + i * 0.02);
     });
     p.call(() => glitch(1, 500), null, 8.1)
       .set('#psyBlack', { autoAlpha: 1 }, 8.3)
