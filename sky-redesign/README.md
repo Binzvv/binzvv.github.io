@@ -1,61 +1,64 @@
 # Sky homepage: concept redesign
 
-A working prototype of the Sky UK homepage with Apple-level restraint, pacing and motion, built in Sky's own visual language. It's a concept, not an official Sky website.
+A working prototype of **sky.com's main homepage**, reimagined as a multi-product story in the style of apple.com/uk. It's built in Sky's own visual language and it's a concept, not an official Sky website.
 
 - **Source:** `sky-redesign/` (React 18, Tailwind 3, GSAP 3 + ScrollTrigger, Vite)
 - **Build output:** `/sky` at the repo root, served by GitHub Pages at `/sky/` once merged
 - **Run:** `cd sky-redesign && npm install && npm run dev`. `npm run build` writes to `../sky`.
 
-## 1. Audit
+## What could and couldn't be inspected
+This build environment's network policy blocks sky.com, apple.com, web archives and image hosts, so the **live homepage, its imagery and its current offers were not inspected**. To let a future session inspect them, add `www.sky.com` and `www.apple.com` under Allowed domains in the cloud environment's network settings.
 
-### What could and couldn't be checked
-The build environment couldn't reach sky.com or apple.com (the network policy blocked them). So the live homepage, its imagery and its current offers were **not inspected**.
+Product messaging was verified through web search, and only verified claims are used:
 
-| Verified (search results and Sky UI foundations) | Not verified, so not used |
+| Claim on the page | Source |
 |---|---|
-| Sky Glass Gen 2: 43/55/65", Volcanic Grey, Arctic Silver, Atlantic Blue; brighter 4K Quantum Dot; Dolby Atmos; Sky OS with "Hello Sky" | Any current price, offer, bundle or promo code |
-| Glass and Stream stream over broadband with no dish (25Mbps minimum); Stream is a puck over HDMI and Wi‑Fi | Current homepage hero campaign and its imagery |
-| Sky Essential TV includes Sky Atlantic, Netflix Standard with ads, and discovery+ | Exact current nav labels and order |
-| Sky UI tokens: `#000ff5` for interaction only, sentence case, 18/28 body, pill buttons, focus ring `#007ecc` | Sky Text fonts, Sky wordmark, Skycons, product photography (all licensed) |
-| Feature lines on sky.com/glass: "personal playlist TV", "voice control TV", "auto‑adjusting TV", "No dish. No box. No fuss." | Exact sky.com URLs for Stream, Broadband and Mobile (the prototype links to likely paths) |
+| "Goodbye dish." / Sky TV streamed to any TV over Wi‑Fi | Sky's own deals page ("Sky Ultimate TV, streamed to any TV over WiFi. Goodbye dish.") |
+| Sky Essential TV includes Sky Atlantic, Netflix (Standard with ads) and discovery+ | Sky help pages |
+| Broadband of at least 25Mbps needed for Glass / Stream | Sky help pages |
+| At least 215 live Premier League matches a season | Premier League rights award, Aug 2025 to May 2029 |
+| Every F1 race live; Sky Sports F1 is the UK home of F1 until 2034 | Rights reporting, 2026 |
+| Glass Gen 2: 43/55/65", Volcanic Grey / Atlantic Blue / Arctic Silver, 4K Quantum Dot, Dolby Atmos | Gen 2 launch coverage, Feb 2025 |
+| Glass Air: 4K HDR Quantum Dot, Sky OS, hands-free voice, positioned as a second TV | Glass Air launch coverage, June 2025 |
+| Stream: puck over HDMI and Wi‑Fi, 4K HDR with Dolby Vision | Stream launch coverage |
+| Full Fibre up to 5Gbps (Gigafast+ on CityFibre), Wi‑Fi 7 hub | ISPreview / Expert Reviews, 2025–26 |
+| Unused data rolls into Piggybank for up to three years | Sky Mobile reviews, 2026 |
 
-### Observations (hypotheses from prior knowledge of sky.com, to check against the live page)
-- **Fragmented hierarchy.** Price-led offer tiles get the same visual weight as product stories, so nothing leads.
-- **Competing commerce.** Several offers, each with its own price, asterisk and CTA, sit above the fold.
-- **Density.** Product tabs, icon strips, deal grids and help links are stacked with uniform spacing. There's no rhythm change and no breathing room.
-- **Motion.** Carousels rotate offers. Motion cycles content instead of explaining a product.
-- **Imagery.** Products sit inside boxed cards and are rarely shown full-bleed or at a real physical scale.
-- **Navigation.** A broad mega-menu repeats destinations that the page body also promotes.
-- **Assembled components.** Each module is self-contained, with no visual thread from one section to the next.
+**Not used:** any price, offer, bundle or promo end date (sources conflict and go out of date), plus Sky's licensed assets (Sky Text fonts, wordmark, Skycons, photography, key art).
 
-**Apple's approach, in contrast:** one product per screen, two CTAs at most, full-bleed alternating light and dark bands, scroll-linked reveals that explain the hardware, and commerce saved for the end.
+**Unverified links:** `/stream` and `/mobile` on sky.com are guessed paths. `/deals`, `/deals/sports`, `/broadband`, `/tvandbroadband`, `/glass` and `/help` were seen in search results.
 
-## 2. Creative direction: "lit from the screen"
-Sky's spectrum is treated as **light**, never as type colour. The page opens inside a screen and pulls back to reveal the product. Dark, cinematic bands (content) alternate with daylit editorial bands (hardware and home). The light from the hero carries through: statement words light up as you read, and the Sky Glass room "switches on" as it scrolls in.
+## Audit: hypotheses about the current sky.com homepage
+These come from prior knowledge and need checking against the live page:
+- **Commerce competes everywhere.** Several price-led offers, each with its own asterisk and CTA, sit above the fold and through the page.
+- **Equal-weight modules.** Tabs, deal grids, icon strips and help links all have the same visual weight, so no product leads.
+- **Motion cycles content instead of telling a story.** Carousels rotate offers.
+- **Products sit in boxes.** Imagery is rarely full-bleed or shown at physical scale.
+- **Assembled, not composed.** Nothing carries from one section to the next.
 
-### The three most important improvements
-1. **One hero, one idea, one CTA.** A pinned pull-back from a full-bleed picture to Sky Glass replaces the rotating offer carousel.
-2. **Motion that explains.** Size buttons scale the TV against fixed furniture. Finish swatches recolour the frame and tint the room. Four pinned Sky OS states each change the screen. The Stream cable draws itself into "your TV". Wi‑Fi rings fill the house.
-3. **Commerce steps back.** Deals and existing-customer tasks get one calm closing section.
+## The new composition
+Apple's multi-product homepage pattern: a sequence of art-directed campaigns, a 2-up pair, then an index of everything. The story moves from **watch → play → screens → connect → carry → choose**.
 
-## 3. Principles in the build
-| Principle | Where |
-|---|---|
-| One idea at a time | Each section has one headline and at most one primary button |
-| Product first | The hero ends on the product; the finishes stage shows Glass at physical scale |
-| Motion with purpose | Pull-back (content → product), size scaling, finish change, OS states, cable draw, coverage rings |
-| Controlled pacing | Dark/light alternation; 160px desktop section padding; a 0.25 "rest" at the end of each pinned timeline |
-| Premium, not generic minimalism | Spectrum light, Sky blue CTAs, Sky's own feature phrasing, colourful channel panels |
-| Effortless interaction | Native scroll (no smooth-scroll library), gentle label snapping in one pinned section only, one easing family |
+| # | Campaign | Art direction | Signature motion (each used once) |
+|---|---|---|---|
+| 1 | **Sky TV** "Goodbye dish." | Cinematic night, picture fills the viewport | Pinned camera pull-back from the picture to the TV |
+| 2 | **Entertainment** | Pure typography on black | Statement lights up word by word; channel names pass like credits, rows drifting against each other |
+| 3 | **Sky Sports** | Floodlit pitch, deep green | Pinned: the pitch dollies in while the live-match count runs to 215; the F1 line lands |
+| 4 | **Sky Glass Gen 2** | Daylit room | "Lights on" colour handoff; finish and size change the TV in place |
+| 5 | **Sky Stream / Sky Glass Air** | 2-up tiles, warm stone and soft sea green | Cable draws into "your TV"; Glass Air's screen powers on |
+| 6 | **Sky Broadband** | The house at night, Sky blue | Wi‑Fi rings grow from the hub; each device lights as the ring reaches it |
+| 7 | **Sky Mobile** | Bright, graphic | Each month's unused data lifts into Piggybank, which fills |
+| 8 | **All of Sky** | Editorial index | Hover or focus: the row shifts, its line appears, the others step back |
 
-### Motion system
-- `expo.out` for arrivals, `power2.inOut` for scrubbed camera moves. Durations are 0.35 / 0.9 / 1.4s.
-- Only transform and opacity animate, with two exceptions: the clip-path reveal on the channel panels (runs once) and the SVG ring radii.
-- Two pinned sections: the hero (desktop +140%, mobile +110%) and Sky OS (desktop only). Mobile and reduced-motion users get a stacked Sky OS with no pinning.
-- With `prefers-reduced-motion`, there are no pins, scrubs or entrance animations, and CSS transitions are reduced to ~0ms. Every state is still reachable.
+**What carries across:** each section's background starts as the colour of the one before and shifts as it arrives (`bgShift`). There's one easing family (`expo.out` for arrivals, `power2.inOut` for camera moves), one pill-and-chevron interaction language, and Sky blue on interactive elements only.
 
-## 4. Accessibility
-Semantic landmarks, a skip link, and labelled sections. The desktop flyouts open on hover with intent delay, or on click / Enter, and Escape returns focus. The mobile sheet is a modal dialog that locks scroll and closes on Escape. Swatches and sizes are `aria-pressed` buttons, with an `aria-live` summary. Channel panels expand on keyboard focus. Focus rings are 2px `#007ecc` (white on dark).
+**Pacing:** only two pinned moments (the TV hero and Sports). Everything else scrubs with native scroll. Commerce has one calm place at the end, plus a "See deals" link in each campaign.
 
-## 5. Asset slots
-Use the **Concept → Asset slots** toggle to outline every place a licensed asset should replace a stand-in: hero key art, Sky Glass and Stream photography, room photography, Sky OS captures, channel key art, handset imagery and the Sky wordmark. Fonts fall back from Sky Text to Figtree. Finish hex values are illustrative.
+## Accessibility and motion
+- **Structure and navigation:** semantic landmarks, a skip link and labelled sections. Flyouts work by hover, click or Enter, and Escape closes them. The mobile menu is a modal dialog.
+- **Controls:** swatches and sizes are `aria-pressed` buttons with a live summary.
+- **Screen readers:** the animated numeral has a screen-reader sentence, and the decorative channel rows are hidden behind an accessible list.
+- **Reduced motion:** with `prefers-reduced-motion`, there are no pins, scrubs or entrance animations, and every final state shows immediately.
+
+## Using real Sky imagery
+Toggle **Concept → Asset slots** to outline every stand-in. Put licensed files in `public/assets/` and set their paths in `ASSETS` in `src/content.js`. Each slot then renders the image instead of its stand-in.

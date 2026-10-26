@@ -307,3 +307,18 @@
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Directory: pointing at one product quietly steps the others back. */
+@media (hover: hover) {
+  .dir:hover .dir-row:not(:hover) {
+    opacity: 0.35;
+  }
+}
+.dir:focus-within .dir-row:not(:focus-within) {
+  opacity: 0.35;
+}
+/* A focused row stays lit even if the pointer rests elsewhere on the list. */
+.dir:hover .dir-row:focus-within,
+.dir .dir-row:focus-within {
+  opacity: 1;
+}

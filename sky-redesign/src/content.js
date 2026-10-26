@@ -1,81 +1,59 @@
 // All copy lives here so it can be checked against sky.com in one place.
-// Facts used are limited to what could be verified (see README):
-// Sky Glass Gen 2 sizes and finishes, Sky OS / "Hello Sky", streaming over
-// broadband (25Mbps minimum), Sky Stream puck over HDMI and Wi-Fi, and
-// Sky Essential TV including Sky Atlantic, Netflix (Standard with ads) and
-// discovery+. No prices or offers are shown: none could be verified.
+// Every product claim is limited to what could be verified (see README),
+// and no prices or offers are shown.
 
 export const SKY = 'https://www.sky.com';
+
+// Drop licensed Sky imagery into /public/assets and set its path here.
+// Until then each slot shows an art-directed stand-in.
+export const ASSETS = {
+  hero: null, // e.g. 'assets/hero-key-art.jpg'
+  sports: null,
+  glassRoom: null,
+  stream: null,
+  glassAir: null,
+  broadband: null,
+  mobile: null,
+};
 
 export const NAV = [
   {
     id: 'tv',
     label: 'TV',
     links: [
+      { label: 'Sky TV', href: '#tv' },
       { label: 'Sky Glass', href: '#glass' },
-      { label: 'Sky Stream', href: '#stream' },
-      { label: 'Sky Sports', href: '#channels' },
-      { label: 'Sky Cinema', href: '#channels' },
-      { label: 'Netflix on Sky', href: '#channels' },
+      { label: 'Sky Glass Air', href: '#screens' },
+      { label: 'Sky Stream', href: '#screens' },
     ],
   },
-  {
-    id: 'broadband',
-    label: 'Broadband',
-    links: [
-      { label: 'Full Fibre broadband', href: '#home' },
-      { label: 'Broadband and TV', href: '#home' },
-    ],
-  },
-  {
-    id: 'mobile',
-    label: 'Mobile',
-    links: [
-      { label: 'Sky Mobile', href: '#home' },
-      { label: 'Piggybank', href: '#home' },
-    ],
-  },
-  { id: 'deals', label: 'Deals', href: '#deals' },
+  { id: 'sports', label: 'Sports', href: '#sports' },
+  { id: 'broadband', label: 'Broadband', href: '#broadband' },
+  { id: 'mobile', label: 'Mobile', href: '#mobile' },
+  { id: 'deals', label: 'Deals', href: `${SKY}/deals` },
   { id: 'help', label: 'Help', href: `${SKY}/help` },
 ];
 
-export const FINISHES = [
+// Channels and apps you can watch on Sky (names only, no pack claims).
+export const CHANNEL_ROWS = [
+  ['Sky Atlantic', 'Netflix', 'discovery+', 'Sky Max', 'Sky Showcase', 'Sky Comedy'],
+  ['Sky Cinema', 'Sky Documentaries', 'Sky Nature', 'Sky Witness', 'Sky Crime', 'Sky History'],
+  ['Sky Sports', 'TNT Sports', 'Sky Kids', 'Sky Arts', 'Sky Atlantic', 'Sky Cinema'],
+];
+
+export const GLASS_FINISHES = [
   // Illustrative values from the Sky Glass design-system reference.
   { id: 'volcanic', name: 'Volcanic Grey', hex: '#4a4c50', wall: '#e9e9ec' },
   { id: 'atlantic', name: 'Atlantic Blue', hex: '#2f4a66', wall: '#e3e8ef' },
   { id: 'arctic', name: 'Arctic Silver', hex: '#d8dadd', wall: '#ececef' },
 ];
-
 export const SIZES = [43, 55, 65];
 
-export const OS_STEPS = [
-  {
-    id: 'playlist',
-    title: 'It’s a personal playlist TV.',
-    body: 'Save shows and films to one Playlist, whichever app they’re on, and pick up right where you left off.',
-  },
-  {
-    id: 'voice',
-    title: 'It’s a voice control TV.',
-    body: 'Just say “Hello Sky” to find something to watch, switch channel or turn it up.',
-  },
-  {
-    id: 'adjust',
-    title: 'It’s an auto‑adjusting TV.',
-    body: 'Picture and sound adapt to your room, so everything looks and sounds its best.',
-  },
-  {
-    id: 'nodish',
-    title: 'No dish. No box. No fuss.',
-    body: 'Everything streams over your broadband. All you need is a plug socket and Wi‑Fi.',
-    legal: 'Requires broadband with a minimum speed of 25Mbps.',
-  },
-];
-
-export const CHANNELS = [
-  { id: 'sports', name: 'Sky Sports', line: 'Premier League, F1, cricket, golf and more.', art: 'art-sports' },
-  { id: 'cinema', name: 'Sky Cinema', line: 'Blockbusters, Sky Original films and family favourites.', art: 'art-cinema' },
-  { id: 'netflix', name: 'Netflix', line: 'Netflix Standard with ads is included with Sky Essential TV.', art: 'art-netflix' },
-  { id: 'tnt', name: 'TNT Sports', line: 'UEFA Champions League, Premiership Rugby and more.', art: 'art-tnt' },
-  { id: 'kids', name: 'Sky Kids', line: 'Shows for little ones, without the ads.', art: 'art-kids' },
+export const DIRECTORY = [
+  { id: 'tv', name: 'Sky TV', line: 'Streamed to any TV over Wi‑Fi.', href: '#tv' },
+  { id: 'sports', name: 'Sky Sports', line: 'Premier League and Formula 1, live.', href: '#sports' },
+  { id: 'glass', name: 'Sky Glass', line: 'The TV with Sky built in.', href: '#glass' },
+  { id: 'stream', name: 'Sky Stream', line: 'Sky on the TV you already have.', href: '#screens' },
+  { id: 'broadband', name: 'Sky Broadband', line: 'Full Fibre, up to 5Gbps.', href: '#broadband' },
+  { id: 'mobile', name: 'Sky Mobile', line: 'Keep the data you don’t use.', href: '#mobile' },
 ];

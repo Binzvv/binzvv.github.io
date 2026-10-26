@@ -2,13 +2,13 @@ import { useEffect } from 'react';
 import { ScrollTrigger, prefersReducedMotion } from './lib/motion';
 import Nav from './components/Nav';
 import Hero from './components/Hero';
-import Statement from './components/Statement';
-import Finishes from './components/Finishes';
-import SkyOS from './components/SkyOS';
-import Stream from './components/Stream';
-import Channels from './components/Channels';
-import Home from './components/Home';
-import Closing from './components/Closing';
+import Entertainment from './components/Entertainment';
+import Sports from './components/Sports';
+import SkyGlass from './components/SkyGlass';
+import Screens from './components/Screens';
+import Broadband from './components/Broadband';
+import Mobile from './components/Mobile';
+import Directory from './components/Directory';
 import ConceptBar from './components/ConceptBar';
 
 export default function App() {
@@ -40,13 +40,13 @@ export default function App() {
       <Nav />
       <main id="main">
         <Hero />
-        <Statement />
-        <Finishes />
-        <SkyOS />
-        <Stream />
-        <Channels />
-        <Home />
-        <Closing />
+        <Entertainment />
+        <Sports />
+        <SkyGlass />
+        <Screens />
+        <Broadband />
+        <Mobile />
+        <Directory />
       </main>
       <ConceptBar className="fixed bottom-4 left-4 hidden lg:flex" />
     </>

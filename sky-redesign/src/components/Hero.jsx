@@ -1,13 +1,15 @@
 import { useScene, gsap, EASE } from '../lib/motion';
 import Glass from './Glass';
 import { Chevron } from './Icons';
+import Slot from './Slot';
+import { ASSETS, SKY } from '../content';
 
 // Stand-in for campaign key art: a layered dawn landscape lit in Sky's
 // spectrum. Each layer carries a depth so the scene parallaxes as the
 // camera pulls back from the screen.
 function HeroScene() {
   return (
-    <svg data-scene viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden="true">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden="true">
       <defs>
         <linearGradient id="h-sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#060935" />
@@ -109,17 +111,19 @@ export default function Hero() {
       <div className="absolute inset-0 isolate flex flex-col items-center justify-center px-4 pt-14 lg:pt-16">
         <Glass
           className="hero-tv w-[92vw] will-change-transform sm:w-[80vw] lg:w-[min(60vw,880px)]"
-          label="Sky Glass television in Volcanic Grey"
-          slot="Hero key art / Sky Glass photography"
+          label="Sky TV playing on Sky Glass"
         >
-          <HeroScene />
+          <div data-scene className="absolute inset-0">
+            <Slot name="Hero key art" src={ASSETS.hero} className="h-full w-full">
+              <HeroScene />
+            </Slot>
+          </div>
         </Glass>
         <div data-glow aria-hidden="true" className="spectrum-glow pointer-events-none absolute left-1/2 top-1/2 -z-0 h-[40vh] w-[60vw] -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen" style={{ zIndex: -1 }} />
         <div data-caption className="mt-8 max-w-xl text-center lg:mt-10">
-          <p className="t-eyebrow">Sky Glass Gen 2</p>
-          <p className="mt-2 text-[17px] leading-[26px] text-white/70 lg:text-[19px] lg:leading-[28px]">
-            Brighter 4K Quantum Dot picture. Dolby Atmos sound.
-            <br className="hidden sm:block" /> Three sizes, three finishes.
+          <p className="t-eyebrow">On Sky Glass, or any TV with Sky Stream.</p>
+          <p className="mt-2 text-[17px] leading-[26px] text-white/60 lg:text-[19px] lg:leading-[28px]">
+            All you need is broadband of at least 25Mbps.
           </p>
         </div>
       </div>
@@ -127,18 +131,22 @@ export default function Hero() {
       <div data-scrim aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent" />
 
       <div data-copy className="absolute inset-x-0 bottom-[9svh] px-6 text-center lg:bottom-[11svh]">
-        <p data-eyebrow className="t-eyebrow text-white/80">Sky Glass</p>
+        <p data-eyebrow className="t-eyebrow text-white/80">Sky TV</p>
         <h1 id="hero-title" className="t-hero mx-auto mt-3 max-w-[16ch] lg:max-w-none">
-          <span data-line className="block overflow-hidden pb-[0.08em]"><span className="inline-block">The TV with</span></span>
-          <span data-line className="block overflow-hidden pb-[0.08em]"><span className="inline-block">Sky built in.</span></span>
+          <span data-line className="block overflow-hidden pb-[0.08em]"><span className="inline-block">Goodbye dish.</span></span>
         </h1>
         <p data-body className="t-lead mx-auto mt-4 max-w-[30ch] text-white/80 lg:max-w-none">
-          Stream everything over your broadband. No dish. No box. No fuss.
+          Sky TV, streamed to any TV over Wi‑Fi.
         </p>
         <div data-cta className="mt-8">
-          <a href="#glass" className="btn btn-primary w-full max-w-[320px] sm:w-auto">
-            Explore Sky Glass <Chevron />
-          </a>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
+            <a href="#tv" className="btn btn-primary w-full max-w-[320px] sm:w-auto">
+              Explore Sky TV
+            </a>
+            <a href={`${SKY}/deals`} className="link">
+              <span className="u">See TV deals</span> <Chevron />
+            </a>
+          </div>
         </div>
       </div>
     </section>

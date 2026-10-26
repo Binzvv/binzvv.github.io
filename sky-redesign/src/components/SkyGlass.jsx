@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useScene, gsap, EASE, prefersReducedMotion } from '../lib/motion';
-import { FINISHES, SIZES, SKY } from '../content';
+import { useScene, gsap, bgShift, EASE, prefersReducedMotion } from '../lib/motion';
+import { GLASS_FINISHES as FINISHES, SIZES, SKY } from '../content';
 import Glass from './Glass';
 import { Chevron } from './Icons';
 
@@ -13,20 +13,16 @@ function HomeScreen() {
 
 // Explains rather than decorates: the TV changes physical size against
 // a fixed sideboard, and the room takes on a hint of the chosen finish.
-export default function Finishes() {
+export default function SkyGlass() {
   const [finish, setFinish] = useState(FINISHES[0]);
   const [size, setSize] = useState(55);
   const tvRef = useRef(null);
 
   const ref = useScene((root, { motion }) => {
     if (!motion) return;
-    // Lights come up as the section arrives: the night of the previous
-    // section gives way to a daylit room.
-    gsap.fromTo(
-      root,
-      { backgroundColor: '#05061a' },
-      { backgroundColor: '#fafafd', ease: 'none', scrollTrigger: { trigger: root, start: 'top 90%', end: 'top 25%', scrub: true } },
-    );
+    // Lights come up as the section arrives: the floodlit night of
+    // Sports gives way to a daylit room.
+    bgShift(root, '#03140b', '#fafafd');
     gsap.fromTo(
       root.querySelector('[data-stage]'),
       { scale: 0.94, opacity: 0.4 },
@@ -48,9 +44,9 @@ export default function Finishes() {
   return (
     <section ref={ref} id="glass" data-nav="light" aria-labelledby="glass-title" className="bg-flat px-4 py-24 lg:px-8 lg:py-40">
       <div className="mx-auto max-w-[1180px] text-center">
-        <p className="t-eyebrow text-grey-70">Sky Glass</p>
-        <h2 id="glass-title" className="t-h2 mx-auto mt-2 max-w-[14ch] text-ink lg:max-w-none">Made to fit your room.</h2>
-        <p className="t-lead mx-auto mt-4 max-w-[34ch] text-grey-70">Three sizes and three finishes, each with the speakers built in.</p>
+        <p className="t-eyebrow text-grey-70">Sky Glass Gen 2</p>
+        <h2 id="glass-title" className="t-h2 mx-auto mt-2 max-w-[14ch] text-ink lg:max-w-none">The TV with Sky built in.</h2>
+        <p className="t-lead mx-auto mt-4 max-w-[34ch] text-grey-70">Brighter 4K Quantum Dot picture and Dolby Atmos sound. In three sizes and three finishes.</p>
 
         <div
           data-stage

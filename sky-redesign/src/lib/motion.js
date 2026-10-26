@@ -39,3 +39,14 @@ export function prefersReducedMotion() {
 }
 
 export { gsap, ScrollTrigger };
+
+// The page's one transition device between campaigns: the background of
+// the incoming section starts as the colour of the outgoing one and
+// shifts as it arrives, so sections hand over instead of cutting.
+export function bgShift(section, from, to) {
+  return gsap.fromTo(
+    section,
+    { backgroundColor: from },
+    { backgroundColor: to, ease: 'none', scrollTrigger: { trigger: section, start: 'top 85%', end: 'top 25%', scrub: true } },
+  );
+}
