@@ -160,7 +160,7 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spaci
 /* View transition styling */
 ::view-transition-group(*.tip),
 ::view-transition-group(tip-morph) {
-  animation-duration: .4s;
+  animation-duration: .6s;
   animation-timing-function: cubic-bezier(.2,.8,.2,1);
 }
 /* Layer order during transitions: cards < top bar < progress < open/closing panel */
@@ -173,8 +173,8 @@ html:active-view-transition-type(filter)::view-transition-group(*.tip) { animati
 /* Page-level crossfade: the backdrop dims and the page-to-page fade eases instead of snapping */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: .5s;
-  animation-timing-function: cubic-bezier(.4,0,.2,1);
+  animation-duration: .8s;
+  animation-timing-function: cubic-bezier(.65,0,.35,1);
 }
 
 /* Playground */

@@ -8,8 +8,8 @@
 @view-transition { navigation: auto; }
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: .5s;
-  animation-timing-function: cubic-bezier(.4,0,.2,1);
+  animation-duration: .8s;
+  animation-timing-function: cubic-bezier(.65,0,.35,1);
 }
 
 * { box-sizing: border-box; }
