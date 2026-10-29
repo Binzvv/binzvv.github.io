@@ -170,8 +170,12 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spaci
 
 /* Types: only the filter transition gets the quicker crossfade */
 html:active-view-transition-type(filter)::view-transition-group(*.tip) { animation-duration: .3s; }
-html:active-view-transition-type(open, close)::view-transition-old(root),
-html:active-view-transition-type(open, close)::view-transition-new(root) { animation: none; }
+/* Page-level crossfade: the backdrop dims and the page-to-page fade eases instead of snapping */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .5s;
+  animation-timing-function: cubic-bezier(.4,0,.2,1);
+}
 
 /* Playground */
 .play { margin: 96px 0; text-align: center; }

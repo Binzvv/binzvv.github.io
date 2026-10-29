@@ -6,6 +6,11 @@
 
 /* Cross-document view transition to tips.html */
 @view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .5s;
+  animation-timing-function: cubic-bezier(.4,0,.2,1);
+}
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
