@@ -47,6 +47,7 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spaci
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--line);
+  view-transition-name: nav; /* own layer so animating cards slide under it */
 }
 .nav-inner {
   max-width: 980px; margin: 0 auto; height: 48px;
@@ -106,6 +107,8 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spaci
   gap: 20px;
 }
 .deck li[hidden] { display: none; }
+.deck li { position: relative; }
+.deck li:has(.tip:hover, .tip:focus-visible) { z-index: 1; } /* lifted card + shadow above neighbours */
 
 .tip {
   /* Auto-unique names: no need to hand-number every card (JS falls back where unsupported) */
@@ -160,6 +163,11 @@ code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spaci
   animation-duration: .4s;
   animation-timing-function: cubic-bezier(.2,.8,.2,1);
 }
+/* Layer order during transitions: cards < top bar < progress < open/closing panel */
+::view-transition-group(nav) { z-index: 100; }
+::view-transition-group(progress) { z-index: 101; }
+::view-transition-group(tip-morph) { z-index: 200; }
+
 /* Types: only the filter transition gets the quicker crossfade */
 html:active-view-transition-type(filter)::view-transition-group(*.tip) { animation-duration: .3s; }
 html:active-view-transition-type(open, close)::view-transition-old(root),
@@ -226,6 +234,7 @@ details p { padding-top: 10px; }
     transform-origin: left;
     animation: grow linear both;
     animation-timeline: scroll(root);
+    view-transition-name: progress;
   }
   .deck li {
     animation: reveal linear both;

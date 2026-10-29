@@ -84,7 +84,10 @@ cards.forEach((el) => {
     }
   });
 
-  el.addEventListener('mouseenter', () => dot.classList.add('hover'));
+  el.addEventListener('mouseenter', () => {
+    dot.classList.add('hover');
+    el.style.zIndex = ++z; // hovered card always on top, even after earlier drags
+  });
   el.addEventListener('mouseleave', () => dot.classList.remove('hover'));
 });
 
