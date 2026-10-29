@@ -1,0 +1,549 @@
+/* =========================================================
+   FILM — a screening: one scene at a time, letterboxed,
+   slow dissolves, timecode, a scrubbable timeline.
+   ========================================================= */
+.lens-film {
+  --h-fg: #efe6d6;
+  --h-bg: transparent;
+  --h-accent: var(--film);
+  --h-accent-ink: #0a0907;
+  --h-tool-ink: #0a0907;
+  --tl-h: 78px;
+  background: #050403;
+  color: #efe6d6;
+}
+
+.lens-film .logo-word {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.lens-film .logo-lens {
+  color: var(--film);
+  opacity: 1;
+}
+
+.film {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.f-screen {
+  --bar: max(58px, calc((100vh - var(--tl-h) - 100vw / 2.39) / 2));
+  position: absolute;
+  inset: 0 0 var(--tl-h) 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.f-scenes,
+.f-scene,
+.f-still {
+  position: absolute;
+  inset: 0;
+}
+
+.f-scene {
+  visibility: hidden;
+}
+
+.f-still {
+  will-change: transform, filter;
+}
+
+.f-still svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.still-black {
+  position: absolute;
+  inset: 0;
+  background: #060504;
+}
+
+/* Overlay type */
+.f-overlay {
+  position: absolute;
+  inset: var(--bar) var(--gutter);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 28px 0;
+  pointer-events: none;
+}
+
+.f-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--film);
+}
+
+.f-title {
+  align-self: center;
+  max-width: 12ch;
+  font-family: var(--serif);
+  font-size: clamp(54px, 8.4vw, 168px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5);
+}
+
+.f-title .ln {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+
+.f-title .ln > span {
+  display: inline-block;
+}
+
+.f-title .ln:nth-child(2) {
+  font-style: italic;
+  padding-left: 0.6em;
+}
+
+.f-scene-opening .f-title {
+  max-width: none;
+}
+
+.f-sub {
+  justify-self: center;
+  max-width: 62ch;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.6vw, 26px);
+  font-style: italic;
+  line-height: 1.3;
+}
+
+.f-sub span {
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Credits roll */
+.f-credits {
+  position: absolute;
+  inset: var(--bar) 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+}
+
+.f-roll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 10vh var(--gutter);
+}
+
+html[data-motion='reduce'] .f-roll {
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  padding-top: 20px;
+}
+
+.f-roll-head {
+  margin: 4vh 0;
+  font-family: var(--serif);
+  font-size: clamp(30px, 3.4vw, 56px);
+  font-style: italic;
+}
+
+.f-roll-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  width: min(760px, 100%);
+}
+
+.f-roll-row span:first-child {
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--film);
+  padding-top: 6px;
+}
+
+.f-roll-row span:last-child {
+  font-family: var(--serif);
+  font-size: 24px;
+}
+
+.f-roll-contact {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--film);
+}
+
+/* Projection texture */
+.f-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.f-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.65));
+}
+
+.f-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #fff3e0;
+  opacity: 0;
+}
+
+.f-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--bar);
+  background: #000;
+  z-index: 3;
+}
+
+.f-bar-top {
+  top: 0;
+}
+.f-bar-bottom {
+  bottom: 0;
+}
+
+.f-hud {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--bar) * 0.5 - 8px);
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #b8ab96;
+}
+
+.f-rec {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.f-rec i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b1a;
+  animation: rec 1.2s steps(1) infinite;
+}
+
+@keyframes rec {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.f-tc {
+  color: var(--film);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Slate countdown */
+.f-slate {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(rgba(239, 230, 214, 0.25), rgba(239, 230, 214, 0.25)) center / 100% 1px no-repeat,
+    linear-gradient(rgba(239, 230, 214, 0.25), rgba(239, 230, 214, 0.25)) center / 1px 100% no-repeat,
+    #161310;
+}
+
+.f-slate-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(42vh, 320px);
+  aspect-ratio: 1;
+  border: 2px solid #efe6d6;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.f-slate-sweep {
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(rgba(239, 230, 214, 0.35) 0 25%, transparent 25%);
+}
+
+.f-slate-num {
+  position: relative;
+  font-family: var(--serif);
+  font-size: min(26vh, 200px);
+  line-height: 1;
+}
+
+/* Timeline — the navigation for this lens */
+.f-timeline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--tl-h);
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 18px;
+  padding: 0 var(--gutter);
+  background: #0a0907;
+  border-top: 1px solid rgba(255, 122, 26, 0.3);
+}
+
+.f-ctrl {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(239, 230, 214, 0.3);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.f-ctrl:hover:not(:disabled) {
+  border-color: var(--film);
+  color: var(--film);
+}
+
+.f-ctrl:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.f-screen-btn[aria-pressed='true'] {
+  background: var(--film);
+  border-color: var(--film);
+  color: #0a0907;
+}
+
+.f-track-wrap {
+  position: relative;
+  height: 50px;
+  margin: 0 16px;
+}
+
+.f-track-wrap::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: repeating-linear-gradient(90deg, rgba(239, 230, 214, 0.4) 0 1px, transparent 1px 8px);
+}
+
+.f-track {
+  position: absolute;
+  inset: 0;
+}
+
+.f-track li {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
+.f-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 4px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8f8473;
+}
+
+.f-marker::after {
+  content: '';
+  order: 1;
+  width: 9px;
+  height: 9px;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+  background: #0a0907;
+}
+
+.f-marker-code {
+  order: 0;
+}
+
+.f-marker-title {
+  order: 2;
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.f-marker:hover,
+.f-marker[aria-current='step'] {
+  color: var(--film);
+}
+
+.f-marker:hover .f-marker-title,
+.f-marker:focus-visible .f-marker-title,
+.f-marker[aria-current='step'] .f-marker-title {
+  opacity: 1;
+}
+
+.f-marker[aria-current='step']::after {
+  background: var(--film);
+}
+
+.f-playhead {
+  position: absolute;
+  top: -14px;
+  bottom: -14px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--film);
+  pointer-events: none;
+  box-shadow: 0 0 12px var(--film);
+}
+
+.f-runtime {
+  min-width: 120px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: #8f8473;
+}
+
+/* Welcome as a coming attraction */
+.f-welcome-wrap {
+  position: absolute;
+  top: calc(var(--bar) + 24px);
+  right: var(--gutter);
+  z-index: 5;
+  width: min(360px, calc(100% - 2 * var(--gutter)));
+}
+
+.welcome-film {
+  padding: 20px 22px 18px;
+  background: rgba(10, 9, 7, 0.88);
+  border: 1px solid rgba(255, 122, 26, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.welcome-film .welcome-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--film);
+}
+
+.welcome-film .welcome-line {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #b8ab96;
+}
+
+.welcome-film .welcome-title {
+  margin: 12px 0 4px;
+  font-family: var(--serif);
+  font-size: 32px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.welcome-film .welcome-kind {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8f8473;
+}
+
+.welcome-film .welcome-blurb {
+  margin: 10px 0 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .f-screen {
+    --bar: 64px;
+  }
+  .f-timeline {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+  .f-screen-btn,
+  .f-runtime {
+    display: none;
+  }
+  .f-marker-code {
+    display: none;
+  }
+  .f-marker-title {
+    display: none;
+  }
+  .f-marker {
+    justify-content: center;
+    min-width: 28px;
+  }
+  .f-welcome-wrap {
+    top: auto;
+    bottom: calc(var(--bar) + 12px);
+  }
+  .f-title {
+    font-size: clamp(44px, 13vw, 90px);
+  }
+  .lens-film .site-header {
+    background: #000;
+  }
+}
