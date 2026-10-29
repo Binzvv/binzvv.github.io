@@ -4,6 +4,9 @@
   --muted: #9aa1ab;
 }
 
+/* Cross-document view transition to tips.html */
+@view-transition { navigation: auto; }
+
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -75,6 +78,7 @@ body {
   pointer-events: none;
 }
 .hero h1 {
+  view-transition-name: site-title; /* morphs into the Quick Tips title */
   font-size: clamp(2.5rem, 7vw, 6rem);
   font-weight: 800;
   line-height: 1.1;

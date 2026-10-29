@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quick Tips Deck</title>
+  <link rel="stylesheet" href="tips.css" />
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="top">
+    <a href="index.html" class="back">&larr; Back to the fan</a>
+    <h1 class="title">Quick Tips</h1>
+    <p class="lede">View Transitions + Interop CSS, one card at a time. Filter the deck, tap a card to expand it.</p>
+
+    <div class="filters" role="group" aria-label="Filter tips">
+      <button type="button" data-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-filter="vt" aria-pressed="false">View Transitions</button>
+      <button type="button" data-filter="interop" aria-pressed="false">Interop CSS</button>
+    </div>
+  </header>
+
+  <main>
+    <ul class="deck" id="deck"></ul>
+
+    <section class="play" aria-labelledby="play-title">
+      <h2 id="play-title">Try them live</h2>
+      <div class="play-grid">
+        <div class="demo">
+          <h3>Anchor + @starting-style</h3>
+          <button type="button" class="pill anchor-btn" popovertarget="pop">Open popover</button>
+          <div id="pop" popover>Tethered with <code>position-area</code>, faded in with <code>@starting-style</code>.</div>
+        </div>
+        <div class="demo">
+          <h3>interpolate-size</h3>
+          <details>
+            <summary>Animate to <code>height: auto</code></summary>
+            <p>No JS and no max-height hacks. The browser interpolates straight to the content's intrinsic size.</p>
+          </details>
+        </div>
+        <div class="demo">
+          <h3>Scroll-driven</h3>
+          <p>The bar at the top of the page and the cards fading in as you scroll use <code>animation-timeline</code>, no listeners.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="detail" id="detail" aria-labelledby="detail-title">
+    <article class="panel">
+      <span class="tag" id="detail-tag"></span>
+      <h2 id="detail-title"></h2>
+      <p id="detail-body"></p>
+      <pre><code id="detail-code"></code></pre>
+      <p class="support" id="detail-support"></p>
+      <button type="button" class="pill" id="detail-close">Close</button>
+    </article>
+  </dialog>
+
+  <script src="tips.js"></script>
+</body>
+</html>
