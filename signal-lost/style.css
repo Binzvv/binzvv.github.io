@@ -21,6 +21,8 @@
   /* Druk Condensed Super renders only where it is installed or licensed for web use; Bebas Neue is the shipped fallback */
   --f-display: "Druk Condensed Super", "Druk Cond Super", "Druk Condensed", "Druk XCond", "Bebas Neue", "Arial Narrow", Impact, sans-serif;
   --track-tight: -0.018em;
+  /* campaign voice: one heavy grotesk for posters and the lockup */
+  --f-grotesk: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --f-ui: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --f-jp: "Dela Gothic One", "Hiragino Kaku Gothic Std", "Yu Gothic", sans-serif;
 
@@ -886,3 +888,103 @@ html.is-static .psy__black { position: relative; opacity: 1; visibility: visible
 .psy__q-sub { font-size: 13px; color: var(--dim); max-width: 60ch; margin: 0 auto; }
 .end__ledger { display: grid; gap: 8px; max-width: 64ch; font-size: 15px; color: var(--bone); line-height: 1.5; }
 .end__ledger p:last-child { color: var(--red); }
+
+/* --------------------------------------------------------------------------
+   Lockup: one declarative word over the signal mark.
+   Protagonist when huge and cropped, signature when small.
+   -------------------------------------------------------------------------- */
+.lockup { display: inline-grid; justify-items: start; color: currentColor; line-height: 1; }
+.lockup__word {
+  font: italic 900 1em/0.8 var(--f-grotesk);
+  font-stretch: 112%; letter-spacing: -0.045em;
+  transform: skewX(-6deg); transform-origin: 0 100%;
+  font-synthesis: none;
+}
+.lockup__mark { display: flex; gap: 0.07em; width: 92%; margin: 0.07em 0 0 0.12em; transform: skewX(-32deg); }
+.lockup__mark i { display: block; height: 0.15em; background: currentColor; transform-origin: 0 50%; }
+.lockup__mark i:first-child { flex: 3.2; }
+.lockup__mark i:last-child { flex: 1; }
+.lockup--end { font-size: 34px; color: var(--red); margin-top: -2vh; }
+
+/* --------------------------------------------------------------------------
+   Campaign wall: tight two-column mosaic, two loud colours plus black
+   -------------------------------------------------------------------------- */
+.campaign { position: relative; background: #000; padding: 12vh var(--gutter) 14vh calc(var(--gutter) + 64px); overflow: hidden; }
+.campaign__grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+  max-width: 1180px; margin: 0 auto;
+  transform-origin: 50% 50%; will-change: transform;
+}
+.tile { position: relative; overflow: hidden; background: #0c0b10; aspect-ratio: 4 / 5; container-type: inline-size; margin: 0; }
+.tile--wide { grid-column: 1 / -1; aspect-ratio: 16 / 7; }
+.tile--text { aspect-ratio: auto; }
+.tile__clip { position: absolute; inset: 0; overflow: hidden; }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; will-change: transform; }
+.tile::after {
+  content: ""; position: absolute; right: 12px; bottom: 12px; z-index: 5;
+  width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; color: var(--bone);
+  opacity: 0.8;
+}
+.poster.tile::after { color: #000; }
+
+.poster {
+  --pc: var(--red);
+  background: var(--pc); color: #000;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: clamp(16px, 3vw, 38px) clamp(16px, 3vw, 38px) clamp(18px, 3.4vw, 42px);
+}
+.poster--yellow { --pc: var(--yellow); }
+.poster__head {
+  margin: 0;
+  font: 900 13.2cqi/0.86 var(--f-grotesk); font-stretch: 100%;
+  letter-spacing: -0.04em; text-transform: uppercase; font-synthesis: none;
+}
+.poster__head span { display: block; width: max-content; white-space: nowrap; will-change: transform; }
+.poster__foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.poster__small { font: 600 2.6cqi/1.25 var(--f-ui); max-width: 24ch; }
+.poster .lockup { font-size: 11cqi; }
+
+/* billboard: a poster hung on the city art */
+.billboard .poster {
+  position: absolute; left: 54%; top: 14%; width: 26%; aspect-ratio: 3 / 4;
+  container-type: inline-size; padding: clamp(10px, 1.4vw, 18px);
+  transform: perspective(900px) rotateY(-16deg) rotateX(2deg);
+  box-shadow: 0 0 60px rgba(255, 0, 60, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.billboard .poster .lockup { font-size: 16cqi; }
+.billboard img { filter: saturate(1.15) contrast(1.05); }
+
+/* protagonist: the lockup, cropped huge */
+.giant { background: #000; color: var(--red); display: grid; align-items: center; }
+.giant .lockup { font-size: 40cqi; margin-left: -6cqi; white-space: nowrap; }
+
+/* construction: how the lockup is drawn */
+.construct { background: #000; color: var(--bone); }
+.construct .lockup { position: absolute; left: 8cqi; top: 50%; translate: 0 -50%; font-size: 24cqi; }
+.construct .lockup__word { color: transparent; -webkit-text-stroke: 1px rgba(233, 228, 214, 0.85); }
+.construct .lockup__mark i { background: transparent; outline: 1px solid rgba(233, 228, 214, 0.85); }
+.guide { position: absolute; background: rgba(233, 228, 214, 0.35); transform-origin: 0 50%; }
+.guide--h { left: 0; right: 0; height: 1px; }
+.guide--v { top: 0; bottom: 0; width: 1px; transform-origin: 50% 0; }
+.guide--slant { height: 1px; width: 60%; background: var(--red); }
+.guide b { position: absolute; left: 6px; top: -16px; font: 500 11px/1 var(--f-ui); color: var(--dim); white-space: nowrap; }
+.node { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border: 1px solid var(--bone); background: #000; }
+.node--round { border-radius: 50%; border-color: var(--red); }
+
+/* small print, like a case study's text page */
+.tile--text { background: #000; color: var(--bone); padding: 26px 0 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 6px; border-top: 1px solid rgba(233, 228, 214, 0.18); }
+.tile--text::after { display: none; }
+.tile--text p, .tile--text dl { margin: 0; font-size: 12.5px; line-height: 1.5; max-width: 52ch; padding-right: 24px; }
+.tile--text dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; }
+.tile--text dt { color: var(--dim); }
+.tile--text dd { margin: 0; }
+
+@media (max-width: 760px) {
+  .campaign { padding: 10vh var(--gutter) 14vh; }
+  .campaign__grid { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .tile--wide { aspect-ratio: 4 / 3; }
+  .billboard .poster { left: 46%; width: 40%; top: 10%; }
+  .giant .lockup { font-size: 52cqi; }
+  .construct .lockup { font-size: 38cqi; }
+  .tile--text { grid-template-columns: minmax(0, 1fr); }
+}

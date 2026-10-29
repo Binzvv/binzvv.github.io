@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#030305" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@500;800;900&family=Chakra+Petch:wght@400;500;600&family=Dela+Gothic+One&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Bebas+Neue&family=Big+Shoulders+Display:wght@500;800;900&family=Chakra+Petch:wght@400;500;600&family=Dela+Gothic+One&display=swap" />
   <link rel="stylesheet" href="style.css" />
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
@@ -113,6 +113,11 @@
       </div>
     </section>
 
+    <!-- CAMPAIGN: poster mosaic, one lockup, two colours (tiles built by main.js) -->
+    <section class="campaign" id="campaign" aria-label="Season two campaign">
+      <div class="campaign__grid" id="campaignGrid"></div>
+    </section>
+
     <!-- 05 CYBERPSYCHOSIS -->
     <section class="psy" id="psychosis" aria-label="Cyberpsychosis">
       <div class="psy__stage" id="psyStage">
@@ -137,6 +142,7 @@
     <section class="end" id="end" aria-label="End">
       <h2 class="end__title">THE CITY<br />ALWAYS WINS.</h2>
       <div class="end__ledger" id="endLedger"></div>
+      <span class="lockup lockup--end" aria-hidden="true"><span class="lockup__word">LOST</span><span class="lockup__mark"><i></i><i></i></span></span>
       <button class="reconnect" id="reconnect" type="button"><span>RECONNECT</span></button>
       <p class="end__legal">An unofficial creative exploration. Not affiliated with Netflix, Studio Trigger or CD PROJEKT RED. Cyberpunk: Edgerunners belongs to its owners. The characters and artwork here are original concepts made for this project, and the city, brands and interface are drawn in code.</p>
     </section>

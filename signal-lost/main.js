@@ -430,6 +430,98 @@
     ['Last warning', 'Do not trust the voice in the chrome.'],
   ];
   const SPOTS = [[6, 12], [62, 8], [70, 58], [10, 64], [38, 74], [78, 30], [22, 30], [48, 16], [4, 40], [56, 46]];
+  /* ------------------------------------------------------------------
+     Campaign wall: poster mosaic built on one lockup and two colours
+     ------------------------------------------------------------------ */
+  const LOCKUP = '<span class="lockup" aria-hidden="true"><span class="lockup__word">LOST</span><span class="lockup__mark"><i></i><i></i></span></span>';
+  /* size each headline so its longest line fills the poster width */
+  const headSize = (lines) => Math.min(16, 84 / (Math.max(...lines.map((l) => l.length)) * 0.66)).toFixed(2) + 'cqi';
+  const headHTML = (text) => { const lines = text.split('|'); return { html: lines.map((l) => `<span>${l}</span>`).join(''), size: headSize(lines), label: lines.join(' ') }; };
+  function poster(color, text, small, id) {
+    const h = headHTML(text);
+    return `<figure class="tile poster poster--${color}"${id ? ` id="${id}"` : ''}><p class="poster__head" style="font-size:${h.size}" aria-label="${h.label}">${h.html}</p>
+      <div class="poster__foot"><span class="poster__small">${small}</span>${LOCKUP}</div></figure>`;
+  }
+  const art = (src, pos, alt) => `<figure class="tile art"><div class="tile__clip"><img src="${src}" alt="${alt}" style="object-position:${pos}" loading="lazy" decoding="async" /></div></figure>`;
+  function buildCampaign() {
+    const grid = $('#campaignGrid'); if (!grid) return;
+    grid.innerHTML = [
+      poster('red', 'REMEMBER|WHO YOU|WERE BEFORE|THE CHROME.', 'Edgerunners, season two.'),
+      art('img/char-vesna.jpg', '60% 30%', 'Vesna Koi, netrunner'),
+      `<figure class="tile tile--wide giant" aria-hidden="true">${LOCKUP}</figure>`,
+      art('img/board-kid.jpg', '55% 35%', 'Kid Halcyon, solo'),
+      poster('yellow', 'STAY FAST.|STAY GONE.', 'Kid Halcyon, operator 02.'),
+      `<figure class="tile tile--wide billboard"><div class="tile__clip"><img src="img/city.jpg" alt="Night City at night, a poster hung over the street" style="object-position:50% 40%" loading="lazy" decoding="async" /></div>${poster('red', 'NO CITY|FORGIVES.', 'Season two.')}</figure>`,
+      poster('yellow', 'NEVER|ENOUGH|CHROME.', 'Every upgrade costs something.'),
+      art('img/char-rust.jpg', '50% 30%', 'Auntie Rust, heavy gunner'),
+      `<figure class="tile tile--wide construct" aria-hidden="true">${LOCKUP}</figure>`,
+      art('img/char-domino.jpg', '50% 30%', 'Domino Reck, infiltrator'),
+      poster('red', 'THE SYSTEM|HASN\u2019T MET|YOU YET.', 'Apply at NC-OS. It is waiting.', 'posterYou'),
+      `<div class="tile tile--wide tile--text">
+        <p>The campaign runs on one word and one mark. LOST is set heavy and leaning forward, because everyone in Night City is already moving faster than they can afford. The two bars underneath are the signal dropping out. Posters get two colours, electric yellow and neon red, with black type and nothing else.</p>
+        <dl><dt>Concept</dt><dd>Unofficial fan concept for Cyberpunk: Edgerunners, season two</dd><dt>Type</dt><dd>Archivo for posters and the lockup. Druk Condensed Super where installed, Bebas Neue elsewhere, for names</dd><dt>Artwork</dt><dd>Original character concepts</dd><dt>The last poster</dt><dd>Reads your NC-OS record</dd></dl>
+      </div>`,
+    ].join('');
+    const place = () => { $$('.construct', grid).forEach(placeGuides); fitPosters(); };
+    place(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    addEventListener('resize', () => requestAnimationFrame(place));
+  }
+  /* construction drawing: guides measured from the real lockup, not guessed.
+     Elements are created once and only repositioned, so tweens keep their targets. */
+  function placeGuides(tile) {
+    const t = tile.getBoundingClientRect(); if (!t.width) return;
+    const w = $('.lockup__word', tile).getBoundingClientRect(); const m = $('.lockup__mark', tile).getBoundingClientRect();
+    const X = (v) => ((v - t.left) / t.width * 100).toFixed(2) + '%'; const Y = (v) => ((v - t.top) / t.height * 100).toFixed(2) + '%';
+    const W = (px) => (px / t.width * 100).toFixed(2) + '%';
+    const spec = [
+      ['cap', 'guide guide--h', { top: Y(w.top + w.height * 0.06) }, 'Cap height'],
+      ['base', 'guide guide--h', { top: Y(w.bottom - w.height * 0.04) }, 'Baseline'],
+      ['sig', 'guide guide--h', { top: Y(m.bottom) }, 'Signal'],
+      ['l', 'guide guide--v', { left: X(w.left) }],
+      ['r', 'guide guide--v', { left: X(w.right) }],
+      ['s1', 'guide guide--slant', { left: X(w.left + w.width * 0.02), top: Y(w.bottom), width: W(w.height * 1.05), rotate: '-84deg' }, '6\u00b0'],
+      ['s2', 'guide guide--slant', { left: X(m.left), top: Y(m.bottom), width: W(m.height * 2.2), rotate: '-58deg' }, '32\u00b0'],
+      ...[[w.left, w.top], [w.right, w.top], [w.left, w.bottom], [w.right, w.bottom], [m.left, m.bottom], [m.right, m.top]].map(([x, y], i) => ['n' + i, 'node', { left: X(x), top: Y(y) }]),
+      ['o1', 'node node--round', { left: X(w.left + w.width * 0.02), top: Y(w.bottom) }],
+      ['o2', 'node node--round', { left: X(m.left), top: Y(m.bottom) }],
+    ];
+    for (const [key, cls, pos, label] of spec) {
+      let n = tile.querySelector(`[data-g="${key}"]`);
+      if (!n) { n = document.createElement('span'); n.className = cls; n.dataset.g = key; if (label) n.innerHTML = `<b>${label}</b>`; tile.append(n); }
+      Object.assign(n.style, pos);
+    }
+  }
+  /* measured, not estimated: the longest line of each headline fills the poster's text width */
+  function fitPosters(scope) {
+    $$('.poster__head', scope || document).forEach((head) => {
+      const box = head.closest('.poster'); const lines = $$('span', head); if (!box || !lines.length) return;
+      head.style.fontSize = '40px';
+      const widest = Math.max(...lines.map((l) => l.offsetWidth)); if (!widest) return;
+      const target = head.clientWidth * 0.97;
+      head.style.fontSize = Math.min(box.clientWidth * 0.24, 40 * target / widest).toFixed(1) + 'px';
+    });
+  }
+
+  /* the one poster that knows you */
+  function youText(s) {
+    const n = (k) => `${k} implant${k === 1 ? '' : 's'}.`;
+    if (!s || !s.background) return ['THE SYSTEM|HASN\u2019T MET|YOU YET.', 'Apply at NC-OS. It is waiting.'];
+    if (s.flags.traced) return ['THEY HAVE|YOUR FACE.', `Exposure ${s.exposure}%.`];
+    if (s.flags.blacklisted) return ['RUST\u2019S DOOR|IS SHUT.', 'She told people why.'];
+    if (s.flags.frozen) return ['ACCOUNT|FROZEN.|SMILE.', 'Hakuren Legal will be in touch.'];
+    if (s.debt) return [`YOU OWE|\u20ac$${s.debt.toLocaleString()}.`, 'It grows every time you come back.'];
+    if (s.humanity < 60) return [`${s.humanity}% HUMAN.|STILL|RUNNING.`, n(s.cyberware.length)];
+    return [`${s.humanity}%|HUMAN.|FOR NOW.`, n(s.cyberware.length)];
+  }
+  function updateYouPoster(s) {
+    const p = $('#posterYou'); if (!p) return;
+    const [text, small] = youText(s); const h = headHTML(text); const head = $('.poster__head', p);
+    if (head.getAttribute('aria-label') === h.label) return;
+    head.innerHTML = h.html; head.style.fontSize = h.size; head.setAttribute('aria-label', h.label);
+    $('.poster__small', p).textContent = small;
+    fitPosters(p);
+  }
+
   function buildPsy() {
     $('#psyPanels').innerHTML = WARNINGS.map(([t, b], i) => {
       const [l, tp] = SPOTS[i];
@@ -524,6 +616,7 @@
   buildPsyCity();
   buildArchive();
   buildPsy();
+  buildCampaign();
   seedJitter($$('.hud > *, .d__id, .d__data, .d__ware, .warn'));
   setPsy(0, 'Skyline', 812);
   window.SL = { glitch };
@@ -543,6 +636,7 @@
       $('#finalHumanity').textContent = String(s.background ? s.humanity : 3).padStart(2, '0');
       $('#psySub').textContent = s.background ? `${s.cyberware.length} upgrade${s.cyberware.length === 1 ? '' : 's'}. ${s.debt ? '\u20ac$' + s.debt.toLocaleString() + ' owed. ' : ''}${open.length} obligation${open.length === 1 ? '' : 's'}. Exposure ${s.exposure}%.` : '';
       const lines = window.NCOS_ENGINE.summary(s);
+      updateYouPoster(s);
       $('#endLedger').innerHTML = (lines || ['You never told the system who you were. It decided anyway.']).map((l) => `<p>${l}</p>`).join('');
     });
   }
@@ -618,7 +712,8 @@
   const mm = gsap.matchMedia();
   mm.add({ desk: '(min-width: 761px)', mob: '(max-width: 760px)' }, (ctx) => {
     const { mob } = ctx.conditions;
-    const st = {}; let inNcos = false;
+    const st = {}; let inNcos = false; let inCampaign = false;
+    ScrollTrigger.create({ trigger: '#campaign', start: 'top 55%', end: 'bottom 45%', onToggle: (s) => { inCampaign = s.isActive; update(); } });
     ScrollTrigger.create({ trigger: '#ncos', start: 'top 55%', end: 'bottom 45%', onToggle: (s) => { inNcos = s.isActive; update(); } });
     const update = () => {
       const p1 = st.descent ? st.descent.progress : 0;
@@ -626,6 +721,7 @@
       const p3 = st.psy ? st.psy.progress : 0;
       let v; let scene;
       if (p3 > 0) { v = 0.44 + 0.56 * Math.min(1, p3 / 0.8); scene = p3 < 0.83 ? 'Breach' : 'Flatline'; }
+      else if (inCampaign) { v = 0.44; scene = 'Campaign'; }
       else if (p2 > 0) { v = 0.15 + 0.29 * p2; scene = 'Archive'; }
       else if (inNcos) { v = 0.15; scene = 'NC-OS'; }
       else { v = 0.15 * p1; scene = p1 < 0.18 ? 'Skyline' : p1 < 0.8 ? 'Descent' : 'Street level'; }
@@ -693,6 +789,33 @@
       if (horiz) gsap.fromTo($('.d__portrait', el), { x: 60 }, { x: -60, ease: 'none', scrollTrigger: { trigger: el, containerAnimation: horiz, start: 'left right', end: 'right left', scrub: true } });
     });
 
+    /* campaign wall: tiles open on scroll, lines arrive like strides, the wall leans with speed */
+    const grid = $('#campaignGrid'); let settle = null;
+    if (grid) {
+      const lean = gsap.quickTo(grid, 'skewY', { duration: 0.6, ease: 'power3.out' });
+      ScrollTrigger.create({ trigger: '#campaign', start: 'top bottom', end: 'bottom top', onUpdate: (s) => lean(clamp(-s.getVelocity() / 700, -4, 4)), onToggle: (s) => { if (!s.isActive) lean(0); } });
+      settle = () => lean(0); ScrollTrigger.addEventListener('scrollEnd', settle);
+      $$('.tile', grid).forEach((t) => {
+        if (t.classList.contains('tile--text')) return;
+        gsap.fromTo(t, { clipPath: 'inset(12% 9% 12% 9%)' }, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'none', scrollTrigger: { trigger: t, start: 'top 98%', end: 'top 50%', scrub: true } });
+        const img = $('.tile__clip img', t);
+        if (img) gsap.fromTo(img, { scale: 1.28 }, { scale: 1, ease: 'none', scrollTrigger: { trigger: t, start: 'top bottom', end: 'bottom top', scrub: true } });
+        const lines = $$('.poster__head span', t);
+        if (lines.length) gsap.fromTo(lines, { xPercent: 55, opacity: 0 }, { xPercent: 0, opacity: 1, stagger: 0.14, ease: 'power3.out', scrollTrigger: { trigger: t, start: 'top 88%', end: 'top 38%', scrub: 0.6 } });
+        const bars = $$('.lockup__mark i', t);
+        if (bars.length && !t.classList.contains('construct')) gsap.fromTo(bars, { scaleX: 0 }, { scaleX: 1, stagger: 0.12, ease: 'power2.out', scrollTrigger: { trigger: t, start: 'top 75%', end: 'top 30%', scrub: 0.6 } });
+      });
+      gsap.fromTo('.giant .lockup', { xPercent: 16 }, { xPercent: -24, ease: 'none', scrollTrigger: { trigger: '.giant', start: 'top bottom', end: 'bottom top', scrub: true } });
+      const cons = $('.construct', grid);
+      if (cons) {
+        const drawTl = gsap.timeline({ scrollTrigger: { trigger: cons, start: 'top 80%', end: 'center 45%', scrub: 0.6 } });
+        drawTl.fromTo($$('.guide--h, .guide--slant', cons), { scaleX: 0 }, { scaleX: 1, stagger: 0.08, ease: 'power2.out' }, 0)
+          .fromTo($$('.guide--v', cons), { scaleY: 0 }, { scaleY: 1, stagger: 0.08, ease: 'power2.out' }, 0.1)
+          .fromTo($$('.node', cons), { scale: 0 }, { scale: 1, stagger: 0.04, ease: 'back.out(3)' }, 0.3)
+          .fromTo($$('.lockup__mark i', cons), { scaleX: 0 }, { scaleX: 1, stagger: 0.1 }, 0.4);
+      }
+    }
+
     /* 05 psychosis */
     const pchars = $$('#psyLine .ch');
     const R = rng(13);
@@ -731,7 +854,7 @@
       .to({}, { duration: 0.01 }, 10.4);
 
     update();
-    return () => { root.classList.remove('is-silent'); };
+    return () => { root.classList.remove('is-silent'); if (settle) ScrollTrigger.removeEventListener('scrollEnd', settle); };
   });
 
   /* NC-OS grows as the conversation does; pinned scenes below it need fresh positions */
