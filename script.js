@@ -184,6 +184,8 @@
     viewerPrev: $("#viewerPrev"),
     viewerNext: $("#viewerNext"),
     viewerMeta: $("#viewerMeta"),
+    viewerPlaceholder: $("#viewerPlaceholder"),
+    viewerPlaceholderLabel: $("#viewerPlaceholderLabel"),
     viewerClose: $("#viewerClose"),
   };
 
@@ -813,11 +815,15 @@
     function gallerySlides(project) {
       // the cover is always slide 1; the project's other real images follow, up to five
       const cover = project.coverImage;
-      const rest = (project.slides || []).filter((sl) => sl && sl.src && sl.src !== cover.src);
+      // placeholder slots take the cover's proportions, so the frame keeps its shape
+      const rest = (project.slides || [])
+        .filter((sl) => sl && (sl.placeholder || (sl.src && sl.src !== cover.src)))
+        .map((sl) => (sl.placeholder ? { ...sl, width: cover.width, height: cover.height, alt: sl.label } : sl));
       const first = (project.slides || []).find((sl) => sl && sl.src === cover.src) || cover;
       const slides = [first, ...rest].slice(0, MOTION.viewer.maxSlides);
       // warm every slide so switching never waits on the network or a decode
       slides.forEach((sl) => {
+        if (sl.placeholder) return;
         const img = new Image();
         img.src = sl.src;
         img.decode && img.decode().catch(() => {});
@@ -865,8 +871,17 @@
     // put an image into the figure at its fitted place (instant; the figure is hidden or still)
     function placeImage(image, extra = {}) {
       const fit = viewerLayout(image);
-      el.viewerImg.src = image.src;
-      gallery.shownSrc = image.src;
+      if (image.placeholder) {
+        el.viewerImg.hidden = true;
+        el.viewerPlaceholder.hidden = false;
+        el.viewerPlaceholderLabel.textContent = image.label;
+        gallery.shownSrc = `placeholder:${image.label}`;
+      } else {
+        el.viewerPlaceholder.hidden = true;
+        el.viewerImg.hidden = false;
+        el.viewerImg.src = image.src;
+        gallery.shownSrc = image.src;
+      }
       gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, width: fit.w, height: fit.h, scale: 1, ...extra });
       return fit;
     }
@@ -1080,7 +1095,7 @@
         // keep the open image fitted; its flight back is measured afresh on close
         if (state.viewing && !(viewerTl && viewerTl.isActive())) {
           gallery.tl && gallery.tl.progress(1).kill();
-          const sl = gallery.slides.find((x) => x.src === gallery.shownSrc) || gallery.project.coverImage;
+          const sl = gallery.slides[gallery.index] || gallery.project.coverImage;
           const fit = viewerLayout(sl);
           gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, width: fit.w, height: fit.h, scale: 1 });
         }

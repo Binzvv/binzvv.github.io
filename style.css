@@ -206,6 +206,21 @@ body {
   height: 100%;
   object-fit: contain;
 }
+.viewer-img[hidden] { display: none; }
+/* temporary slot: same frame as an image, until a real one is added */
+.viewer-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #2a2a2d;
+  color: var(--paper-soft);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  font-variant-numeric: tabular-nums;
+}
+.viewer-placeholder[hidden] { display: none; }
 .viewer-shade {
   position: absolute;
   inset: 0;

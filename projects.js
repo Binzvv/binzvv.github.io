@@ -11,16 +11,22 @@
  * width/height are the image's pixel size (only the ratio matters); the viewer uses them to lay
  * a slide out before it loads, so nothing jumps. caption is optional and shows under the title.
  *
- * Every image here is real work taken from the archive recording. No image is repeated to fill
- * a gallery and nothing is placeholder art.
+ * Every project has exactly five slots. Slot 1 is the real project image. Slots 2–5 are
+ * temporary placeholders, written as placeholder("IMAGE 02") and so on, which the viewer draws
+ * as a dark grey panel with the label centred, at the cover's proportions.
  *
- * MISSING ASSETS: each project currently has 1 real image (slot 1). Slots 2–5 are empty for
- * all ten projects (40 images in total). Drop the files into assets/archive/ and add them to
- * the project's slides array; the arrows, counter and wrap-around then work automatically.
+ * To replace a placeholder, swap that line for a real slide:
+ *
+ *   placeholder("IMAGE 03"),
+ *     becomes
+ *   { src: "assets/archive/fluid-03.webp", width: 1600, height: 1200, alt: "…", caption: "…" },
  *
  * Titles taken from text visible in the work are marked; the others are neutral labels until
  * real project names are added.
  */
+// A temporary slot, shown until a real image is added
+const placeholder = (label) => ({ placeholder: true, label });
+
 window.BINZ_PROJECTS = [
   {
     id: "fluid",
@@ -28,6 +34,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/fluid.webp", width: 657, height: 474, alt: "Fluid: clear vinyl record with a lime label in an embossed white sleeve" },
     slides: [
       { src: "assets/archive/fluid.webp", width: 657, height: 474, alt: "Fluid: clear vinyl record with a lime label in an embossed white sleeve" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -36,6 +46,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/collage.webp", width: 653, height: 465, alt: "Printed photo cards with pink deckled edges laid out on a white surface" },
     slides: [
       { src: "assets/archive/collage.webp", width: 653, height: 465, alt: "Printed photo cards with pink deckled edges laid out on a white surface" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -44,6 +58,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/mc.webp", width: 342, height: 455, alt: "Black embossed sleeve with a photo of a figure in a red jacket" },
     slides: [
       { src: "assets/archive/mc.webp", width: 342, height: 455, alt: "Black embossed sleeve with a photo of a figure in a red jacket" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -52,6 +70,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/leaf.webp", width: 654, height: 462, alt: "Dark print with golden leaf shadows" },
     slides: [
       { src: "assets/archive/leaf.webp", width: 654, height: 462, alt: "Dark print with golden leaf shadows" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -60,6 +82,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/gallery.webp", width: 566, height: 226, alt: "Pink poster for a show at Quiet Gallery, Tokyo" },
     slides: [
       { src: "assets/archive/gallery.webp", width: 566, height: 226, alt: "Pink poster for a show at Quiet Gallery, Tokyo" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -68,6 +94,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/heart.webp", width: 416, height: 452, alt: "Pink card with a heart-shaped window over a portrait, in clear packaging" },
     slides: [
       { src: "assets/archive/heart.webp", width: 416, height: 452, alt: "Pink card with a heart-shaped window over a portrait, in clear packaging" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -76,6 +106,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/phone.webp", width: 638, height: 458, alt: "Portrait of a man on the phone beside a green payphone" },
     slides: [
       { src: "assets/archive/phone.webp", width: 638, height: 458, alt: "Portrait of a man on the phone beside a green payphone" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -84,6 +118,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/iowa.webp", width: 488, height: 176, alt: "White print with colourful hand-drawn characters and lettering" },
     slides: [
       { src: "assets/archive/iowa.webp", width: 488, height: 176, alt: "White print with colourful hand-drawn characters and lettering" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -92,6 +130,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/interwoven.webp", width: 648, height: 470, alt: "Interwoven: Hong Kong Art Meets London, event artwork in rust and black" },
     slides: [
       { src: "assets/archive/interwoven.webp", width: 648, height: 470, alt: "Interwoven: Hong Kong Art Meets London, event artwork in rust and black" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
   {
@@ -100,6 +142,10 @@ window.BINZ_PROJECTS = [
     coverImage: { src: "assets/archive/chair.webp", width: 615, height: 228, alt: "Black-and-white portrait of a seated man in glasses" },
     slides: [
       { src: "assets/archive/chair.webp", width: 615, height: 228, alt: "Black-and-white portrait of a seated man in glasses" },
+      placeholder("IMAGE 02"),
+      placeholder("IMAGE 03"),
+      placeholder("IMAGE 04"),
+      placeholder("IMAGE 05"),
     ],
   },
 ];
