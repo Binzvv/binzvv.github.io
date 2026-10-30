@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Finally Seen</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<script>document.documentElement.classList.add('js')</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap">
@@ -290,6 +291,30 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
   .row > button { padding: 18px; }
   .row .body > p { padding-inline: 18px; }
 }
+
+/* fallback when scripts can't run (phone file previews): every slide stacked as one readable page */
+.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.plain li { font-size: 18px; }
+.note { margin: 0; padding: 14px 18px; border-radius: 16px; background: var(--surface); color: var(--fg); max-width: 46ch; }
+.nojs-only { display: none !important; }
+html:not(.js) .nojs-only { display: block !important; }
+html:not(.js) ul.nojs-only, html:not(.js) ol.nojs-only { display: grid !important; }
+html:not(.js), html:not(.js) body { height: auto; overflow: auto; }
+html:not(.js) .deck { position: static; }
+html:not(.js) .slide { position: relative; inset: auto; opacity: 1; visibility: visible; transform: none; overflow: visible; padding-block: 56px; border-bottom: 1px solid var(--line); }
+html:not(.js) .top, html:not(.js) .dock, html:not(.js) .ov, html:not(.js) .seg, html:not(.js) .hint, html:not(.js) .cta, html:not(.js) .ghost, html:not(.js) .steps-nav, html:not(.js) .step-stage, html:not(.js) .flip .t, html:not(.js) .copy, html:not(.js) .row .plus { display: none; }
+html:not(.js) .row .body { grid-template-rows: 1fr; }
+html:not(.js) .row .body > p { padding-bottom: 22px; }
+html:not(.js) .pair span { grid-area: auto; }
+html:not(.js) .pair .in { opacity: 1; transform: none; }
+html:not(.js) .flip, html:not(.js) .flip .in { min-height: 0; }
+html:not(.js) .flip .in { transform: none; }
+html:not(.js) .flip .f, html:not(.js) .flip .b { position: static; transform: none; backface-visibility: visible; }
+html:not(.js) .flip .f { border-radius: 22px 22px 0 0; }
+html:not(.js) .flip .b { border-radius: 0 0 22px 22px; }
+html:not(.js) .dots i { transform: none; }
+html:not(.js) .ring .val { stroke-dasharray: 387 999; }
+html:not(.js) .venn[data-pick] g { opacity: 1; }
 </style>
 </head>
 <body>
@@ -315,6 +340,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
       </div>
       <button class="cta rise" data-go="1">Start</button>
       <div class="hint rise">Swipe, use the arrow keys, or tap the dock below. Jump anywhere with the grid.</div>
+      <p class="note nojs-only">You're seeing the simple version, so just scroll down. For the interactive version, open this file in Safari or Chrome.</p>
     </div>
   </section>
 
@@ -342,7 +368,8 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
             <button data-t="hy" aria-pressed="false">Hyperactive</button>
           </div>
           <h3 id="tTitle">Predominantly inattentive</h3>
-          <ul id="tList"></ul>
+          <ul id="tList"><li>Lack of focus</li><li>Disorganisation</li><li>Distractibility</li><li>Trouble following directions</li><li>Forgetfulness</li></ul>
+          <div class="nojs-only" style="display:grid;gap:14px"><h3>Combined type</h3><ul><li>Meets criteria for both types</li><li>Inattentive</li><li>Impulsive</li><li>Hyperactive</li></ul><h3>Predominantly hyperactive-impulsive</h3><ul><li>Impatience</li><li>Interrupts others</li><li>Always "on the go"</li><li>Excessive activity</li><li>Difficulty paying attention</li><li>Fidgets</li></ul></div>
           <div class="src">Diagram adapted from @what.is.mental.illness</div>
         </div>
       </div>
@@ -356,7 +383,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
       <h2 class="rise">Why it's so often <span class="grad">missed in girls.</span></h2>
       <div class="stats">
         <div class="card stat rise">
-          <div class="big"><span data-count="4">0</span> yrs</div>
+          <div class="big"><span data-count="4">4</span> yrs</div>
           <h3>Diagnosed later</h3>
           <p>Women are diagnosed or treated nearly 4 years later than men.</p>
         </div>
@@ -386,7 +413,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
             <circle class="track" cx="100" cy="100" r="88"/>
             <circle class="val" id="ringVal" cx="100" cy="100" r="88"/>
           </svg>
-          <div><small class="pre">Up to</small><span class="ring-num"><span data-count="70">0</span>%</span><small>of autistic people<br>also have ADHD</small></div>
+          <div><small class="pre">Up to</small><span class="ring-num"><span data-count="70">70</span>%</span><small>of autistic people<br>also have ADHD</small></div>
         </div>
         <div style="display:grid;gap:22px;min-width:0">
           <div style="display:grid;gap:10px">
@@ -415,9 +442,10 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
             <button data-h="1" aria-pressed="false">After a baby</button>
             <button data-h="2" aria-pressed="false">Menopause</button>
           </div>
-          <div class="big"><span id="hNum">0</span>%</div>
-          <div class="meter"><i id="hBar"></i></div>
-          <p id="hTxt" style="margin:0;font-size:20px;font-weight:400"></p>
+          <div class="big"><span id="hNum">88</span>%</div>
+          <div class="meter"><i id="hBar" style="width:88%"></i></div>
+          <p id="hTxt" style="margin:0;font-size:20px;font-weight:400">reported symptom changes during their menstrual cycle</p>
+          <ul class="plain nojs-only"><li><b>70%</b> said symptoms got worse after having a baby</li><li><b>97%</b> said symptoms got worse during menopause</li></ul>
         </div>
         <div class="card" style="align-content:center">
           <div class="big grad">5×</div>
@@ -520,6 +548,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
       <h2 class="rise">What good <span class="grad">allyship</span> looks like.</h2>
       <div class="card rise" style="padding:clamp(24px,4vw,44px);display:grid;gap:24px">
         <div class="step-stage" id="stage" aria-live="polite"><h3></h3><p></p></div>
+        <ol class="plain nojs-only"><li><b>Listen and learn.</b> Understand how ADHD shows up in women.</li><li><b>Look beyond appearances.</b> Don't assume someone isn't struggling because they're successful or seem to be coping.</li><li><b>Challenge stereotypes.</b> Speak up when women are labelled difficult, emotional or sensitive.</li><li><b>Respect individual needs.</b> Offer flexibility, clear communication and support without judgement.</li><li><b>Be kind.</b> Sometimes the smallest acts of understanding make the biggest difference.</li></ol>
         <div class="steps-nav">
           <div class="pips" id="pips"></div>
           <button class="ghost" id="nextTip">Next tip</button>
@@ -534,6 +563,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
       <div class="eyebrow rise"><b>11</b> &nbsp;For you</div>
       <div class="orb rise" aria-hidden="true"><span id="breath">Breathe in</span></div>
       <p class="affirm rise" id="affirm" aria-live="polite">No is a full sentence.</p>
+      <ul class="plain nojs-only" style="font-size:22px"><li>Prioritising your own needs isn't selfish.</li><li>Do what makes you happy.</li><li>Your brain works differently, and that is OK.</li></ul>
       <button class="ghost rise" id="nextAffirm">Another one</button>
       <h2 class="rise" style="font-size:clamp(30px,4.4vw,56px)">Be kind <span class="grad">to yourself.</span></h2>
     </div>
