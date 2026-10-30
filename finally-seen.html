@@ -145,7 +145,9 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
 .ring .track { stroke: var(--surface-2); }
 .ring .val { stroke: url(#rg); stroke-linecap: round; stroke-dasharray: 0 999; transition: stroke-dasharray 1.4s var(--ease); }
 .ring div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-.ring small { color: var(--muted); font-size: 14px; max-width: 16ch; margin: 6px auto 0; }
+.ring small { color: var(--muted); font-size: 15px; line-height: 1.35; margin: 8px auto 0; }
+.ring small.pre { margin: 0 auto 4px; font-size: 17px; }
+.ring-num { font-family: var(--display); font-weight: 600; font-size: clamp(56px, 6vw, 76px); letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
 .mis { display: flex; flex-wrap: wrap; gap: 8px; }
 .mis span { padding: 8px 14px; border-radius: 12px; background: var(--surface); font-weight: 400; text-decoration: line-through; text-decoration-color: var(--pink); text-decoration-thickness: 2px; }
 .eq { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 4.2vw, 48px); letter-spacing: -.02em; display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; }
@@ -384,7 +386,7 @@ h2 { font-size: clamp(36px, 5.4vw, 72px); }
             <circle class="track" cx="100" cy="100" r="88"/>
             <circle class="val" id="ringVal" cx="100" cy="100" r="88"/>
           </svg>
-          <div><span class="big">up to <span data-count="70">0</span>%</span><small>of autistic people also have ADHD</small></div>
+          <div><small class="pre">Up to</small><span class="ring-num"><span data-count="70">0</span>%</span><small>of autistic people<br>also have ADHD</small></div>
         </div>
         <div style="display:grid;gap:22px;min-width:0">
           <div style="display:grid;gap:10px">
