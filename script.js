@@ -48,7 +48,8 @@
     composition: {
       headScale: 0.936,     // must match the factor on --head-w in style.css
       // the orbit is centred on the head itself, nudged right for an asymmetric composition
-      orbitX: 0.2,          // world units right of the head centre
+      orbitX: 0.2,          // world units right of the head centre (desktop)
+      orbitXCompact: 0,     // phones: the orbit is centred on the head too
       orbitY: 0.02,         // world units below it
     },
 
@@ -342,7 +343,7 @@
         vh: window.innerHeight,
       };
       state.geo.center = {
-        x: state.geo.head.x + comp.orbitX * state.geo.unit,
+        x: state.geo.head.x + (state.geo.vw < 720 ? comp.orbitXCompact : comp.orbitX) * state.geo.unit,
         y: state.geo.head.y + comp.orbitY * state.geo.unit,
       };
       // the nearest point of the path, and how fast it moves across the screen per loop:

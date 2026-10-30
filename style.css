@@ -105,7 +105,7 @@ body {
 /* ---------- Head ---------- */
 .anchor {
   position: absolute;
-  left: 42%;               /* off-centre: a character within the archive, not its axis */
+  left: 50%;               /* centred */
   top: 47%;
   transform: translate(-50%, -50%);
   z-index: 2000;            /* the head's depth; nearer cards are stacked above it */
