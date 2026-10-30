@@ -42,7 +42,16 @@
       handoverAt: 2.2,
     },
 
-    // The path, in head widths so it scales with the head on any screen.
+    // Work first: the head is drawn at 72% of its former size and sits off-centre, while the
+    // archive keeps the scale of the original composition (one "world unit" = the head's
+    // former width), so the work now dominates.
+    composition: {
+      headScale: 0.72,      // must match the 0.72 factor on --head-w in style.css
+      centerX: 0.53,        // path centre, as a share of the viewport
+      centerY: 0.5,
+    },
+
+    // The path, in world units so it scales with the screen.
     // A circle in a horizontal plane, made irregular, turned so its depth runs diagonally,
     // tilted towards the viewer and rolled: the near side sweeps past the lower right of the
     // head, the far side recedes up-left and passes behind the hair.
@@ -54,22 +63,28 @@
       yaw: 34,              // deg, turns the nearest point towards the lower right
       tilt: 32,             // deg, plane tilted towards the viewer
       roll: -8,             // deg, a slight lean in the picture
-      centerX: -0.14,       // offset of the path centre from the head centre
-      centerY: 0.0,
       focal: 3.1,           // camera focal length; lower = stronger perspective
     },
 
     archive: {
-      cards: 28,
-      width: 0.44,          // base card width, head widths
-      widthVariance: 0.55,  // ± share of the base width
-      spacingJitter: 0.55,  // staggered gaps along the path
-      loop: 130,            // s for one full procession at rest
-      near: 1,              // brightness of the nearest card
-      far: 0.16,            // ... and the most distant
-      fadeIn: 0.06,         // share of depth over which cards dissolve in at the very back
+      cards: 22,
+      // Tile sizes by area (world units²) and share of the rail: large hero images, medium
+      // tiles and small fragments. Each tile keeps its image's own proportion.
+      tiers: [
+        { name: "large", share: 0.45, area: 0.62 },
+        { name: "medium", share: 0.35, area: 0.3 },
+        { name: "small", share: 0.2, area: 0.11 },
+      ],
+      spacing: 0.6,         // gap between neighbours as a share of their half-widths (<1 overlaps)
+      spacingJitter: 0.45,  // irregular rhythm along the path
+      offsetRadial: 0.1,    // ± share of the radius each tile sits in or out of the path
+      offsetLift: 0.2,      // ± world units each tile sits above or below it
+      loop: 150,            // s for one full procession at rest
+      near: 1,              // brightness of the nearest tile
+      far: 0.36,            // ... and the most distant
+      falloff: 1.8,         // higher keeps more of the rail bright; dimming only in the distance
       parallax: 18,         // px of camera drift with the pointer
-      eyeGuard: true,       // cards in front of the head never cover the eyes
+      eyeGuard: true,       // tiles in front of the head never cover the eyes
     },
 
     rail: {
@@ -94,7 +109,12 @@
       open: 0.95,           // s, shared-element flight into the fullscreen layout
       close: 0.85,
       ease: "power3.inOut",
-      margin: [72, 6, 64], // px top, vw sides, px bottom
+      margin: [72, 6, 84], // px top, vw sides, px bottom
+      sideMin: 84,          // px kept clear at each side for the arrows when a project has several slides
+      slideOut: 0.28,       // s, the current slide steps aside ...
+      slideIn: 0.55,        // ... and the next one settles in
+      slideShift: 28,       // px of sideways travel between slides
+      maxSlides: 5,
     },
 
     pointerPace: {
@@ -104,19 +124,8 @@
     },
   };
 
-  // Project imagery for the archive. Replace or extend with real work: [file, width, height]
-  const ARCHIVE_IMAGES = [
-    ["assets/archive/fluid.webp", 657, 474],
-    ["assets/archive/collage.webp", 653, 465],
-    ["assets/archive/mc.webp", 342, 455],
-    ["assets/archive/leaf.webp", 654, 462],
-    ["assets/archive/gallery.webp", 566, 226],
-    ["assets/archive/heart.webp", 416, 452],
-    ["assets/archive/phone.webp", 638, 458],
-    ["assets/archive/iowa.webp", 488, 176],
-    ["assets/archive/interwoven.webp", 648, 470],
-    ["assets/archive/chair.webp", 615, 228],
-  ];
+  // Projects come from projects.js: { id, title, coverImage, slides[] }
+  const PROJECTS = window.BINZ_PROJECTS || [];
 
   // Geometry of the supplied artwork (head crop)
   const ART = {
@@ -164,7 +173,12 @@
     viewerImg: $("#viewerImg"),
     viewerShade: $("#viewerShade"),
     viewerUi: [...document.querySelectorAll("[data-viewer-ui]")],
-    viewerIndex: $("#viewerIndex"),
+    viewerTitle: $("#viewerTitle"),
+    viewerCaption: $("#viewerCaption"),
+    viewerCount: $("#viewerCount"),
+    viewerPrev: $("#viewerPrev"),
+    viewerNext: $("#viewerNext"),
+    viewerMeta: $("#viewerMeta"),
     viewerClose: $("#viewerClose"),
   };
 
@@ -172,9 +186,9 @@
 
   function preload() {
     const imgs = [...document.querySelectorAll("img")];
-    const extra = ARCHIVE_IMAGES.map(([src]) => {
+    const extra = PROJECTS.map(({ coverImage }) => {
       const img = new Image();
-      img.src = src;
+      img.src = coverImage.src;
       return img;
     });
     const all = imgs.concat(extra).map((img) =>
@@ -187,27 +201,46 @@
     return Promise.all([Promise.all(all), Promise.race([fonts, new Promise((r) => setTimeout(r, 600))])]);
   }
 
-  // Cards are laid out once along the path: staggered gaps, varied sizes, images in sequence
+  // Tiles are laid out once along the path. Everything is seeded, so each tile keeps the same
+  // size, offset and place in the rhythm on every frame and every visit.
   function buildArchive() {
     const cfg = MOTION.archive;
     const rnd = seeded(20261030);
     el.archive.textContent = "";
-    const gaps = [];
-    for (let i = 0; i < cfg.cards; i++) gaps.push(1 + (rnd() - 0.5) * 2 * cfg.spacingJitter);
-    const total = gaps.reduce((a, b) => a + b, 0);
-    let u = 0;
-    return gaps.map((g, i) => {
-      const idx = i % ARCHIVE_IMAGES.length;
-      const [src, iw, ih] = ARCHIVE_IMAGES[idx];
-      const aspect = ih / iw;
-      // wide banners get a little more width so their area matches the others
-      const widen = aspect < 0.5 ? 1.2 : aspect > 1 ? 0.8 : 1;
-      const w = cfg.width * widen * (1 + (rnd() - 0.5) * 2 * cfg.widthVariance);
+    const n = cfg.cards;
+
+    // tier list in the configured proportions, shuffled, with no two small fragments adjacent
+    const tiers = [];
+    let left = n;
+    cfg.tiers.forEach((t, i) => {
+      const count = i === cfg.tiers.length - 1 ? left : Math.round(t.share * n);
+      for (let j = 0; j < count; j++) tiers.push(t);
+      left -= count;
+    });
+    for (let i = tiers.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [tiers[i], tiers[j]] = [tiers[j], tiers[i]];
+    }
+    for (let i = 0; i < n; i++) {
+      if (tiers[i].name === "small" && tiers[(i + 1) % n].name === "small") {
+        const j = tiers.findIndex((t, k) => t.name !== "small" && tiers[(k + 1) % n].name !== "small" && tiers[(k - 1 + n) % n].name !== "small");
+        if (j >= 0) [tiers[(i + 1) % n], tiers[j]] = [tiers[j], tiers[(i + 1) % n]];
+      }
+    }
+
+    const cards = [];
+    for (let i = 0; i < n; i++) {
+      const pi = i % PROJECTS.length;
+      const project = PROJECTS[pi];
+      const { src, width, height } = project.coverImage;
+      const aspect = height / width;
+      const area = tiers[i].area * (1 + (rnd() - 0.5) * 0.24);
+      const w = Math.sqrt(area / aspect);
       const node = document.createElement("div");
       node.className = "card";
       node.tabIndex = 0;
       node.setAttribute("role", "button");
-      node.setAttribute("aria-label", `View project image ${idx + 1} of ${ARCHIVE_IMAGES.length}`);
+      node.setAttribute("aria-label", `View project: ${project.title}`);
       const img = document.createElement("img");
       img.src = src;
       img.alt = "";
@@ -217,15 +250,24 @@
       shade.className = "card-shade";
       node.append(img, shade);
       el.archive.appendChild(node);
-      const card = {
-        node, shade, idx, image: ARCHIVE_IMAGES[idx], u: u / total, w, h: w * aspect,
+      cards.push({
+        node, shade, pi, project, tier: tiers[i].name, u: 0, w, h: w * aspect,
+        dr: (rnd() - 0.5) * 2 * cfg.offsetRadial,
+        dy: (rnd() - 0.5) * 2 * cfg.offsetLift,
         z: -1, shadeO: -1, hm: 0,
         // last drawn screen box and depth, used for hit testing
         l: 0, t: 0, r: 0, b: 0, zi: 0, behind: false, alpha: 0, shadeV: 0,
-      };
-      u += g;
-      return card;
+      });
+    }
+    // spacing follows the tiles' own widths, so large images get room and fragments tuck in
+    const gaps = cards.map((c, i) => ((c.w + cards[(i + 1) % n].w) / 2) * cfg.spacing * (1 + (rnd() - 0.5) * 2 * cfg.spacingJitter));
+    const total = gaps.reduce((a, b) => a + b, 0);
+    let u = 0;
+    cards.forEach((c, i) => {
+      c.u = u / total;
+      u += gaps[i];
     });
+    return cards;
   }
 
   function init() {
@@ -277,9 +319,11 @@
     function measure() {
       const r = el.stage.getBoundingClientRect();
       const s = r.width / ART.w;
+      const comp = MOTION.composition;
       state.geo = {
         scale: s,
         headW: r.width,
+        unit: r.width / comp.headScale,
         head: { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height },
         eyes: ART.eyes.map((e) => ({ x: r.left + e.cx * s, y: r.top + e.cy * s })),
         mid: { x: r.left + ((ART.eyes[0].cx + ART.eyes[1].cx) / 2) * s, y: r.top + ART.eyes[0].cy * s },
@@ -288,6 +332,7 @@
         vw: window.innerWidth,
         vh: window.innerHeight,
       };
+      state.geo.center = { x: state.geo.vw * comp.centerX, y: state.geo.vh * comp.centerY };
       // the nearest point of the path, and how fast it moves across the screen per loop:
       // dragging maps pointer px to phase through this, so the front of the rail follows the hand
       let uFront = 0;
@@ -316,8 +361,8 @@
       state.geo.uFront = uFront;
       state.geo.dxdu = (bx - ax) / 0.002 || 1;
       for (const c of cards) {
-        c.pw = c.w * r.width;
-        c.ph = c.h * r.width;
+        c.pw = c.w * state.geo.unit;
+        c.ph = c.h * state.geo.unit;
         c.node.style.width = `${c.pw.toFixed(1)}px`;
         c.node.style.height = `${c.ph.toFixed(1)}px`;
       }
@@ -325,15 +370,15 @@
 
     // ---------- archive ----------
     // Position on the path for parameter u (0..1): returns screen centre, scale and depth
-    function project(u, out) {
+    function project(u, out, dr = 0, dy = 0) {
       const p = MOTION.path;
       const geo = state.geo;
-      const W = geo.headW;
+      const W = geo.unit;
       const th = u * Math.PI * 2;
-      const wob = 1 + p.wobble[0] * Math.sin(2 * th + 0.7) + p.wobble[1] * Math.sin(3 * th + 1.9);
+      const wob = (1 + p.wobble[0] * Math.sin(2 * th + 0.7) + p.wobble[1] * Math.sin(3 * th + 1.9)) * (1 + dr);
       const X0 = p.radiusX * W * wob * Math.cos(th);
       const Z0 = p.radiusZ * W * wob * Math.sin(th);
-      const Y = p.lift * W * Math.sin(2.5 * th + 0.4);
+      const Y = p.lift * W * Math.sin(2.5 * th + 0.4) + dy * W;
       // turn the ellipse in its own plane so near and far sit on a diagonal
       const c = rad(p.yaw);
       const X = X0 * Math.cos(c) - Z0 * Math.sin(c);
@@ -347,8 +392,8 @@
       const Y2 = X * Math.sin(b) + Y1 * Math.cos(b);
       const f = p.focal * W;
       const k = f / (f + Z1);
-      const cx = geo.head.x + p.centerX * W;
-      const cy = geo.head.y + p.centerY * W;
+      const cx = geo.center.x;
+      const cy = geo.center.y;
       out.x = cx + X2 * k;
       out.y = cy + Y2 * k;
       out.k = k;
@@ -368,7 +413,7 @@
       for (const c of cards) {
         let u = (c.u + state.phase) % 1;
         if (u < 0) u += 1;
-        project(u, pt);
+        project(u, pt, c.dr, c.dy);
         const k = pt.k;
         // a touch of camera parallax: near cards drift with the pointer, far ones against it
         const px = pt.x + state.cam.x * (k - 1) * cfg.parallax;
@@ -381,7 +426,7 @@
         const h = c.ph * kk;
         // depth → brightness: near is clear, far sinks into the dark
         const d = clamp((pt.z + pt.zMax) / (2 * pt.zMax), 0, 1); // 0 near .. 1 far
-        const bright = cfg.near + (cfg.far - cfg.near) * Math.pow(d, 0.85);
+        const bright = cfg.near + (cfg.far - cfg.near) * Math.pow(d, cfg.falloff);
         const base = 1 - bright;
         const dimmed = base + (1 - base) * H.dim * state.dim;
         const shadeV = dimmed * (1 - hm);
@@ -734,17 +779,33 @@
     let viewerTl = null;
     let openedByKey = false;
 
-    function viewerLayout(c) {
-      const [, iw, ih] = c.image;
-      const [top, side, bottom] = MOTION.viewer.margin;
+    // The gallery: one reusable viewer driven entirely by the project's data
+    const gallery = { project: null, slides: [], index: 0, shownSrc: "", tl: null };
+
+    function gallerySlides(project) {
+      const slides = (project.slides && project.slides.length ? project.slides : [project.coverImage]).slice(0, MOTION.viewer.maxSlides);
+      // warm every slide so switching never waits on the network or a decode
+      slides.forEach((sl) => {
+        const img = new Image();
+        img.src = sl.src;
+        img.decode && img.decode().catch(() => {});
+      });
+      return slides;
+    }
+
+    // contain-fit an image (by its width/height) into the viewer, leaving room for the UI
+    function viewerLayout(image) {
+      const V = MOTION.viewer;
+      const [top, side, bottom] = V.margin;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const sx = (side / 100) * vw;
+      let sx = (side / 100) * vw;
+      if (gallery.slides.length > 1) sx = Math.max(sx, V.sideMin);
       const aw = vw - sx * 2;
       const ah = vh - top - bottom;
-      const s = Math.min(aw / iw, ah / ih);
-      const w = iw * s;
-      const h = ih * s;
+      const s = Math.min(aw / image.width, ah / image.height);
+      const w = image.width * s;
+      const h = image.height * s;
       return { x: (vw - w) / 2, y: top + (ah - h) / 2, w, h };
     }
 
@@ -752,6 +813,54 @@
     function cardPose(c, fit) {
       const r = c.node.getBoundingClientRect();
       return { x: r.left, y: r.top, scale: r.width / fit.w };
+    }
+
+    const pad2 = (n) => String(n).padStart(2, "0");
+
+    function setMeta() {
+      const sl = gallery.slides[gallery.index];
+      const multi = gallery.slides.length > 1;
+      el.viewerTitle.textContent = gallery.project.title;
+      el.viewerCaption.textContent = sl.caption || "";
+      el.viewerCaption.hidden = !sl.caption;
+      el.viewerCount.textContent = `${pad2(gallery.index + 1)} / ${pad2(gallery.slides.length)}`;
+      el.viewerImg.alt = sl.alt || "";
+      el.viewerPrev.hidden = !multi;
+      el.viewerNext.hidden = !multi;
+    }
+
+    // put an image into the figure at its fitted place (instant; the figure is hidden or still)
+    function placeImage(image, extra = {}) {
+      const fit = viewerLayout(image);
+      el.viewerImg.src = image.src;
+      gallery.shownSrc = image.src;
+      gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, width: fit.w, height: fit.h, scale: 1, ...extra });
+      return fit;
+    }
+
+    // restrained slide change: the current image steps aside and fades, the next settles in
+    function goTo(i, dir) {
+      if (!state.viewing || viewerTl.data === "closing" || viewerTl.isActive()) return;
+      const n = gallery.slides.length;
+      if (n < 2) return;
+      const next = ((i % n) + n) % n;
+      if (next === gallery.index) return;
+      const V = MOTION.viewer;
+      const shift = reduced ? 0 : V.slideShift * dir;
+      gallery.index = next;
+      const sl = gallery.slides[next];
+      gallery.tl && gallery.tl.progress(1).kill();
+      gallery.tl = gsap
+        .timeline()
+        .to(el.viewerFigure, { opacity: 0, x: `-=${shift}`, duration: V.slideOut, ease: "power2.in" })
+        .to(el.viewerMeta, { opacity: 0, duration: V.slideOut * 0.8, ease: "power1.in" }, 0)
+        .add(() => {
+          const fit = placeImage(sl, { opacity: 0 });
+          gsap.set(el.viewerFigure, { x: fit.x + shift });
+          setMeta();
+        })
+        .to(el.viewerFigure, { opacity: 1, x: () => viewerLayout(sl).x, duration: V.slideIn, ease: "power3.out" })
+        .to(el.viewerMeta, { opacity: 1, duration: V.slideIn, ease: "power2.out" }, "<0.1");
     }
 
     // keyboard users land on Close; after a click the dialog itself holds focus (no ring)
@@ -766,20 +875,32 @@
       openedByKey = byKey;
       setHovered(null);
       state.focused = null;
-      const fit = viewerLayout(c);
-      el.viewerImg.src = c.image[0];
-      el.viewerIndex.textContent = `${String(c.idx + 1).padStart(2, "0")} / ${String(ARCHIVE_IMAGES.length).padStart(2, "0")}`;
-      gsap.set(el.viewerFigure, { width: fit.w, height: fit.h, transformOrigin: "0 0" });
+      gallery.project = c.project;
+      gallery.slides = gallerySlides(c.project);
+      gallery.index = 0;
+      setMeta();
+      // the flight always carries the tile's own image, so it leaves the rail seamlessly
+      const cover = c.project.coverImage;
+      const fit = placeImage(cover);
+      gsap.set(el.viewerFigure, { transformOrigin: "0 0" });
       el.viewer.hidden = false;
       el.space.inert = true;
       el.credit.inert = true;
       el.body.classList.add("is-viewing");
       viewerTl && viewerTl.kill();
+      // then, if slide 1 is a different image from the cover, settle onto it
+      const toFirst = () => {
+        if (gallery.slides[0].src !== gallery.shownSrc) {
+          gallery.index = -1;
+          goTo(0, 1);
+        }
+        focusViewer();
+      };
       if (reduced) {
-        gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, scale: 1, opacity: 0 });
+        gsap.set(el.viewerFigure, { opacity: 0 });
         gsap.set(el.viewerShade, { opacity: 0 });
         viewerTl = gsap
-          .timeline({ onComplete: focusViewer })
+          .timeline({ onComplete: toFirst })
           .fromTo([el.viewerBackdrop, el.viewerFigure, ...el.viewerUi], { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" });
         return;
       }
@@ -790,11 +911,12 @@
       gsap.set(el.viewerUi, { opacity: 0, y: 6 });
       c.node.style.visibility = "hidden";
       viewerTl = gsap
-        .timeline({ onComplete: focusViewer })
+        .timeline({ onComplete: toFirst })
         .to(el.viewerBackdrop, { opacity: 1, duration: V.open * 0.7, ease: "power2.out" }, 0)
         .to(el.viewerFigure, { x: fit.x, y: fit.y, scale: 1, opacity: 1, duration: V.open, ease: V.ease }, 0)
         .to(el.viewerShade, { opacity: 0, duration: V.open * 0.75, ease: "power2.out" }, 0.05)
-        .to(el.viewerUi, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.06 }, V.open * 0.7);
+        .to(el.viewerUi, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.06 }, V.open * 0.7)
+        .add(focusViewer, V.open);
     }
 
     function closeViewer() {
@@ -802,6 +924,7 @@
       if (!c || (viewerTl && viewerTl.data === "closing")) return;
       const V = MOTION.viewer;
       viewerTl && viewerTl.kill();
+      gallery.tl && gallery.tl.progress(1).kill();
       const done = () => {
         c.node.style.visibility = "";
         el.viewer.hidden = true;
@@ -818,28 +941,46 @@
         viewerTl.data = "closing";
         return;
       }
-      // the rail has been paused, so the card is exactly where it was; fly back into it
+      // the rail has been paused, so the tile is exactly where it was; fly back into it,
+      // first returning to the cover image if another slide is showing
       renderArchive();
-      const fit = viewerLayout(c);
-      const to = cardPose(c, fit);
-      viewerTl = gsap
-        .timeline({ onComplete: done })
-        .to(el.viewerUi, { opacity: 0, y: 6, duration: 0.25, ease: "power2.in" }, 0)
-        .to(el.viewerFigure, { ...to, opacity: c.alpha, duration: V.close, ease: V.ease }, 0.05)
-        .to(el.viewerShade, { opacity: c.shadeV, duration: V.close * 0.8, ease: "power2.in" }, 0.05 + V.close * 0.2)
-        .to(el.viewerBackdrop, { opacity: 0, duration: V.close * 0.75, ease: "power2.inOut" }, 0.05 + V.close * 0.25);
+      const cover = c.project.coverImage;
+      const to = cardPose(c, viewerLayout(cover));
+      viewerTl = gsap.timeline({ onComplete: done });
       viewerTl.data = "closing";
+      let t = 0;
+      viewerTl.to(el.viewerUi, { opacity: 0, y: 6, duration: 0.25, ease: "power2.in" }, 0);
+      if (gallery.shownSrc !== cover.src) {
+        viewerTl
+          .to(el.viewerFigure, { opacity: 0, duration: 0.24, ease: "power2.in" }, 0)
+          .add(() => placeImage(cover, { opacity: 0 }), 0.24)
+          .to(el.viewerFigure, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.26);
+        t = 0.56;
+      }
+      viewerTl
+        .to(el.viewerFigure, { ...to, opacity: c.alpha, duration: V.close, ease: V.ease }, t + 0.05)
+        .to(el.viewerShade, { opacity: c.shadeV, duration: V.close * 0.8, ease: "power2.in" }, t + 0.05 + V.close * 0.2)
+        .to(el.viewerBackdrop, { opacity: 0, duration: V.close * 0.75, ease: "power2.inOut" }, t + 0.05 + V.close * 0.25);
     }
 
     function onKey(e) {
-      if (e.key === "Escape" && state.viewing) {
+      if (!state.viewing) return;
+      if (e.key === "Escape") {
         e.preventDefault();
         closeViewer();
-      }
-      // keep focus inside the viewer while it is open
-      if (e.key === "Tab" && state.viewing) {
+      } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        el.viewerClose.focus({ preventScroll: true });
+        goTo(gallery.index + 1, 1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goTo(gallery.index - 1, -1);
+      } else if (e.key === "Tab") {
+        // keep focus inside the viewer while it is open
+        e.preventDefault();
+        const list = [el.viewerPrev, el.viewerNext, el.viewerClose].filter((b) => !b.hidden);
+        const at = list.indexOf(document.activeElement);
+        const step = e.shiftKey ? -1 : 1;
+        list[(at + step + list.length) % list.length].focus({ preventScroll: true });
       }
     }
 
@@ -893,7 +1034,9 @@
         renderArchive();
         // keep the open image fitted; its flight back is measured afresh on close
         if (state.viewing && !(viewerTl && viewerTl.isActive())) {
-          const fit = viewerLayout(state.viewing);
+          gallery.tl && gallery.tl.progress(1).kill();
+          const sl = gallery.slides.find((x) => x.src === gallery.shownSrc) || gallery.project.coverImage;
+          const fit = viewerLayout(sl);
           gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, width: fit.w, height: fit.h, scale: 1 });
         }
       });
@@ -970,6 +1113,8 @@
     on(document, "keydown", onKey);
     on(el.viewerClose, "click", closeViewer);
     on(el.viewerBackdrop, "click", closeViewer);
+    on(el.viewerPrev, "click", () => goTo(gallery.index - 1, -1));
+    on(el.viewerNext, "click", () => goTo(gallery.index + 1, 1));
     cards.forEach((c) => {
       on(c.node, "focus", () => onCardFocus(c));
       on(c.node, "blur", () => onCardBlur(c));
@@ -993,9 +1138,9 @@
     preload().then(() => alive && entrance());
     inspect = () => ({
       phase: +state.phase.toFixed(5), vel: +state.vel.toFixed(4), autoMix: +state.autoMix.toFixed(3),
-      hovered: state.hovered ? cards.indexOf(state.hovered) : -1, viewing: state.viewing ? cards.indexOf(state.viewing) : -1,
+      hovered: state.hovered ? cards.indexOf(state.hovered) : -1, viewing: state.viewing ? cards.indexOf(state.viewing) : -1, slide: gallery.index, shown: gallery.shownSrc,
       dxdu: Math.round(state.geo.dxdu),
-      cards: cards.map((c) => ({ x: (c.l + c.r) / 2, y: (c.t + c.b) / 2, w: c.r - c.l, z: c.zi, a: c.alpha, behind: c.behind, hm: +c.hm.toFixed(2) })),
+      cards: cards.map((c) => ({ tier: c.tier, x: (c.l + c.r) / 2, y: (c.t + c.b) / 2, w: c.r - c.l, z: c.zi, a: c.alpha, behind: c.behind, hm: +c.hm.toFixed(2) })),
     });
 
     return function destroy() {
@@ -1006,6 +1151,7 @@
       floatTween && floatTween.kill();
       ctx.revert();
       gsap.killTweensOf([el.headFloat, el.headEnter, state, ...el.reveal]);
+      gallery.tl && gallery.tl.kill();
       gsap.set([el.headFollow, el.headTilt, el.headFloat, ...el.irises, ...el.catches], { clearProps: "transform" });
       gsap.set([el.headEnter, ...el.reveal], { clearProps: "all" });
       el.archive.textContent = "";
@@ -1029,5 +1175,5 @@
   reducedQuery.addEventListener ? reducedQuery.addEventListener("change", onEnvChange) : reducedQuery.addListener(onEnvChange);
 
   // Exposed for tuning in the console, e.g. binzSpace.motion.path.tilt = 34
-  window.binzSpace = { motion: MOTION, images: ARCHIVE_IMAGES, inspect: () => inspect(), destroy: () => destroy() };
+  window.binzSpace = { motion: MOTION, projects: PROJECTS, inspect: () => inspect(), destroy: () => destroy() };
 })();
