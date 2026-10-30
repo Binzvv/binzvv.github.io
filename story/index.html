@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-world="none">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>The Living Project Story</title>
+  <meta name="description" content="Don't just watch the story. Change it. An interactive project story in five scenes." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="./story.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+      "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js",
+      "gsap/": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- ─────────────────────────────  HUD  ───────────────────────────── -->
+  <header class="hud hud-top">
+    <a class="hud-brand" href="../" aria-label="Back to portfolio">
+      <span class="mono">The Living Project Story</span>
+      <span class="hud-tag serif">Don’t just watch the story. Change it.</span>
+    </a>
+    <nav class="hud-progress" aria-label="Scenes">
+      <span class="mono hud-count"><b class="hud-index">01</b>/05</span>
+      <ol class="hud-steps">
+        <li><button data-go="0" aria-label="Scene 1, Presence"><i></i><span>Presence</span></button></li>
+        <li><button data-go="1" aria-label="Scene 2, Choice"><i></i><span>Choice</span></button></li>
+        <li><button data-go="2" aria-label="Scene 3, Adaptation"><i></i><span>Adaptation</span></button></li>
+        <li><button data-go="3" aria-label="Scene 4, Personality"><i></i><span>Personality</span></button></li>
+        <li><button data-go="4" aria-label="Scene 5, Memory"><i></i><span>Memory</span></button></li>
+      </ol>
+    </nav>
+  </header>
+
+  <footer class="hud hud-bottom">
+    <div class="hud-cue">
+      <span class="mono hud-cue-label">Interaction</span>
+      <span class="hud-cue-word display">Move</span>
+    </div>
+    <button class="hud-next mono" aria-label="Next scene"><span class="hud-next-text">Scroll / Swipe</span> <span class="hud-arrow">↓</span></button>
+  </footer>
+
+  <main class="stage" id="stage">
+
+    <!-- ───────────────────────  01 INTERRUPT  ─────────────────────── -->
+    <section class="scene s1" aria-label="01 Interrupt: The screen is not the experience">
+      <h1 class="sr-only">The screen is not the experience.</h1>
+      <div class="s1-layer s1-back" aria-hidden="true">
+        <div class="s1-the serif"><span>The</span></div>
+        <div class="s1-screen display"><span>Screen</span></div>
+        <div class="s1-exp display"><span>Experience.</span></div>
+      </div>
+      <div class="s1-gl" aria-hidden="true"></div>
+      <div class="s1-layer s1-front" aria-hidden="true">
+        <div class="s1-isnot serif"><span>is not the</span></div>
+      </div>
+      <div class="s1-meta mono" aria-hidden="true">
+        <span class="s1-label">01 — Interrupt</span>
+        <span class="s1-xy">X 000 · Y 000</span>
+        <span>Presence <b class="s1-pres">000</b>%</span>
+      </div>
+      <p class="s1-fig mono" aria-hidden="true">Fig. 01 — An object that notices you.</p>
+    </section>
+
+    <!-- ───────────────────────  02 CHOOSE  ─────────────────────── -->
+    <section class="scene s2" aria-label="02 Choose: What if the world changed with you?">
+      <div class="s2-side s2-noise" data-cursor="Noise" role="button" tabindex="0" aria-label="Choose Noise: loud, fast, unfiltered">
+        <div class="s2-ph ph" data-ph="halftone" data-src=""></div>
+        <div class="s2-scan"></div>
+        <div class="s2-word display-noise"><span>N</span><span>O</span><span>I</span><span>S</span><span>E</span></div>
+        <div class="s2-letter display-noise">A</div>
+        <ul class="s2-spec mono"><li>Loud</li><li>Fast</li><li>Unfiltered</li><li>Condensed 900</li><li>#D4FF00</li></ul>
+      </div>
+      <div class="s2-side s2-silence" data-cursor="Silence" role="button" tabindex="0" aria-label="Choose Silence: quiet, slow, considered">
+        <div class="s2-ph ph" data-ph="horizon" data-src=""></div>
+        <div class="s2-dot"></div>
+        <div class="s2-word serif">silence</div>
+        <div class="s2-letter serif">b</div>
+        <ul class="s2-spec mono"><li>Quiet</li><li>Slow</li><li>Considered</li><li>Serif italic</li><li>#2337FF</li></ul>
+      </div>
+      <div class="s2-seam" aria-hidden="true"></div>
+      <h2 class="s2-q"><span class="s2-q-a">What if the world</span> <span class="s2-q-b">changed with you?</span></h2>
+      <div class="s2-after" aria-live="polite">
+        <p class="s2-after-line display"></p>
+        <button class="s2-again mono no-swipe">↺ Change your mind</button>
+      </div>
+    </section>
+
+    <!-- ───────────────────────  03 DISRUPT  ─────────────────────── -->
+    <section class="scene s3" aria-label="03 Disrupt: Systems are made to respond">
+      <div class="s3-grid" aria-hidden="true"></div>
+      <div class="s3-board">
+        <div class="d-el d-head" data-id="head"><div class="d-in"><span class="d-text display">Systems</span></div></div>
+        <div class="d-el d-img" data-id="img"><div class="d-in"><div class="ph" data-ph="crowd" data-size="viewport" data-src=""></div></div></div>
+        <div class="d-el d-word" data-id="word"><div class="d-in"><span class="d-text serif">are made to respond.</span></div></div>
+        <div class="d-el d-cap" data-id="cap"><div class="d-in"><p class="d-text mono">A system is a set of decisions that survives being disturbed. Drag the disc. Watch the composition find a new equilibrium — every time.</p></div></div>
+        <div class="d-el d-bars" data-id="bars"><div class="d-in"><div class="bars"></div></div></div>
+        <div class="d-el d-img2" data-id="img2"><div class="d-in"><div class="ph" data-ph="sphere" data-size="viewport" data-src=""></div></div></div>
+        <div class="d-el d-num" data-id="num"><div class="d-in"><span class="d-text display">03</span></div></div>
+        <div class="d-disc no-swipe" data-cursor="Drag" role="slider" tabindex="0" aria-label="Disruptor. Drag, or use arrow keys, to break the layout">
+          <svg viewBox="0 0 200 200" aria-hidden="true"><defs><path id="discCircle" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"/></defs><text><textPath href="#discCircle">BREAK IT · BREAK IT · BREAK IT · BREAK IT · </textPath></text></svg>
+          <span class="d-disc-core">✳</span>
+        </div>
+      </div>
+      <div class="s3-meta mono" aria-hidden="true"><span>03 — Disrupt</span><span class="s3-count">Disruptions 00</span></div>
+    </section>
+
+    <!-- ───────────────────────  04 RESPOND  ─────────────────────── -->
+    <section class="scene s4" aria-label="04 Respond: What if brand had a personality?">
+      <canvas class="s4-canvas" data-cursor="Poke"></canvas>
+      <div class="s4-voice" aria-live="polite"><p class="s4-voice-text display">What if brand had a personality?</p></div>
+      <div class="s4-mood mono" aria-hidden="true"><span>04 — Respond</span><span class="s4-mood-val">Mood · Attentive</span></div>
+      <form class="s4-form no-swipe" autocomplete="off">
+        <label class="sr-only" for="s4-input">Say something to the entity</label>
+        <div class="s4-field">
+          <input id="s4-input" class="s4-input display" maxlength="60" placeholder="Say something_" enterkeyhint="send" />
+          <button class="s4-send mono" type="submit" aria-label="Send">Send →</button>
+        </div>
+        <div class="s4-chips mono" role="group" aria-label="Or choose an emotion">
+          <button type="button" data-say="Hello you">Hello</button>
+          <button type="button" data-say="I love this">Love</button>
+          <button type="button" data-say="I'm furious">Fury</button>
+          <button type="button" data-say="Feeling low">Low</button>
+          <button type="button" data-say="Why?">Why?</button>
+          <button type="button" data-say="Whoa!!">Whoa</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ───────────────────────  05 REVEAL  ─────────────────────── -->
+    <section class="scene s5" aria-label="05 Reveal: You were never just watching">
+      <div class="s5-poster" data-cursor="Look"></div>
+      <h2 class="s5-title display" aria-label="You were never just watching."></h2>
+      <div class="s5-end">
+        <p class="s5-end-line display"><span class="s5-l1">Designing what happens.</span><span class="s5-l2">Not just what appears.</span></p>
+        <div class="s5-links mono">
+          <a class="s5-explore" href="../">Explore the work.</a>
+          <button class="s5-replay no-swipe">↺ Begin again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- transition curtain -->
+    <div class="curtain" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      <span class="curtain-label display"></span>
+    </div>
+  </main>
+
+  <div class="cursor" aria-hidden="true"><span class="cursor-dot"></span><span class="cursor-label mono">Move</span></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="fit-measure" aria-hidden="true"></div>
+
+  <noscript><p class="noscript">This experience needs JavaScript. <a href="../">Explore the work.</a></p></noscript>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
