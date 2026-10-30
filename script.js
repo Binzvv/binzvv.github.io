@@ -72,6 +72,31 @@
       eyeGuard: true,       // cards in front of the head never cover the eyes
     },
 
+    rail: {
+      friction: 2.6,        // 1/s, how quickly a flung rail comes to rest
+      maxVelocity: 0.45,    // loops per second, at most
+      wheelGain: 1,         // 1 = a wheel/trackpad delta moves the front of the rail by the same px
+      clickThreshold: 6,    // px a press may travel and still count as a click
+      idleResume: 2.4,      // s after the last interaction before the slow drift returns
+      resumeSmoothing: 1.4, // s, the drift fades back in
+      seekSmoothing: 0.55,  // s, keyboard focus brings a card round to the front
+      hoverPause: 0.35,     // s, the rail eases to a stop under a hovered card
+    },
+
+    hover: {
+      scale: 1.08,
+      lift: 6,              // px towards the top of the screen
+      dim: 0.32,            // extra darkening of the other cards (share of their remaining light)
+      smoothing: 0.22,      // s
+    },
+
+    viewer: {
+      open: 0.95,           // s, shared-element flight into the fullscreen layout
+      close: 0.85,
+      ease: "power3.inOut",
+      margin: [72, 6, 64], // px top, vw sides, px bottom
+    },
+
     pointerPace: {
       boost: 1.2,           // extra speed at a brisk pointer
       speedFull: 1400,      // px/s counted as brisk
@@ -130,6 +155,17 @@
     catches: [...document.querySelectorAll(".eye .catch")],
     reveal: [...document.querySelectorAll("[data-reveal]")],
     archive: $("#archive"),
+    space: $("#space"),
+    credit: document.querySelector(".credit"),
+    label: $("#cardLabel"),
+    viewer: $("#viewer"),
+    viewerBackdrop: $("#viewerBackdrop"),
+    viewerFigure: $("#viewerFigure"),
+    viewerImg: $("#viewerImg"),
+    viewerShade: $("#viewerShade"),
+    viewerUi: [...document.querySelectorAll("[data-viewer-ui]")],
+    viewerIndex: $("#viewerIndex"),
+    viewerClose: $("#viewerClose"),
   };
 
   const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -161,13 +197,17 @@
     const total = gaps.reduce((a, b) => a + b, 0);
     let u = 0;
     return gaps.map((g, i) => {
-      const [src, iw, ih] = ARCHIVE_IMAGES[i % ARCHIVE_IMAGES.length];
+      const idx = i % ARCHIVE_IMAGES.length;
+      const [src, iw, ih] = ARCHIVE_IMAGES[idx];
       const aspect = ih / iw;
       // wide banners get a little more width so their area matches the others
       const widen = aspect < 0.5 ? 1.2 : aspect > 1 ? 0.8 : 1;
       const w = cfg.width * widen * (1 + (rnd() - 0.5) * 2 * cfg.widthVariance);
       const node = document.createElement("div");
       node.className = "card";
+      node.tabIndex = 0;
+      node.setAttribute("role", "button");
+      node.setAttribute("aria-label", `View project image ${idx + 1} of ${ARCHIVE_IMAGES.length}`);
       const img = document.createElement("img");
       img.src = src;
       img.alt = "";
@@ -177,7 +217,12 @@
       shade.className = "card-shade";
       node.append(img, shade);
       el.archive.appendChild(node);
-      const card = { node, shade, u: u / total, w, h: w * aspect, z: -1, shadeO: -1, vis: true };
+      const card = {
+        node, shade, idx, image: ARCHIVE_IMAGES[idx], u: u / total, w, h: w * aspect,
+        z: -1, shadeO: -1, hm: 0,
+        // last drawn screen box and depth, used for hit testing
+        l: 0, t: 0, r: 0, b: 0, zi: 0, behind: false, alpha: 0, shadeV: 0,
+      };
       u += g;
       return card;
     });
@@ -214,6 +259,18 @@
       lastPointer: null,
       cam: { x: 0, y: 0 },
       reveal: 0,           // archive fade-in, applied per card so the stacking with the head is kept
+      // rail interaction
+      vel: 0,              // user velocity, loops per second (inertia)
+      autoMix: reduced ? 0 : 1, // 0..1 share of the slow drift; any interaction takes it to 0
+      autoDir: 1,          // the drift continues in the direction the visitor last sent it
+      lastInteract: -Infinity,
+      drag: null,
+      seek: null,          // target phase while keyboard focus brings a card to the front
+      hovered: null,
+      focused: null,
+      hoverSlow: 0,
+      dim: 0,
+      viewing: null,       // the card shown fullscreen; the rail is paused meanwhile
     };
 
     // ---------- geometry ----------
@@ -231,6 +288,33 @@
         vw: window.innerWidth,
         vh: window.innerHeight,
       };
+      // the nearest point of the path, and how fast it moves across the screen per loop:
+      // dragging maps pointer px to phase through this, so the front of the rail follows the hand
+      let uFront = 0;
+      let zMin = Infinity;
+      for (let i = 0; i < 360; i++) {
+        project(i / 360, pt);
+        if (pt.z < zMin) {
+          zMin = pt.z;
+          uFront = i / 360;
+        }
+      }
+      // where keyboard focus brings a card: the nearest point that is still comfortably on screen
+      let uShow = uFront;
+      let zShow = Infinity;
+      for (let i = 0; i < 360; i++) {
+        project(i / 360, pt);
+        const ok = pt.x > state.geo.vw * 0.14 && pt.x < state.geo.vw * 0.86 && pt.y > state.geo.vh * 0.2 && pt.y < state.geo.vh * 0.72;
+        if (ok && pt.z < zShow) {
+          zShow = pt.z;
+          uShow = i / 360;
+        }
+      }
+      state.geo.uShow = uShow;
+      const ax = project((uFront + 0.999) % 1, pt).x;
+      const bx = project((uFront + 0.001) % 1, pt).x;
+      state.geo.uFront = uFront;
+      state.geo.dxdu = (bx - ax) / 0.002 || 1;
       for (const c of cards) {
         c.pw = c.w * r.width;
         c.ph = c.h * r.width;
@@ -276,8 +360,11 @@
     const pt = { x: 0, y: 0, k: 1, z: 0, zMax: 1 };
     function renderArchive() {
       const cfg = MOTION.archive;
+      const H = MOTION.hover;
       const geo = state.geo;
       const band = geo.eyeBand;
+      const active = state.hovered || state.focused;
+      let labelCard = null;
       for (const c of cards) {
         let u = (c.u + state.phase) % 1;
         if (u < 0) u += 1;
@@ -285,12 +372,19 @@
         const k = pt.k;
         // a touch of camera parallax: near cards drift with the pointer, far ones against it
         const px = pt.x + state.cam.x * (k - 1) * cfg.parallax;
-        const py = pt.y + state.cam.y * (k - 1) * cfg.parallax * 0.6;
-        const w = c.pw * k;
-        const h = c.ph * k;
+        let py = pt.y + state.cam.y * (k - 1) * cfg.parallax * 0.6;
+        // hover: the card comes forward, the others step back a little
+        const hm = c.hm;
+        const kk = k * (1 + (reduced ? 0 : H.scale - 1) * hm);
+        if (!reduced) py -= H.lift * hm;
+        const w = c.pw * kk;
+        const h = c.ph * kk;
         // depth → brightness: near is clear, far sinks into the dark
         const d = clamp((pt.z + pt.zMax) / (2 * pt.zMax), 0, 1); // 0 near .. 1 far
-        let bright = cfg.near + (cfg.far - cfg.near) * Math.pow(d, 0.85);
+        const bright = cfg.near + (cfg.far - cfg.near) * Math.pow(d, 0.85);
+        const base = 1 - bright;
+        const dimmed = base + (1 - base) * H.dim * state.dim;
+        const shadeV = dimmed * (1 - hm);
         // never let a card in front of the head sit over the eyes
         let alpha = state.reveal;
         if (cfg.eyeGuard && pt.z < 0) {
@@ -298,9 +392,8 @@
           const oy = Math.min(py + h / 2, band.bottom) - Math.max(py - h / 2, band.top);
           if (ox > 0 && oy > 0) alpha *= clamp(1 - (oy / (band.bottom - band.top)) * 1.4, 0, 1);
         }
-        const shadeO = 1 - bright;
-        c.node.style.transform = `translate3d(${(px - c.pw / 2).toFixed(2)}px, ${(py - c.ph / 2).toFixed(2)}px, 0) scale(${k.toFixed(4)})`;
-        const so = shadeO.toFixed(3);
+        c.node.style.transform = `translate3d(${(px - c.pw / 2).toFixed(2)}px, ${(py - c.ph / 2).toFixed(2)}px, 0) scale(${kk.toFixed(4)})`;
+        const so = shadeV.toFixed(3);
         if (so !== c.shadeO) {
           c.shadeO = so;
           c.shade.style.opacity = so;
@@ -310,13 +403,58 @@
           c.op = op;
           c.node.style.opacity = op;
         }
-        // stacking: the head sits at z-index 1000, nearer cards above it, farther below
-        const z = 1000 - Math.round(pt.z);
+        // stacking: the head sits at 2000, nearer cards above it, farther below.
+        // A hovered card rises to the top of its own side, so the head always stays visible.
+        const behind = pt.z > 0;
+        let z = 2000 - 2 * Math.round(pt.z);
+        if (hm > 0.5) z = behind ? 1999 : 9000;
         if (z !== c.z) {
           c.z = z;
           c.node.style.zIndex = z;
         }
+        c.l = px - w / 2;
+        c.r = px + w / 2;
+        c.t = py - h / 2;
+        c.b = py + h / 2;
+        c.zi = z;
+        c.behind = behind;
+        c.alpha = alpha;
+        c.shadeV = shadeV;
+        if (c === active) labelCard = c;
       }
+      placeLabel(labelCard);
+    }
+
+    // "View project" sits just under the hovered card (or above it near the bottom edge)
+    let labelShown = -1;
+    function placeLabel(c) {
+      const o = c && c !== state.viewing ? c.hm * Math.min(1, c.alpha * 1.5) : 0;
+      const ov = o.toFixed(3);
+      if (ov !== labelShown) {
+        labelShown = ov;
+        el.label.style.opacity = ov;
+      }
+      if (!c || o <= 0) return;
+      const lh = el.label.offsetHeight || 14;
+      const below = c.b + 12 + lh < state.geo.vh - 8;
+      const x = clamp(c.l, 12, state.geo.vw - el.label.offsetWidth - 12);
+      const y = below ? c.b + 12 : c.t - 12 - lh;
+      el.label.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    }
+
+    // Topmost card under a screen point. Cards behind the head are hidden by its silhouette,
+    // so they cannot be hovered or opened through the face.
+    function hitTest(x, y) {
+      const head = state.geo.head;
+      const inHead = ((x - head.x) / (head.w * 0.44)) ** 2 + ((y - head.y + head.h * 0.02) / (head.h * 0.49)) ** 2 < 1;
+      let best = null;
+      for (const c of cards) {
+        if (c.alpha < 0.35) continue;
+        if (x < c.l || x > c.r || y < c.t || y > c.b) continue;
+        if (c.behind && inHead) continue;
+        if (!best || c.zi > best.zi) best = c;
+      }
+      return best;
     }
 
     // ---------- gaze ----------
@@ -443,10 +581,266 @@
       state.pointerSpeed = damp(state.pointerSpeed, 0, 0.25, dt);
       const brisk = clamp(state.pointerSpeed / pp.speedFull, 0, 1);
       state.pace = damp(state.pace, 1 + brisk * pp.boost, pp.smoothing, dt);
-      state.phase = (state.phase + (dt / MOTION.archive.loop) * state.pace * state.arrival) % 1;
-      state.cam.x = damp(state.cam.x, hX, 0.8, dt);
-      state.cam.y = damp(state.cam.y, hY, 0.8, dt);
+      const R = MOTION.rail;
+      const busy = state.drag || state.seek !== null || Math.abs(state.vel) > 0.004;
+      const idle = !busy && now - state.lastInteract > R.idleResume;
+      state.autoMix = damp(state.autoMix, idle && !reduced ? 1 : 0, idle ? R.resumeSmoothing : 0.12, dt);
+
+      // hover: only for a resting pointer, never mid-drag or while the rail is coasting
+      if (!state.viewing && !state.drag && state.pointer.active && state.pointer.strength === 1 && Math.abs(state.vel) < 0.03) {
+        setHovered(hitTest(state.pointer.x, state.pointer.y));
+      } else if (state.hovered && (state.drag || state.viewing)) {
+        setHovered(null);
+      }
+      const active = state.hovered || state.focused;
+      state.hoverSlow = damp(state.hoverSlow, active ? 1 : 0, R.hoverPause, dt);
+      const hs = reduced ? 0.08 : MOTION.hover.smoothing;
+      if (!state.viewing) {
+        // frozen while the viewer is open, so the card returns to exactly where it left
+        state.dim = damp(state.dim, active ? 1 : 0, hs, dt);
+        for (const c of cards) c.hm = damp(c.hm, c === active ? 1 : 0, hs, dt);
+      }
+
+      if (!state.viewing && !state.drag) {
+        if (state.seek !== null) {
+          const dPh = wrap(state.seek - state.phase);
+          state.phase += dPh * (1 - Math.exp(-dt / (reduced ? 0.12 : R.seekSmoothing)));
+          if (Math.abs(dPh) < 1e-4) state.seek = null;
+        } else {
+          state.vel *= Math.exp(-R.friction * dt);
+          if (Math.abs(state.vel) < 1e-5) state.vel = 0;
+          const drift = (1 / MOTION.archive.loop) * state.pace * state.arrival * state.autoMix * state.autoDir * (1 - state.hoverSlow);
+          state.phase += (drift + state.vel) * dt;
+        }
+        state.phase = ((state.phase % 1) + 1) % 1;
+      }
+      if (!state.viewing) {
+        state.cam.x = damp(state.cam.x, hX, 0.8, dt);
+        state.cam.y = damp(state.cam.y, hY, 0.8, dt);
+      }
       renderArchive();
+    }
+
+    // ---------- rail interaction ----------
+    const wrap = (v) => v - Math.round(v);
+
+    function setHovered(c) {
+      if (c === state.hovered) return;
+      state.hovered = c;
+      el.body.classList.toggle("is-over-card", !!c);
+    }
+
+    function interacted() {
+      state.lastInteract = state.time;
+      state.seek = null;
+    }
+
+    function onRailDown(e) {
+      if (state.viewing || state.drag) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      interacted();
+      state.vel = 0; // catching a coasting rail stops it
+      state.drag = {
+        id: e.pointerId,
+        x0: e.clientX,
+        y0: e.clientY,
+        x: e.clientX,
+        t: e.timeStamp,
+        v: 0,
+        moved: false,
+        target: hitTest(e.clientX, e.clientY),
+      };
+      try {
+        el.space.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    }
+
+    function onRailMove(e) {
+      const d = state.drag;
+      if (!d || e.pointerId !== d.id) return;
+      if (!d.moved) {
+        if (Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < MOTION.rail.clickThreshold) return;
+        d.moved = true;
+        setHovered(null);
+        el.body.classList.add("is-dragging");
+      }
+      const dts = Math.max((e.timeStamp - d.t) / 1000, 0.001);
+      const dPhase = (e.clientX - d.x) / state.geo.dxdu;
+      state.phase = (((state.phase + dPhase) % 1) + 1) % 1;
+      // velocity estimate, weighted towards the latest movement
+      d.v = d.v * 0.25 + (dPhase / dts) * 0.75;
+      d.x = e.clientX;
+      d.t = e.timeStamp;
+      interacted();
+    }
+
+    function endDrag(e, cancelled) {
+      const d = state.drag;
+      if (!d || (e && e.pointerId !== d.id)) return;
+      state.drag = null;
+      el.body.classList.remove("is-dragging");
+      try {
+        el.space.releasePointerCapture(d.id);
+      } catch (_) {}
+      interacted();
+      if (cancelled) return;
+      if (d.moved) {
+        // fling: keep the release velocity unless the hand had already stopped
+        const stale = e.timeStamp - d.t > 90;
+        const maxV = MOTION.rail.maxVelocity;
+        state.vel = reduced || stale ? 0 : clamp(d.v, -maxV, maxV);
+        if (state.vel) state.autoDir = Math.sign(state.vel);
+      } else {
+        const c = hitTest(e.clientX, e.clientY);
+        if (c && c === d.target) openViewer(c, false);
+      }
+    }
+
+    function onWheel(e) {
+      if (state.viewing) return;
+      e.preventDefault();
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? state.geo.vh : 1;
+      const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * unit;
+      // scrolling forwards moves the front of the rail the same distance, with inertia
+      const dPhase = (-delta * MOTION.rail.wheelGain) / state.geo.dxdu;
+      interacted();
+      if (reduced) {
+        state.phase = (((state.phase + dPhase) % 1) + 1) % 1;
+        return;
+      }
+      const maxV = MOTION.rail.maxVelocity;
+      state.vel = clamp(state.vel + dPhase * MOTION.rail.friction, -maxV, maxV);
+      if (state.vel) state.autoDir = Math.sign(state.vel);
+    }
+
+    // keyboard: focusing a card brings it round to the front; Enter or Space opens it
+    function onCardFocus(c) {
+      if (!c.node.matches(":focus-visible") || state.viewing) return;
+      state.focused = c;
+      state.vel = 0;
+      state.lastInteract = state.time;
+      state.seek = state.phase + wrap(state.geo.uShow - c.u - state.phase);
+    }
+    function onCardBlur(c) {
+      if (state.focused === c) state.focused = null;
+    }
+    function onCardKey(e, c) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      openViewer(c, true);
+    }
+
+    // ---------- fullscreen viewer: shared-element flight from the card ----------
+    let viewerTl = null;
+    let openedByKey = false;
+
+    function viewerLayout(c) {
+      const [, iw, ih] = c.image;
+      const [top, side, bottom] = MOTION.viewer.margin;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const sx = (side / 100) * vw;
+      const aw = vw - sx * 2;
+      const ah = vh - top - bottom;
+      const s = Math.min(aw / iw, ah / ih);
+      const w = iw * s;
+      const h = ih * s;
+      return { x: (vw - w) / 2, y: top + (ah - h) / 2, w, h };
+    }
+
+    // where the card is on screen right now, expressed as a transform of the viewer figure
+    function cardPose(c, fit) {
+      const r = c.node.getBoundingClientRect();
+      return { x: r.left, y: r.top, scale: r.width / fit.w };
+    }
+
+    // keyboard users land on Close; after a click the dialog itself holds focus (no ring)
+    function focusViewer() {
+      (openedByKey ? el.viewerClose : el.viewer).focus({ preventScroll: true });
+    }
+
+    function openViewer(c, byKey) {
+      if (state.viewing) return;
+      const V = MOTION.viewer;
+      state.viewing = c;
+      openedByKey = byKey;
+      setHovered(null);
+      state.focused = null;
+      const fit = viewerLayout(c);
+      el.viewerImg.src = c.image[0];
+      el.viewerIndex.textContent = `${String(c.idx + 1).padStart(2, "0")} / ${String(ARCHIVE_IMAGES.length).padStart(2, "0")}`;
+      gsap.set(el.viewerFigure, { width: fit.w, height: fit.h, transformOrigin: "0 0" });
+      el.viewer.hidden = false;
+      el.space.inert = true;
+      el.credit.inert = true;
+      el.body.classList.add("is-viewing");
+      viewerTl && viewerTl.kill();
+      if (reduced) {
+        gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, scale: 1, opacity: 0 });
+        gsap.set(el.viewerShade, { opacity: 0 });
+        viewerTl = gsap
+          .timeline({ onComplete: focusViewer })
+          .fromTo([el.viewerBackdrop, el.viewerFigure, ...el.viewerUi], { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" });
+        return;
+      }
+      const from = cardPose(c, fit);
+      gsap.set(el.viewerFigure, { ...from, opacity: c.alpha });
+      gsap.set(el.viewerShade, { opacity: c.shadeV });
+      gsap.set(el.viewerBackdrop, { opacity: 0 });
+      gsap.set(el.viewerUi, { opacity: 0, y: 6 });
+      c.node.style.visibility = "hidden";
+      viewerTl = gsap
+        .timeline({ onComplete: focusViewer })
+        .to(el.viewerBackdrop, { opacity: 1, duration: V.open * 0.7, ease: "power2.out" }, 0)
+        .to(el.viewerFigure, { x: fit.x, y: fit.y, scale: 1, opacity: 1, duration: V.open, ease: V.ease }, 0)
+        .to(el.viewerShade, { opacity: 0, duration: V.open * 0.75, ease: "power2.out" }, 0.05)
+        .to(el.viewerUi, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", stagger: 0.06 }, V.open * 0.7);
+    }
+
+    function closeViewer() {
+      const c = state.viewing;
+      if (!c || (viewerTl && viewerTl.data === "closing")) return;
+      const V = MOTION.viewer;
+      viewerTl && viewerTl.kill();
+      const done = () => {
+        c.node.style.visibility = "";
+        el.viewer.hidden = true;
+        el.space.inert = false;
+        el.credit.inert = false;
+        el.body.classList.remove("is-viewing");
+        state.viewing = null;
+        state.lastInteract = state.time;
+        if (openedByKey) c.node.focus({ preventScroll: true });
+        else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+      };
+      if (reduced) {
+        viewerTl = gsap.timeline({ onComplete: done }).to([el.viewerBackdrop, el.viewerFigure, ...el.viewerUi], { opacity: 0, duration: 0.25, ease: "power1.in" });
+        viewerTl.data = "closing";
+        return;
+      }
+      // the rail has been paused, so the card is exactly where it was; fly back into it
+      renderArchive();
+      const fit = viewerLayout(c);
+      const to = cardPose(c, fit);
+      viewerTl = gsap
+        .timeline({ onComplete: done })
+        .to(el.viewerUi, { opacity: 0, y: 6, duration: 0.25, ease: "power2.in" }, 0)
+        .to(el.viewerFigure, { ...to, opacity: c.alpha, duration: V.close, ease: V.ease }, 0.05)
+        .to(el.viewerShade, { opacity: c.shadeV, duration: V.close * 0.8, ease: "power2.in" }, 0.05 + V.close * 0.2)
+        .to(el.viewerBackdrop, { opacity: 0, duration: V.close * 0.75, ease: "power2.inOut" }, 0.05 + V.close * 0.25);
+      viewerTl.data = "closing";
+    }
+
+    function onKey(e) {
+      if (e.key === "Escape" && state.viewing) {
+        e.preventDefault();
+        closeViewer();
+      }
+      // keep focus inside the viewer while it is open
+      if (e.key === "Tab" && state.viewing) {
+        e.preventDefault();
+        el.viewerClose.focus({ preventScroll: true });
+      }
     }
 
     // ---------- input ----------
@@ -483,10 +877,12 @@
       if (e.relatedTarget) return;
       state.pointer.active = false;
       state.lastPointer = null;
+      setHovered(null);
     }
     function onBlur() {
       state.pointer.active = false;
       state.lastPointer = null;
+      endDrag(null, true);
     }
 
     let resizeRaf = 0;
@@ -495,6 +891,11 @@
       resizeRaf = requestAnimationFrame(() => {
         measure();
         renderArchive();
+        // keep the open image fitted; its flight back is measured afresh on close
+        if (state.viewing && !(viewerTl && viewerTl.isActive())) {
+          const fit = viewerLayout(state.viewing);
+          gsap.set(el.viewerFigure, { x: fit.x, y: fit.y, width: fit.w, height: fit.h, scale: 1 });
+        }
       });
     }
 
@@ -559,7 +960,25 @@
     renderArchive();
 
     on(window, "resize", onResize);
-    if (!reduced) {
+    on(el.space, "pointerdown", onRailDown);
+    on(el.space, "pointermove", onRailMove);
+    on(el.space, "pointerup", (e) => endDrag(e, false));
+    on(el.space, "pointercancel", (e) => endDrag(e, true));
+    on(el.space, "lostpointercapture", (e) => state.drag && e.pointerId === state.drag.id && endDrag(e, true));
+    on(el.space, "wheel", onWheel, { passive: false });
+    on(el.space, "dragstart", (e) => e.preventDefault());
+    on(document, "keydown", onKey);
+    on(el.viewerClose, "click", closeViewer);
+    on(el.viewerBackdrop, "click", closeViewer);
+    cards.forEach((c) => {
+      on(c.node, "focus", () => onCardFocus(c));
+      on(c.node, "blur", () => onCardBlur(c));
+      on(c.node, "keydown", (e) => onCardKey(e, c));
+    });
+    // the rail, hover and viewer run under reduced motion too; only drift, float and gaze stay off
+    gsap.ticker.add(tick);
+    cleanup.push(() => gsap.ticker.remove(tick));
+    {
       on(window, "pointermove", onPointerMove, { passive: true });
       on(window, "pointerdown", onTouch, { passive: true });
       on(window, "pointermove", onTouch, { passive: true });
@@ -568,12 +987,16 @@
       on(document, "mouseout", onLeave);
       on(window, "blur", onBlur);
       on(document, "visibilitychange", onVisibility);
-      gsap.ticker.add(tick);
-      cleanup.push(() => gsap.ticker.remove(tick));
     }
 
     let alive = true;
     preload().then(() => alive && entrance());
+    inspect = () => ({
+      phase: +state.phase.toFixed(5), vel: +state.vel.toFixed(4), autoMix: +state.autoMix.toFixed(3),
+      hovered: state.hovered ? cards.indexOf(state.hovered) : -1, viewing: state.viewing ? cards.indexOf(state.viewing) : -1,
+      dxdu: Math.round(state.geo.dxdu),
+      cards: cards.map((c) => ({ x: (c.l + c.r) / 2, y: (c.t + c.b) / 2, w: c.r - c.l, z: c.zi, a: c.alpha, behind: c.behind, hm: +c.hm.toFixed(2) })),
+    });
 
     return function destroy() {
       alive = false;
@@ -586,11 +1009,17 @@
       gsap.set([el.headFollow, el.headTilt, el.headFloat, ...el.irises, ...el.catches], { clearProps: "transform" });
       gsap.set([el.headEnter, ...el.reveal], { clearProps: "all" });
       el.archive.textContent = "";
+      viewerTl && viewerTl.kill();
+      el.viewer.hidden = true;
+      el.space.inert = false;
+      el.credit.inert = false;
+      el.body.classList.remove("is-viewing", "is-dragging", "is-over-card");
       gsap.globalTimeline.resume();
     };
   }
 
   let entrancePlayed = false; // the opening plays once per page load
+  let inspect = () => null;   // read-only snapshot for tuning
   let destroy = init();
   // Re-initialise if reduced motion changes while the page is open
   const onEnvChange = () => {
@@ -600,5 +1029,5 @@
   reducedQuery.addEventListener ? reducedQuery.addEventListener("change", onEnvChange) : reducedQuery.addListener(onEnvChange);
 
   // Exposed for tuning in the console, e.g. binzSpace.motion.path.tilt = 34
-  window.binzSpace = { motion: MOTION, images: ARCHIVE_IMAGES, destroy: () => destroy() };
+  window.binzSpace = { motion: MOTION, images: ARCHIVE_IMAGES, inspect: () => inspect(), destroy: () => destroy() };
 })();

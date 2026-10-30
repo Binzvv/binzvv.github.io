@@ -18,7 +18,8 @@
 
   <!-- One stacking context for the archive and the head, so cards can pass behind and in front of it -->
   <main class="space" id="space">
-    <div class="archive" id="archive" aria-hidden="true"></div>
+    <div class="archive" id="archive" role="group" aria-label="Project archive"></div>
+    <div class="card-label" id="cardLabel" aria-hidden="true">View project <span class="card-label-arrow">→</span></div>
 
     <div class="anchor" id="anchor">
       <div class="stage">
@@ -46,6 +47,20 @@
       <p class="tagline" data-reveal>Brand. Product. What’s next.</p>
     </header>
   </main>
+
+  <!-- Fullscreen project image; the figure flies in from the card that was opened -->
+  <div class="viewer" id="viewer" tabindex="-1" role="dialog" aria-modal="true" aria-label="Project image" hidden>
+    <div class="viewer-backdrop" id="viewerBackdrop"></div>
+    <div class="viewer-figure" id="viewerFigure">
+      <img class="viewer-img" id="viewerImg" alt="" />
+      <div class="viewer-shade" id="viewerShade"></div>
+    </div>
+    <p class="viewer-index" id="viewerIndex" data-viewer-ui></p>
+    <button class="viewer-close" id="viewerClose" type="button" aria-label="Close project image" data-viewer-ui>
+      <span>Close</span>
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" /></svg>
+    </button>
+  </div>
 
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="script.js"></script>
