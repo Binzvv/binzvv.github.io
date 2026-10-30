@@ -42,32 +42,37 @@
       handoverAt: 2.2,
     },
 
-    // Work first: the head is drawn at 72% of its former size and sits off-centre, while the
-    // archive keeps the scale of the original composition (one "world unit" = the head's
-    // former width), so the work now dominates.
+    // Work first: the head is drawn at 93.6% of its original size (the 72% work-first size,
+    // enlarged by 30%) and sits off-centre. The archive keeps the scale of the original
+    // composition: one "world unit" = the head's original width.
     composition: {
-      headScale: 0.72,      // must match the 0.72 factor on --head-w in style.css
-      centerX: 0.53,        // path centre, as a share of the viewport
-      centerY: 0.5,
+      headScale: 0.936,     // must match the factor on --head-w in style.css
+      // the orbit is centred on the head itself, nudged right for an asymmetric composition
+      orbitX: 0.2,          // world units right of the head centre
+      orbitY: 0.02,         // world units below it
     },
 
-    // The path, in world units so it scales with the screen.
+    // The orbit, in world units so it scales with the screen. A loop around the head, tipped
+    // towards the viewer: tiles pass behind the hair at the back, beside the ears at the
+    // sides, and in front of the lower face at the front, so the order keeps changing:
+    // work in front → face → work behind.
     // A circle in a horizontal plane, made irregular, turned so its depth runs diagonally,
     // tilted towards the viewer and rolled: the near side sweeps past the lower right of the
     // head, the far side recedes up-left and passes behind the hair.
     path: {
-      radiusX: 2.05,
-      radiusZ: 1.5,
+      radiusX: 1.85,
+      radiusZ: 1.3,
       wobble: [0.07, 0.045],// radius variation, 2 and 3 lobes, keeps it from reading as a ring
-      lift: 0.08,           // gentle vertical undulation along the path
-      yaw: 34,              // deg, turns the nearest point towards the lower right
-      tilt: 32,             // deg, plane tilted towards the viewer
-      roll: -8,             // deg, a slight lean in the picture
-      focal: 3.1,           // camera focal length; lower = stronger perspective
+      lift: 0.06,           // gentle vertical undulation along the path
+      yaw: 8,               // deg, the nearest point sits just right of the face
+      tilt: 23,             // deg, front passes across the lower face, back above the hair
+      roll: -6,             // deg, a slight lean in the picture
+      focal: 3.4,           // camera focal length; lower = stronger perspective
     },
 
     archive: {
-      cards: 22,
+      cards: 16,
+      maxWidth: 1.05,       // world units, widest any tile may be
       // Tile sizes by area (world units²) and share of the rail: large hero images, medium
       // tiles and small fragments. Each tile keeps its image's own proportion.
       tiers: [
@@ -84,7 +89,7 @@
       far: 0.36,            // ... and the most distant
       falloff: 1.8,         // higher keeps more of the rail bright; dimming only in the distance
       parallax: 18,         // px of camera drift with the pointer
-      eyeGuard: true,       // tiles in front of the head never cover the eyes
+      eyeGuard: true,       // tiles crossing the face in front dip below the eye line
     },
 
     rail: {
@@ -235,7 +240,8 @@
       const { src, width, height } = project.coverImage;
       const aspect = height / width;
       const area = tiers[i].area * (1 + (rnd() - 0.5) * 0.24);
-      const w = Math.sqrt(area / aspect);
+      // very wide banners are capped so a single tile never walls off the head
+      const w = Math.min(Math.sqrt(area / aspect), cfg.maxWidth);
       const node = document.createElement("div");
       node.className = "card";
       node.tabIndex = 0;
@@ -313,6 +319,7 @@
       hoverSlow: 0,
       dim: 0,
       viewing: null,       // the card shown fullscreen; the rail is paused meanwhile
+      focusTime: -Infinity, // when keyboard focus last moved to a tile
     };
 
     // ---------- geometry ----------
@@ -332,7 +339,10 @@
         vw: window.innerWidth,
         vh: window.innerHeight,
       };
-      state.geo.center = { x: state.geo.vw * comp.centerX, y: state.geo.vh * comp.centerY };
+      state.geo.center = {
+        x: state.geo.head.x + comp.orbitX * state.geo.unit,
+        y: state.geo.head.y + comp.orbitY * state.geo.unit,
+      };
       // the nearest point of the path, and how fast it moves across the screen per loop:
       // dragging maps pointer px to phase through this, so the front of the rail follows the hand
       let uFront = 0;
@@ -430,12 +440,24 @@
         const base = 1 - bright;
         const dimmed = base + (1 - base) * H.dim * state.dim;
         const shadeV = dimmed * (1 - hm);
-        // never let a card in front of the head sit over the eyes
-        let alpha = state.reveal;
+        // Tiles in front may cross the lower face, but not the eyes: a tile passing in front
+        // dips just below the eye line while it crosses the face, eased by how much of it is
+        // over the eyes horizontally, then rejoins its path. It stays solid throughout.
+        const alpha = state.reveal;
         if (cfg.eyeGuard && pt.z < 0) {
           const ox = Math.min(px + w / 2, band.right) - Math.max(px - w / 2, band.left);
-          const oy = Math.min(py + h / 2, band.bottom) - Math.max(py - h / 2, band.top);
-          if (ox > 0 && oy > 0) alpha *= clamp(1 - (oy / (band.bottom - band.top)) * 1.4, 0, 1);
+          if (ox > 0) {
+            const top = py - h / 2;
+            const need = band.bottom + 4 - top;
+            const bottomOfTile = py + h / 2;
+            // only tiles whose body is below the eyes are pushed down; tiles that pass mostly
+            // above them (rare at the front) are left alone
+            if (need > 0 && bottomOfTile > band.bottom) {
+              const f = clamp(ox / Math.min(w, band.right - band.left), 0, 1);
+              const g = clamp((py - band.top) / (h * 0.3), 0, 1); // fades out for tiles riding high
+              py += Math.min(need, h * 0.7) * f * f * (3 - 2 * f) * g;
+            }
+          }
         }
         c.node.style.transform = `translate3d(${(px - c.pw / 2).toFixed(2)}px, ${(py - c.ph / 2).toFixed(2)}px, 0) scale(${kk.toFixed(4)})`;
         const so = shadeV.toFixed(3);
@@ -629,16 +651,20 @@
       const R = MOTION.rail;
       const busy = state.drag || state.seek !== null || Math.abs(state.vel) > 0.004;
       const idle = !busy && now - state.lastInteract > R.idleResume;
-      state.autoMix = damp(state.autoMix, idle && !reduced ? 1 : 0, idle ? R.resumeSmoothing : 0.12, dt);
+      // drift, hover-slow and highlights are frozen while the gallery is open, so the rail
+      // comes back exactly as it was left
+      if (!state.viewing) state.autoMix = damp(state.autoMix, idle && !reduced ? 1 : 0, idle ? R.resumeSmoothing : 0.12, dt);
 
       // hover: only for a resting pointer, never mid-drag or while the rail is coasting
-      if (!state.viewing && !state.drag && state.pointer.active && state.pointer.strength === 1 && Math.abs(state.vel) < 0.03) {
+      // a resting mouse never steals the highlight from a keyboard-focused tile; moving it does
+      const mouseLed = state.pointer.lastMove > state.focusTime;
+      if (!state.viewing && !state.drag && mouseLed && state.pointer.active && state.pointer.strength === 1 && Math.abs(state.vel) < 0.03) {
         setHovered(hitTest(state.pointer.x, state.pointer.y));
       } else if (state.hovered && (state.drag || state.viewing)) {
         setHovered(null);
       }
       const active = state.hovered || state.focused;
-      state.hoverSlow = damp(state.hoverSlow, active ? 1 : 0, R.hoverPause, dt);
+      if (!state.viewing) state.hoverSlow = damp(state.hoverSlow, active ? 1 : 0, R.hoverPause, dt);
       const hs = reduced ? 0.08 : MOTION.hover.smoothing;
       if (!state.viewing) {
         // frozen while the viewer is open, so the card returns to exactly where it left
@@ -759,9 +785,11 @@
     }
 
     // keyboard: focusing a card brings it round to the front; Enter or Space opens it
+    let restoringFocus = false;
     function onCardFocus(c) {
-      if (!c.node.matches(":focus-visible") || state.viewing) return;
+      if (restoringFocus || !c.node.matches(":focus-visible") || state.viewing) return;
       state.focused = c;
+      state.focusTime = state.time;
       state.vel = 0;
       state.lastInteract = state.time;
       state.seek = state.phase + wrap(state.geo.uShow - c.u - state.phase);
@@ -783,7 +811,11 @@
     const gallery = { project: null, slides: [], index: 0, shownSrc: "", tl: null };
 
     function gallerySlides(project) {
-      const slides = (project.slides && project.slides.length ? project.slides : [project.coverImage]).slice(0, MOTION.viewer.maxSlides);
+      // the cover is always slide 1; the project's other real images follow, up to five
+      const cover = project.coverImage;
+      const rest = (project.slides || []).filter((sl) => sl && sl.src && sl.src !== cover.src);
+      const first = (project.slides || []).find((sl) => sl && sl.src === cover.src) || cover;
+      const slides = [first, ...rest].slice(0, MOTION.viewer.maxSlides);
       // warm every slide so switching never waits on the network or a decode
       slides.forEach((sl) => {
         const img = new Image();
@@ -800,7 +832,7 @@
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       let sx = (side / 100) * vw;
-      if (gallery.slides.length > 1) sx = Math.max(sx, V.sideMin);
+      sx = Math.max(sx, V.sideMin);
       const aw = vw - sx * 2;
       const ah = vh - top - bottom;
       const s = Math.min(aw / image.width, ah / image.height);
@@ -825,8 +857,9 @@
       el.viewerCaption.hidden = !sl.caption;
       el.viewerCount.textContent = `${pad2(gallery.index + 1)} / ${pad2(gallery.slides.length)}`;
       el.viewerImg.alt = sl.alt || "";
-      el.viewerPrev.hidden = !multi;
-      el.viewerNext.hidden = !multi;
+      // the arrows are always shown; with a single image they rest, dimmed, until more are added
+      el.viewerPrev.disabled = !multi;
+      el.viewerNext.disabled = !multi;
     }
 
     // put an image into the figure at its fitted place (instant; the figure is hidden or still)
@@ -873,6 +906,9 @@
       const V = MOTION.viewer;
       state.viewing = c;
       openedByKey = byKey;
+      gallery.wasFocused = state.focused === c;
+      state.seek = null; // the rail holds exactly where it is while the gallery is open
+      state.vel = 0;
       setHovered(null);
       state.focused = null;
       gallery.project = c.project;
@@ -933,7 +969,16 @@
         el.body.classList.remove("is-viewing");
         state.viewing = null;
         state.lastInteract = state.time;
-        if (openedByKey) c.node.focus({ preventScroll: true });
+        // hand focus back without re-seeking, and restore the tile's focus highlight as it was
+        if (openedByKey) {
+          restoringFocus = true;
+          c.node.focus({ preventScroll: true });
+          restoringFocus = false;
+          if (gallery.wasFocused) {
+            state.focused = c;
+            state.focusTime = state.time;
+          }
+        }
         else if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
       };
       if (reduced) {
@@ -977,7 +1022,7 @@
       } else if (e.key === "Tab") {
         // keep focus inside the viewer while it is open
         e.preventDefault();
-        const list = [el.viewerPrev, el.viewerNext, el.viewerClose].filter((b) => !b.hidden);
+        const list = [el.viewerPrev, el.viewerNext, el.viewerClose].filter((b) => !b.disabled);
         const at = list.indexOf(document.activeElement);
         const step = e.shiftKey ? -1 : 1;
         list[(at + step + list.length) % list.length].focus({ preventScroll: true });
@@ -1140,7 +1185,8 @@
       phase: +state.phase.toFixed(5), vel: +state.vel.toFixed(4), autoMix: +state.autoMix.toFixed(3),
       hovered: state.hovered ? cards.indexOf(state.hovered) : -1, viewing: state.viewing ? cards.indexOf(state.viewing) : -1, slide: gallery.index, shown: gallery.shownSrc,
       dxdu: Math.round(state.geo.dxdu),
-      cards: cards.map((c) => ({ tier: c.tier, x: (c.l + c.r) / 2, y: (c.t + c.b) / 2, w: c.r - c.l, z: c.zi, a: c.alpha, behind: c.behind, hm: +c.hm.toFixed(2) })),
+      cards: cards.map((c) => ({ tier: c.tier, h: c.b - c.t, x: (c.l + c.r) / 2, y: (c.t + c.b) / 2, w: c.r - c.l, z: c.zi, a: c.alpha, behind: c.behind, hm: +c.hm.toFixed(2) })),
+      focused: state.focused ? cards.indexOf(state.focused) : -1, active: [...document.querySelectorAll('.card')].indexOf(document.activeElement),
     });
 
     return function destroy() {

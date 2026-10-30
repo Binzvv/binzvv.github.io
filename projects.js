@@ -1,20 +1,25 @@
 /* Binz Tamang — project archive data
  *
- * Each project feeds one tile on the spatial rail (its coverImage) and one gallery in the
- * fullscreen viewer (its slides, shown in order, up to five).
+ * Each project feeds one tile on the spatial rail (its coverImage) and one fullscreen gallery
+ * with up to five slides. The cover is always slide 1; further slides follow in order.
  *
- * Every image is real work taken from the archive recording; nothing here is placeholder art.
- * Most projects have one image so far. To add more, append slides (up to five) to that
- * project's `slides` array: the viewer picks them up automatically, shows the arrows and
- * counter, and needs no other change.
+ *   slides: [
+ *     { src, width, height, alt, caption? },   // slot 1: the cover
+ *     …                                        // slots 2–5: further images of the same project
+ *   ]
  *
- *   { src: "assets/archive/fluid-02.webp", width: 1600, height: 1200, alt: "…", caption: "…" }
+ * width/height are the image's pixel size (only the ratio matters); the viewer uses them to lay
+ * a slide out before it loads, so nothing jumps. caption is optional and shows under the title.
  *
- * width/height are the image's pixel size (only the ratio matters); they let the viewer lay
- * the slide out before it loads, so nothing jumps. caption is optional.
+ * Every image here is real work taken from the archive recording. No image is repeated to fill
+ * a gallery and nothing is placeholder art.
  *
- * Titles taken from text visible in the work are marked as such; the others are neutral
- * labels until real project names are added.
+ * MISSING ASSETS: each project currently has 1 real image (slot 1). Slots 2–5 are empty for
+ * all ten projects (40 images in total). Drop the files into assets/archive/ and add them to
+ * the project's slides array; the arrows, counter and wrap-around then work automatically.
+ *
+ * Titles taken from text visible in the work are marked; the others are neutral labels until
+ * real project names are added.
  */
 window.BINZ_PROJECTS = [
   {

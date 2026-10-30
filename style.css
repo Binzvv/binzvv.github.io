@@ -7,8 +7,9 @@
   --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Head size: the clear focal point; fits the height on desktop, the width on phones */
-  /* Work first: 72% of the former size (keep in step with MOTION.composition.headScale) */
-  --head-w: calc(min(38svh, 62vw, 480px) * 0.72);
+  /* 93.6% of the original size: the 72% work-first size, enlarged by 30%
+     (keep in step with MOTION.composition.headScale) */
+  --head-w: calc(min(38svh, 62vw, 480px) * 0.936);
 }
 
 * { box-sizing: border-box; }
@@ -255,14 +256,15 @@ body {
   background: none;
   color: var(--paper);
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.25s ease;
 }
-.viewer-nav[hidden] { display: none; }
+/* the icon carries the state; the button's own opacity belongs to the viewer's fade-in */
+.viewer-nav svg { opacity: 0.6; transition: opacity 0.25s ease; }
+.viewer-nav:disabled { cursor: default; }
+.viewer-nav:disabled svg { opacity: 0.18; }
 .viewer-prev { left: max(14px, env(safe-area-inset-left)); }
 .viewer-next { right: max(14px, env(safe-area-inset-right)); }
-.viewer-nav:hover,
-.viewer-nav:focus-visible { opacity: 1; }
+.viewer-nav:not(:disabled):hover svg,
+.viewer-nav:focus-visible svg { opacity: 1; }
 .viewer-nav:focus { outline: none; }
 .viewer-nav:focus-visible { outline: 1px solid var(--paper); outline-offset: -6px; }
 .viewer-close {
@@ -296,7 +298,7 @@ body {
 .is-loading [data-reveal] { opacity: 0; }
 
 @media (max-width: 640px) {
-  :root { --head-w: calc(min(34svh, 58vw) * 0.72); }
+  :root { --head-w: calc(min(34svh, 58vw) * 0.936); }
   .anchor { top: 44%; }
   .credit { left: max(18px, env(safe-area-inset-left)); top: max(18px, env(safe-area-inset-top)); }
 }
