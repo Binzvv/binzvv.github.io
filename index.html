@@ -48,6 +48,12 @@
     </header>
   </main>
 
+  <!-- Ambient soundtrack: silent until pressed -->
+  <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Turn sound on">
+    <span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="sound-label">Sound on</span>
+  </button>
+
   <!-- Fullscreen project image; the figure flies in from the card that was opened -->
   <div class="viewer" id="viewer" tabindex="-1" role="dialog" aria-modal="true" aria-label="Project image" hidden>
     <div class="viewer-backdrop" id="viewerBackdrop"></div>
@@ -76,5 +82,6 @@
   <script src="assets/vendor/gsap.min.js"></script>
   <script src="projects.js"></script>
   <script src="script.js"></script>
+  <script src="ambient.js"></script>
 </body>
 </html>
