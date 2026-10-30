@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Binz Tamang</title>
   <meta name="description" content="Binz Tamang — Brand. Product. What’s next." />
-  <meta name="theme-color" content="#2a8ced" />
+  <meta name="theme-color" content="#0a0a0b" />
   <link rel="preload" as="image" href="assets/head.webp" fetchpriority="high" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,26 +14,26 @@
   <noscript><style>.is-loading .head-enter, .is-loading [data-reveal] { opacity: 1; }</style></noscript>
 </head>
 <body class="is-loading">
-  <div class="sky" aria-hidden="true">
-    <div class="clouds" id="clouds"></div>
-  </div>
+  <div class="atmosphere" aria-hidden="true"></div>
 
-  <!-- Teaser tiles sit behind the head so it occludes them as they emerge -->
-  <div class="tiles" id="tiles" aria-hidden="true"></div>
+  <!-- One stacking context for the archive and the head, so cards can pass behind and in front of it -->
+  <main class="space" id="space">
+    <div class="archive" id="archive" aria-hidden="true"></div>
 
-  <main class="intro" id="intro">
-    <div class="stage">
-      <!-- Each wrapper owns one transform so entrance, float, follow and tilt never overwrite each other -->
-      <div class="head-enter" id="headEnter">
-        <div class="head-float" id="headFloat">
-          <div class="head-follow" id="headFollow">
-            <div class="head-tilt" id="headTilt">
-              <div class="head" id="head">
-                <img class="socket socket-l" src="assets/socket-l.webp" alt="" decoding="async" />
-                <img class="socket socket-r" src="assets/socket-r.webp" alt="" decoding="async" />
-                <div class="eye eye-l"><img class="iris" src="assets/iris-l.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-l.webp" alt="" decoding="async" /></div>
-                <div class="eye eye-r"><img class="iris" src="assets/iris-r.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-r.webp" alt="" decoding="async" /></div>
-                <img class="face" src="assets/head.webp" width="776" height="1215" alt="Portrait of Binz Tamang as a glossy designer toy: curly hair with star, heart and flower clips, silver glasses and piercings" fetchpriority="high" decoding="async" />
+    <div class="anchor" id="anchor">
+      <div class="stage">
+        <!-- Each wrapper owns one transform so entrance, float, follow and tilt never overwrite each other -->
+        <div class="head-enter" id="headEnter">
+          <div class="head-float" id="headFloat">
+            <div class="head-follow" id="headFollow">
+              <div class="head-tilt" id="headTilt">
+                <div class="head" id="head">
+                  <img class="socket socket-l" src="assets/socket-l.webp" alt="" decoding="async" />
+                  <img class="socket socket-r" src="assets/socket-r.webp" alt="" decoding="async" />
+                  <div class="eye eye-l"><img class="iris" src="assets/iris-l.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-l.webp" alt="" decoding="async" /></div>
+                  <div class="eye eye-r"><img class="iris" src="assets/iris-r.webp" alt="" decoding="async" /><img class="catch" src="assets/catch-r.webp" alt="" decoding="async" /></div>
+                  <img class="face" src="assets/head.webp" width="776" height="1215" alt="Portrait of Binz Tamang as a glossy designer toy: curly hair with star, heart and flower clips, silver glasses and piercings" fetchpriority="high" decoding="async" />
+                </div>
               </div>
             </div>
           </div>
@@ -41,11 +41,10 @@
       </div>
     </div>
 
-    <div class="copy">
+    <header class="credit">
       <h1 class="name" data-reveal>Binz Tamang</h1>
       <p class="tagline" data-reveal>Brand. Product. What’s next.</p>
-      <p class="soon" data-reveal>Coming soon</p>
-    </div>
+    </header>
   </main>
 
   <script src="assets/vendor/gsap.min.js"></script>
