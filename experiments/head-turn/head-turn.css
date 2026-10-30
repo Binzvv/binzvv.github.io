@@ -1,9 +1,0 @@
-/* Head-turn experiment: the head is a pose sequence from the rendered turn footage.
- * The crop is 469 x 605 source px; the forward-facing head inside it is 376 px wide,
- * so the stage is widened to keep the head itself the same size as the main page. */
-.stage { width: calc(var(--head-w) * 469 / 376 * 0.985); }
-.head-video { aspect-ratio: 469 / 605; }
-.head-video .face { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.head-video .frames { opacity: 0; }
-.head-video.is-live .frames { opacity: 1; }
-.head-video.is-live .still { visibility: hidden; }
