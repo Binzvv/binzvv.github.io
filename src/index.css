@@ -2,38 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+:root { color-scheme: light; }
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #0a0a09;
-  color: #e8e4da;
+  background: #E4E4DF;
+  color: #151515;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
 }
-::selection { background: #ff4a1c; color: #0a0a09; }
+::selection { background: #C6F24A; color: #151515; }
 button { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 1px solid #ff4a1c; outline-offset: 4px; }
+:focus-visible { outline: 3px solid #2B4BFF; outline-offset: 4px; border-radius: 6px; }
 
 @layer utilities {
-  .text-display { font-size: clamp(3.2rem, 10vw, 10.5rem); line-height: 0.86; letter-spacing: -0.035em; }
-  .label { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+  /* Anybody is variable in width: width is used as behaviour, not decoration. */
+  .w-cond { font-stretch: 62%; }
+  .w-norm { font-stretch: 100%; }
+  .w-wide { font-stretch: 140%; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+  .tnum { font-variant-numeric: tabular-nums; }
 }
+
+/* Die-cut sticker: the art is drawn twice, first as a fat white silhouette. */
+.sticker .sil * { fill: #fff !important; stroke: #fff !important; stroke-width: 18px; stroke-linejoin: round; }
+.sticker { filter: drop-shadow(0 6px 0 rgba(21, 21, 21, 0.16)); overflow: visible; }
 
 @keyframes float {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  33% { transform: translate3d(6px, -10px, 0) rotate(0.6deg); }
-  66% { transform: translate3d(-5px, 6px, 0) rotate(-0.5deg); }
+  33% { transform: translate3d(6px, -10px, 0) rotate(1.4deg); }
+  66% { transform: translate3d(-5px, 6px, 0) rotate(-1.2deg); }
 }
 .float { animation: float var(--dur, 9s) ease-in-out var(--delay, 0s) infinite; }
 
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .grow { transform-origin: left; animation: grow var(--dur, 6s) linear forwards; }
 
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+.blink { transform-box: fill-box; transform-origin: center; animation: blink 4.2s infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .float { animation: none; }
+  .float, .blink { animation: none; }
 }

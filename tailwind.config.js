@@ -4,17 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#0a0a09',
-        bone: '#e8e4da',
-        ash: '#8a867d',
-        smoke: '#2a2925',
-        signal: '#ff4a1c',
+        ground: '#E4E4DF', // concrete, not paper
+        ink: '#151515',
+        mute: '#5E5E59',
+        cobalt: '#2B4BFF',
+        tomato: '#FF5A36',
+        lime: '#C6F24A',
+        pink: '#FFA3D7',
+        sun: '#FFD23F',
       },
       fontFamily: {
-        serif: ['"Instrument Serif"', 'ui-serif', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        display: ['Anybody', 'Arial Black', 'Impact', 'sans-serif'],
+        sans: ['"Hanken Grotesk"', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
-      letterSpacing: { tightest: '-0.045em' },
     },
   },
   plugins: [],

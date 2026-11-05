@@ -27,23 +27,25 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user" transition={{ type: 'spring', stiffness: 90, damping: 20 }}>
       <LayoutGroup>
-        <Field mode={status === 'intro' ? preview ?? 'intro' : status} panRef={panRef} />
+        <Field mode={status === 'intro' ? (preview ? `peek-${preview}` : 'intro') : status} panRef={panRef} />
 
-        {/* Wordmark — present everywhere except Focus, where nothing unnecessary survives. */}
+        {/* The name reads as a sentence about what the site is doing. Gone in Focus. */}
         <AnimatePresence>
           {status !== 'intro' && status !== 'focus' && (
-            <motion.div
+            <motion.p
               key="wordmark"
-              initial={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="pointer-events-none fixed left-4 top-4 z-40 sm:left-6 sm:top-5"
+              exit={{ opacity: 0, y: -10 }}
+              className={`pointer-events-none fixed left-4 top-4 z-40 max-w-[15rem] font-display ${
+                status === 'surprise' ? 'rounded-2xl bg-white px-3 py-1.5 ring-2 ring-ink' : ''
+              } text-[15px] font-extrabold leading-tight sm:left-6 sm:top-5 sm:max-w-none sm:text-base`}
             >
-              <motion.p layoutId="wordmark" className="label hidden text-bone/70 sm:block">
+              <motion.span layoutId="wordmark" className="w-wide">
                 The site that changes its mind
-              </motion.p>
-              <p className="label text-ash/70 sm:mt-1">currently {MODES[status].verb}</p>
-            </motion.div>
+              </motion.span>{' '}
+              <span className="font-sans font-semibold text-mute">is {MODES[status].verb}.</span>
+            </motion.p>
           )}
         </AnimatePresence>
 
@@ -56,22 +58,7 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {/* A brief "change of mind" between behaviours */}
-        <AnimatePresence>
-          {status !== 'intro' && (
-            <motion.div
-              key={'veil-' + status}
-              className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 1, 1, 0] }}
-              transition={{ duration: 1.3, times: [0, 0.2, 0.6, 1], ease: 'easeInOut' }}
-            >
-              <span className="label text-signal">→ now {MODES[status].verb}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {status !== 'intro' && <IntentSwitch status={status} memory={memory} send={send} />}
+        <IntentSwitch status={status} send={send} />
         <Nudge nudge={nudge} send={send} />
       </LayoutGroup>
     </MotionConfig>

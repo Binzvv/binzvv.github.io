@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PROJECTS } from '../content.js'
+import Sticker from '../components/Sticker.jsx'
 
 // FOCUS — navigation is linear and singular. One project, one action.
 // The order is decided by behaviour: what you lingered on in Explore comes
@@ -61,7 +62,7 @@ export default function Focus({ state, send }) {
   const why = readBefore.includes(p.id)
     ? 'You have read this before.'
     : opened > 0
-      ? `First, because you opened it ${opened === 1 ? 'once' : opened + ' times'} while wandering.`
+      ? `Here because you opened it ${opened === 1 ? 'once' : opened + ' times'} while wandering.`
       : i === 0
         ? 'Start here.'
         : null
@@ -70,20 +71,20 @@ export default function Focus({ state, send }) {
     <motion.section
       className="absolute inset-0 flex flex-col overflow-y-auto no-scrollbar"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.8 } }}
-      exit={{ opacity: 0, y: -40, transition: { duration: 0.5, ease: 'easeIn' } }}
+      animate={{ opacity: 1, transition: { duration: 0.6 } }}
+      exit={{ opacity: 0, y: -40, transition: { duration: 0.45, ease: 'easeIn' } }}
     >
       {/* progress: the only chrome */}
-      <div className="fixed left-0 right-0 top-0 z-20 h-px bg-smoke">
+      <div className="fixed left-0 right-0 top-0 z-20 h-1.5 bg-ink/10">
         <motion.div
-          className="h-px origin-left bg-signal"
+          className="h-full origin-left bg-ink"
           animate={{ scaleX: (i + 1) / order.length }}
           transition={{ type: 'spring', stiffness: 80, damping: 20 }}
         />
       </div>
 
       <motion.div
-        className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center px-5 py-20 sm:px-10"
+        className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center px-5 pb-28 pt-14 sm:px-10"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.18}
@@ -92,58 +93,69 @@ export default function Focus({ state, send }) {
           else if (info.offset.x > 70) go(-1)
         }}
       >
-        <p className="label mb-6 tabular-nums text-ash">
-          {String(i + 1).padStart(2, '0')} / {String(order.length).padStart(2, '0')}
-        </p>
-
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
           <motion.div
             key={p.id}
             custom={dir}
-            initial={{ opacity: 0, y: 60 * dir }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -60 * dir, transition: { duration: 0.3 } }}
-            transition={{ type: 'spring', stiffness: 110, damping: 22 }}
+            initial={{ opacity: 0, x: 80 * dir }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -80 * dir, transition: { duration: 0.25 } }}
+            transition={{ type: 'spring', stiffness: 120, damping: 22 }}
+            className="grid items-center gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12"
           >
-            <motion.h1 layoutId={`title-${p.id}`} className="text-display font-serif">
-              {p.title}
-            </motion.h1>
-            <p className="mt-6 max-w-2xl font-serif text-2xl italic leading-snug text-ash sm:text-3xl">{p.line}</p>
+            <motion.div layoutId={`art-${p.id}`} className="w-fit">
+              <Sticker id={p.id} size={reading ? 150 : 230} tilt={0} className="transition-[width,height] duration-500" />
+            </motion.div>
 
-            <AnimatePresence initial={false}>
-              {reading && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
+            <div className="min-w-0">
+              <p className="tnum text-[15px] font-bold text-mute">
+                {i + 1} of {order.length}
+              </p>
+              <motion.h1
+                layoutId={`title-${p.id}`}
+                className="w-cond mt-2 font-display text-[clamp(3.4rem,11vw,9.5rem)] font-black uppercase leading-[0.82] [text-wrap:balance]"
+              >
+                {p.title}
+              </motion.h1>
+              <p className="mt-4 max-w-2xl text-2xl font-bold leading-snug sm:text-[1.7rem]">{p.line}</p>
+
+              <AnimatePresence initial={false}>
+                {reading && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="max-w-[60ch] pt-5">
+                      <p className="text-[15px] font-bold text-mute">
+                        {p.kind}, {p.year}
+                      </p>
+                      <p className="mt-2 text-lg leading-relaxed">{p.body}</p>
+                      <p className="mt-4 inline-block rounded-2xl rounded-tl-sm bg-white px-4 py-2 text-lg font-bold ring-2 ring-ink">
+                        “{p.quote}”
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="mt-7 flex flex-wrap items-center gap-4">
+                <button
+                  onClick={primary}
+                  className="group inline-flex items-center gap-3 rounded-full bg-ink px-7 py-4 font-display text-xl font-extrabold text-white shadow-[0_5px_0_rgba(21,21,21,0.2)] hover:bg-cobalt sm:text-2xl"
                 >
-                  <div className="max-w-[52ch] pt-8">
-                    <p className="label text-ash">
-                      {p.kind} · {p.year}
-                    </p>
-                    <p className="mt-4 text-[15px] leading-relaxed text-bone/85">{p.body}</p>
-                    <p className="mt-6 font-serif text-xl italic text-bone">“{p.quote}”</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <button
-              onClick={primary}
-              className="group mt-12 inline-flex items-baseline gap-4 font-serif text-3xl sm:text-4xl"
-            >
-              <span className="underline decoration-signal decoration-1 underline-offset-[10px]">
-                {reading ? 'Next project' : 'Read it'}
-              </span>
-              <span className="text-signal transition-transform group-hover:translate-x-2">{reading ? '→' : '↓'}</span>
-            </button>
-            {why && <p className="label mt-5 text-ash/70">{why}</p>}
+                  {reading ? 'Next project' : 'Read it'}
+                  <span className="transition-transform group-hover:translate-x-1">{reading ? '→' : '↓'}</span>
+                </button>
+                {why && <p className="text-[15px] font-semibold text-mute">{why}</p>}
+              </div>
+            </div>
           </motion.div>
         </AnimatePresence>
       </motion.div>
 
-      <p className="label pointer-events-none fixed bottom-5 right-5 hidden text-ash/50 sm:block">← → · enter</p>
+      <p className="pointer-events-none fixed bottom-6 right-6 hidden text-sm font-semibold text-mute sm:block">← → to move · Enter to read</p>
     </motion.section>
   )
 }

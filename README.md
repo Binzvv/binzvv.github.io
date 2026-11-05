@@ -10,8 +10,13 @@ site asks *what do you need right now?* and then behaves like a different produc
 | Content priority | Breadth + 7 hidden notes that only reward wandering | Depth: one line → body → one action | Remixes: giant crops, invented hybrids, stats, a scene about *you* |
 | Your control | Full | Full, but quiet | Interrupt (tap) or pause (hold) only |
 
-One persistent canvas sits under all three and eases between behaviours, so
-switching feels like the same space changing its mind, not a page load.
+## Visual system
+
+- **Ground**: flat concrete grey with five saturated cut-paper colours. No gradients, no grids.
+- **Imagery**: each project is a die-cut sticker illustration drawn in SVG (`src/components/Sticker.jsx`), so there are no image files.
+- **Type**: Anybody, a variable-width display face. Width carries behaviour: wide in Explore, condensed in Focus, stretching in Surprise. Hanken Grotesk for reading.
+- **The mind**: a small character (bottom-left) that is the only persistent control. Its body and eyes change with the mode, it says out loud when it changes behaviour, and its nudges arrive as message bubbles.
+- **Continuity**: five wobbling colour shapes on one persistent canvas. They peek in at the start, roam in Explore, leave the room in Focus and swell to take over in Surprise.
 
 ## Behaviour
 
