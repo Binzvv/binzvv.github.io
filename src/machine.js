@@ -153,7 +153,7 @@ export function suggestion(state) {
       const p = PROJECTS.find((x) => x.id === circling[0])
       return {
         key: 'circling',
-        text: `You keep circling “${p.title}”. Shall I clear the room?`,
+        text: `You’ve opened ${p.title} ${circling[1]} times.`,
         cta: 'Focus on it',
         event: { type: 'CHOOSE', mode: 'focus', projectId: p.id },
       }
@@ -161,8 +161,8 @@ export function suggestion(state) {
     if (session.opens >= 5 && !off('many')) {
       return {
         key: 'many',
-        text: 'You’ve opened a lot. Want me to line them up, one at a time?',
-        cta: 'Switch to focus',
+        text: `You’ve opened ${session.opens} projects.`,
+        cta: 'See them one at a time',
         event: { type: 'CHOOSE', mode: 'focus', projectId: state.focusId },
       }
     }
@@ -171,8 +171,8 @@ export function suggestion(state) {
   if (status === 'focus' && session.skips >= 4 && !off('skipping')) {
     return {
       key: 'skipping',
-      text: 'Nothing is landing. Maybe you’d rather wander?',
-      cta: 'Let me explore',
+      text: `You’ve skipped ${session.skips} in a row without reading.`,
+      cta: 'Browse them in space',
       event: { type: 'CHOOSE', mode: 'explore' },
     }
   }
@@ -180,8 +180,8 @@ export function suggestion(state) {
   if (status === 'surprise' && session.interrupts >= 6 && !off('restless')) {
     return {
       key: 'restless',
-      text: 'You’re cutting me off. I can slow down and show one thing properly.',
-      cta: 'Calm down',
+      text: `You’ve skipped ${session.interrupts} scenes.`,
+      cta: 'Show one project properly',
       event: { type: 'CHOOSE', mode: 'focus', projectId: state.focusId },
     }
   }

@@ -1,51 +1,48 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion'
 import { DISCOVERIES, PROJECTS, byId } from '../content.js'
-import Sticker from '../components/Sticker.jsx'
+import { COLORS, FORM_COUNT, center, indexOf, mass, projectColor, useFormation } from '../formation.js'
 
 // SURPRISE — the site directs. There is no navigation: scenes play on their own
 // timer, you can only interrupt (tap) or pause (hold). Content priority is the
-// unexpected: remixed fragments, invented hybrids, and the site reflecting on you.
+// unexpected, but curated: recombined work, invented hybrids, and an honest
+// account of what the site has observed. Each scene is a new formation of the
+// same forms, so the screen is always visibly the same system rearranging.
 
 const SCENES = ['crop', 'stack', 'mirror', 'chase', 'hybrid', 'count', 'grid', 'quote']
+const NAMES = {
+  crop: 'Close-up',
+  stack: 'Sequence',
+  mirror: 'What I observed',
+  chase: 'Catch it',
+  hybrid: 'Recombination',
+  count: 'One number',
+  grid: 'Reorder',
+  quote: 'Fragment',
+}
 const ENTRANCES = {
-  wipe: {
-    initial: { clipPath: 'inset(0 100% 0 0)' },
-    animate: { clipPath: 'inset(0 0% 0 0)', transition: { duration: 0.9, ease: [0.7, 0, 0.2, 1] } },
-    exit: { clipPath: 'inset(0 0 0 100%)', transition: { duration: 0.7, ease: [0.7, 0, 0.2, 1] } },
+  rise: {
+    initial: { opacity: 0, y: 30, filter: 'blur(10px)' },
+    animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.2, 0.7, 0.1, 1] } },
+    exit: { opacity: 0, y: -20, filter: 'blur(10px)', transition: { duration: 0.4 } },
   },
-  iris: {
-    initial: { clipPath: 'circle(0% at 50% 50%)' },
-    animate: { clipPath: 'circle(150% at 50% 50%)', transition: { duration: 1.1, ease: [0.6, 0, 0.2, 1] } },
-    exit: { opacity: 0, scale: 1.4, transition: { duration: 0.5 } },
+  mask: {
+    initial: { clipPath: 'inset(100% 0 0 0)' },
+    animate: { clipPath: 'inset(0% 0 0 0)', transition: { duration: 0.9, ease: [0.7, 0, 0.2, 1] } },
+    exit: { opacity: 0, transition: { duration: 0.4 } },
   },
-  tilt: {
-    initial: { opacity: 0, rotate: -9, scale: 1.3 },
-    animate: { opacity: 1, rotate: 0, scale: 1, transition: { type: 'spring', stiffness: 70, damping: 14 } },
-    exit: { opacity: 0, rotate: 7, scale: 0.8, transition: { duration: 0.45 } },
+  focus: {
+    initial: { opacity: 0, scale: 1.04, filter: 'blur(14px)' },
+    animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: { duration: 0.9, ease: [0.2, 0.7, 0.1, 1] } },
+    exit: { opacity: 0, scale: 0.98, filter: 'blur(8px)', transition: { duration: 0.4 } },
   },
-  drop: {
-    initial: { y: '-100%' },
-    animate: { y: '0%', transition: { type: 'spring', stiffness: 60, damping: 15 } },
-    exit: { y: '100%', transition: { duration: 0.6, ease: [0.7, 0, 0.3, 1] } },
-  },
-  blink: {
-    initial: { opacity: 0 },
-    animate: { opacity: [0, 1, 0.2, 1, 0.6, 1], transition: { duration: 0.7, times: [0, 0.2, 0.35, 0.5, 0.7, 1] } },
-    exit: { opacity: 0, filter: 'blur(12px)', transition: { duration: 0.4 } },
+  slide: {
+    initial: { opacity: 0, x: 40 },
+    animate: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.2, 0.7, 0.1, 1] } },
+    exit: { opacity: 0, x: -30, transition: { duration: 0.35 } },
   },
 }
 const ENT_KEYS = Object.keys(ENTRANCES)
-// Each scene takes over the whole screen in a colour of its own.
-const GROUNDS = [
-  { bg: '#C6F24A', fg: '#151515' },
-  { bg: '#2B4BFF', fg: '#FFFFFF' },
-  { bg: '#FFA3D7', fg: '#151515' },
-  { bg: '#FFD23F', fg: '#151515' },
-  { bg: '#FF5A36', fg: '#151515' },
-  { bg: '#FFFFFF', fg: '#151515' },
-  { bg: '#151515', fg: '#FFFFFF' },
-]
 
 function rng(seed) {
   let s = (seed * 2654435761) % 2147483647 || 1
@@ -66,7 +63,6 @@ function direct(n, base, prevType) {
     b,
     r: r(),
     enter: ENT_KEYS[Math.floor(r() * ENT_KEYS.length)],
-    ground: GROUNDS[(n * 3 + Math.floor(r() * 4)) % GROUNDS.length],
     dur: type === 'chase' ? 11000 : type === 'mirror' ? 9000 : 6500,
   }
 }
@@ -81,10 +77,7 @@ export default function Surprise({ state, send }) {
   const advance = useCallback(
     (manual) => {
       if (manual) send({ type: 'INTERRUPT' })
-      setScene((s) => {
-        const next = direct(s.n + 1, base, s.type)
-        return next
-      })
+      setScene((s) => direct(s.n + 1, base, s.type))
     },
     [base, send],
   )
@@ -132,40 +125,34 @@ export default function Surprise({ state, send }) {
   return (
     <motion.section
       className="absolute inset-0 select-none overflow-hidden"
-      initial={{ opacity: 0, scale: 1.1 }}
-      animate={{ opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 60, damping: 14 } }}
-      exit={{ opacity: 0, clipPath: 'inset(50% 0 50% 0)', transition: { duration: 0.6, ease: [0.7, 0, 0.3, 1] } }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.6, delay: 0.4 } }}
+      exit={{ opacity: 0, transition: { duration: 0.35 } }}
       onPointerDown={down}
       onPointerUp={up}
       onPointerLeave={() => clearTimeout(hold.current)}
       onContextMenu={(e) => e.preventDefault()}
     >
       <AnimatePresence initial={false}>
-        <motion.div
-          key={scene.n}
-          className="absolute inset-0 overflow-hidden"
-          style={{ background: scene.ground.bg, color: scene.ground.fg }}
-          initial={ent.initial}
-          animate={ent.animate}
-          exit={ent.exit}
-        >
+        <motion.div key={scene.n} className="absolute inset-0" initial={ent.initial} animate={ent.animate} exit={ent.exit}>
+          <p className="absolute left-4 top-[4.5rem] text-[13px] text-quiet sm:left-8 sm:top-16">
+            <span className="tnum mr-2 text-ink">{String(state.memory.scenes).padStart(2, '0')}</span>
+            {NAMES[scene.type]}
+          </p>
           <Scene scene={scene} state={state} send={send} />
         </motion.div>
       </AnimatePresence>
 
       {/* the director's clock */}
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-30 h-1.5 bg-ink/15">
+      <div className="pointer-events-none fixed left-0 right-0 top-0 z-30 h-px bg-hair">
         <div
           key={scene.n}
           className="grow h-full bg-ink"
           style={{ '--dur': `${scene.dur}ms`, animationPlayState: paused ? 'paused' : 'running' }}
         />
       </div>
-      <p className="pointer-events-none fixed bottom-5 right-4 z-30 flex items-center gap-2 rounded-full bg-white py-1 pl-3 pr-1 text-sm font-bold text-ink ring-2 ring-ink sm:right-6">
-        <span className="tnum">Scene {state.memory.scenes}</span>
-        <span className={`rounded-full px-2.5 py-0.5 ${paused ? 'bg-tomato' : 'bg-ground'}`}>
-          {paused ? 'Paused' : <>Tap to skip<span className="hidden sm:inline"> · hold to pause</span></>}
-        </span>
+      <p className="pointer-events-none fixed inset-x-0 bottom-[4.8rem] z-30 text-center text-[13px] text-quiet sm:bottom-[5.8rem]">
+        {paused ? 'Paused. Release to continue.' : 'Tap to skip · hold to pause'}
       </p>
     </motion.section>
   )
@@ -183,115 +170,154 @@ function Scene({ scene, state, send }) {
   return <Quote {...scene} />
 }
 
-const big = 'font-display font-black uppercase'
+const hidden = (x, y, i) => ({ x, y, r: 0, c: i < 9 ? projectColor(i) : COLORS[i % 3] })
+const display = 'font-light leading-[0.98] tracking-display balance'
 
-function Crop({ a, r }) {
-  const word = a.title.split(' ')[0]
-  const rot = (r - 0.5) * 18
+// One project's form, very large, bleeding off the edge. Everything else merges into it.
+function Crop({ a }) {
+  const lead = indexOf[a.id]
+  useFormation(
+    (t, w, h) => {
+      const R = Math.max(w, h) * 0.3
+      return mass(w * (w < 640 ? 0.85 : 0.82), h * 0.52, R, t, lead, 0.6)
+    },
+    [],
+    { stiffness: 0.05, soft: 0.06 },
+  )
   return (
-    <div className="absolute inset-0">
-      <motion.h2
-        className={`w-wide absolute whitespace-nowrap leading-none ${big}`}
-        style={{ fontSize: '30vw', left: '-6vw', top: `${8 + r * 22}vh`, rotate: rot }}
-        initial={{ x: '6vw' }}
-        animate={{ x: '-10vw' }}
-        transition={{ duration: 7, ease: 'linear' }}
-      >
-        {word}
-      </motion.h2>
-      <motion.div
-        className="absolute right-[6vw] top-[18vh]"
-        initial={{ scale: 0.3, rotate: -40 }}
-        animate={{ scale: 1, rotate: 8 }}
-        transition={{ type: 'spring', stiffness: 90, damping: 9, delay: 0.3 }}
-      >
-        <Sticker id={a.id} size={Math.min(window.innerWidth * 0.42, 340)} />
-      </motion.div>
-      <p className="absolute bottom-20 left-5 max-w-md text-2xl font-bold leading-snug sm:left-10 sm:text-3xl">{a.line}</p>
+    <div className="absolute inset-0 flex flex-col justify-center px-4 pb-24 sm:px-8 lg:max-w-[55vw]">
+      <h2 className={`text-[clamp(2.8rem,6.5vw,6rem)] ${display}`}>{a.title}</h2>
+      <p className="mt-5 max-w-md text-[19px] leading-snug text-ink/75">{a.line}</p>
     </div>
   )
 }
 
+// All nine forms in a line. The order is new each time; one leads.
 function Stack({ a, r }) {
-  const hot = Math.floor(r * 7)
+  const order = useMemo(() => [...PROJECTS].sort((x, y) => ((x.seed * r * 97) % 1) - ((y.seed * r * 97) % 1)), [r])
+  const cells = useRef({})
+  useFormation(
+    (t, w, h) => {
+      const out = PROJECTS.map((p, i) => {
+        const c = center(cells.current[p.id]) ?? { x: w / 2, y: h / 2, w: 40 }
+        const k = p.id === a.id ? 0.55 : 0.32
+        return { x: c.x, y: c.y + Math.sin(t * 1.4 + i * 0.7) * 6, r: c.w * k, c: projectColor(i) }
+      })
+      const c = center(cells.current[a.id]) ?? { x: w / 2, y: h / 2 }
+      for (let i = 9; i < FORM_COUNT; i++) out.push(hidden(c.x, c.y, i))
+      return out
+    },
+    [],
+    { stiffness: 0.07, soft: 0.06 },
+  )
   return (
-    <div className="absolute inset-0 flex flex-col justify-center overflow-hidden">
-      {Array.from({ length: 7 }, (_, i) => (
-        <motion.p
-          key={i}
-          className={`whitespace-nowrap text-[12vw] leading-[0.84] sm:text-[9vw] ${big} ${i % 2 ? 'w-cond' : 'w-wide'} ${
-            i === hot ? 'bg-ink text-white' : ''
-          }`}
-          style={{ opacity: i === hot ? 1 : i % 2 ? 0.35 : 0.85 }}
-          initial={{ x: i % 2 ? '-30%' : '10%' }}
-          animate={{ x: i % 2 ? '0%' : '-20%' }}
-          transition={{ duration: 6.5, ease: 'linear' }}
-        >
-          {a.title} {a.title} {a.title}
-        </motion.p>
-      ))}
+    <div className="absolute inset-0 flex flex-col justify-center px-4 pb-24 sm:px-8">
+      <h2 className={`max-w-3xl text-[clamp(2rem,4.4vw,3.8rem)] ${display}`}>
+        Nine projects in a new order. This time {a.title} leads.
+      </h2>
+      <div className="mt-12 grid grid-cols-9 gap-1 sm:gap-3">
+        {order.map((p) => (
+          <div key={p.id} className="min-w-0">
+            <div ref={(el) => (cells.current[p.id] = el)} className="aspect-square w-full" />
+            <p className={`mt-3 hidden truncate text-[12px] lg:block ${p.id === a.id ? 'text-ink' : 'text-quiet'}`}>{p.title}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-// The site texts you about what it noticed. Built from the real memory.
+// The site's record of you, shown as data: each form is sized by how often you opened it.
 function Mirror({ memory }) {
+  const cells = useRef({})
+  const counts = memory.opened
+  const max = Math.max(1, ...Object.values(counts))
+  useFormation(
+    (t, w, h) => {
+      const out = PROJECTS.map((p, i) => {
+        const c = center(cells.current[p.id]) ?? { x: w / 2, y: h / 2, w: 40 }
+        const n = counts[p.id] ?? 0
+        return { x: c.x, y: c.y, r: c.w * (0.14 + 0.36 * (n / max)), c: n ? projectColor(i) : [0.75, 0.75, 0.77] }
+      })
+      for (let i = 9; i < FORM_COUNT; i++) out.push(hidden(w / 2, h / 2, i))
+      return out
+    },
+    [],
+    { stiffness: 0.06, soft: 0.06 },
+  )
   const lines = useMemo(() => {
-    const opened = Object.entries(memory.opened).sort((x, y) => y[1] - x[1])
-    const untouched = PROJECTS.filter((p) => !memory.opened[p.id])
-    const out = [`This is visit ${memory.visits}.`]
-    if (opened[0]) out.push(`You opened ${byId[opened[0][0]].title} ${opened[0][1] === 1 ? 'once' : opened[0][1] + ' times'}.`)
-    else out.push('You haven’t opened anything yet. Interesting.')
-    if (untouched.length) out.push(`You’ve never touched ${untouched[(memory.scenes * 7) % untouched.length].title}.`)
-    out.push(
-      memory.discoveries.length
-        ? `You found ${memory.discoveries.length} of my ${DISCOVERIES.length} secrets.`
-        : 'You haven’t found any of my secrets.',
-    )
-    out.push(memory.switches ? `You changed your mind ${memory.switches} times. So did I.` : 'You haven’t changed your mind yet. I have.')
+    const opened = Object.entries(counts).sort((x, y) => y[1] - x[1])
+    const untouched = PROJECTS.filter((p) => !counts[p.id])
+    const out = [`Visit ${memory.visits}.`]
+    out.push(opened[0] ? `Most opened: ${byId[opened[0][0]].title}, ${opened[0][1]}×.` : 'Nothing opened yet.')
+    if (untouched.length)
+      out.push(`Not opened: ${untouched.length} of ${PROJECTS.length}, including ${untouched[(memory.scenes * 7) % untouched.length].title}.`)
+    out.push(`Hidden notes found: ${memory.discoveries.length} of ${DISCOVERIES.length}.`)
+    out.push(`Changes of intent: ${memory.switches}.`)
     return out
-  }, [memory])
+  }, [counts, memory])
 
   return (
-    <div className="absolute inset-0 flex flex-col justify-center gap-2 px-5 pb-16 sm:px-16">
-      <p className={`w-wide mb-3 text-[clamp(1.6rem,4vw,3rem)] leading-none ${big}`}>Things I noticed</p>
-      {lines.map((l, i) => (
-        <motion.p
-          key={i}
-          className="w-fit max-w-[min(36rem,85vw)] rounded-[22px] rounded-bl-md bg-white px-4 py-2.5 text-[clamp(1.05rem,2.2vw,1.5rem)] font-bold leading-snug text-ink ring-2 ring-ink"
-          initial={{ opacity: 0, scale: 0.5, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          style={{ originX: 0, originY: 1 }}
-          transition={{ delay: 0.3 + i * 1.1, type: 'spring', stiffness: 300, damping: 20 }}
-        >
-          {l}
-        </motion.p>
-      ))}
+    <div className="absolute inset-0 flex flex-col justify-center gap-10 px-4 pb-24 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="max-w-md">
+        <h2 className={`text-[clamp(2rem,4vw,3.4rem)] ${display}`}>Only what I could observe.</h2>
+        <ul className="mt-6 space-y-2 text-[16px]">
+          {lines.map((l, i) => (
+            <motion.li key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.5 }}>
+              {l}
+            </motion.li>
+          ))}
+        </ul>
+      </div>
+      <div className="grid grid-cols-9 gap-1 sm:gap-2 lg:w-[48vw]">
+        {PROJECTS.map((p) => (
+          <div key={p.id} className="min-w-0 text-center">
+            <div ref={(el) => (cells.current[p.id] = el)} className="aspect-square w-full" />
+            <p className="tnum mt-2 text-[12px] text-quiet">{counts[p.id] ?? 0}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
+// A project that won't sit still. Its form follows the label; catching it yields a hidden note.
 function Chase({ a, state, send }) {
   const box = useRef(null)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  const sx = useSpring(x, { stiffness: 140, damping: 14 })
-  const sy = useSpring(y, { stiffness: 140, damping: 14 })
+  const sx = useSpring(x, { stiffness: 140, damping: 16 })
+  const sy = useSpring(y, { stiffness: 140, damping: 16 })
   const [caught, setCaught] = useState(null)
+  const lead = indexOf[a.id]
+
+  useFormation(
+    (t, w, h) => {
+      const c = center(box.current) ?? { x: w / 2, y: h / 2 }
+      const vx = sx.getVelocity()
+      const vy = sy.getVelocity()
+      return Array.from({ length: FORM_COUNT }, (_, i) => {
+        if (i === lead) return { x: c.x, y: c.y, r: 64, c: projectColor(i) }
+        // the others trail behind it, like a wake
+        const k = (i % 6) + 1
+        return { x: c.x - vx * 0.012 * k, y: c.y - vy * 0.012 * k, r: Math.max(8, 32 - k * 3), c: projectColor(i % 9) }
+      })
+    },
+    [],
+    { stiffness: 0.12, soft: 0.06 },
+  )
 
   const flee = (e) => {
     if (caught || !box.current) return
     const b = box.current.getBoundingClientRect()
-    const cx = b.left + b.width / 2
-    const cy = b.top + b.height / 2
-    const dx = cx - e.clientX
-    const dy = cy - e.clientY
-    const d = Math.hypot(dx, dy)
-    if (d < 220) {
-      const W = window.innerWidth * 0.36
-      const H = window.innerHeight * 0.3
-      x.set(Math.max(-W, Math.min(W, x.get() + (dx / d) * 160)))
-      y.set(Math.max(-H, Math.min(H, y.get() + (dy / d) * 120)))
+    const dx = b.left + b.width / 2 - e.clientX
+    const dy = b.top + b.height / 2 - e.clientY
+    const d = Math.hypot(dx, dy) || 1
+    if (d < 200) {
+      const W = window.innerWidth * 0.34
+      const H = window.innerHeight * 0.28
+      x.set(Math.max(-W, Math.min(W, x.get() + (dx / d) * 150)))
+      y.set(Math.max(-H, Math.min(H, y.get() + (dy / d) * 110)))
     }
   }
 
@@ -305,9 +331,9 @@ function Chase({ a, state, send }) {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center" onPointerMove={flee}>
-      <p className={`w-wide absolute left-5 top-20 text-[clamp(2rem,6vw,4.5rem)] leading-none sm:left-10 ${big}`}>
-        {caught ? 'Got me.' : 'Catch it.'}
-      </p>
+      <h2 className={`absolute left-4 top-24 max-w-sm text-[clamp(1.8rem,3.4vw,2.8rem)] sm:left-8 sm:top-28 ${display}`}>
+        {caught ? 'Caught. Here is a hidden note.' : `Catch ${a.title}.`}
+      </h2>
       <motion.button
         ref={box}
         data-own-click
@@ -315,20 +341,18 @@ function Chase({ a, state, send }) {
         onPointerDown={(e) => e.stopPropagation()}
         onPointerUp={(e) => e.stopPropagation()}
         onClick={catchIt}
-        aria-label={`Catch ${a.title}`}
+        className="relative z-10 rounded-full border border-hair bg-white/80 px-4 py-2 text-[15px] font-medium backdrop-blur"
       >
-        <motion.div animate={caught ? { rotate: 0 } : { rotate: [-8, 8, -8] }} transition={{ duration: 0.6, repeat: caught ? 0 : Infinity }}>
-          <Sticker id={a.id} size={window.innerWidth < 640 ? 140 : 190} />
-        </motion.div>
+        {caught ? 'Caught' : a.title}
       </motion.button>
       <AnimatePresence>
         {caught && (
           <motion.p
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="absolute bottom-24 max-w-md rounded-[22px] bg-white px-5 py-3 text-center text-xl font-bold text-ink ring-2 ring-ink"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute bottom-32 max-w-md px-6 text-center text-[19px] leading-snug"
           >
-            Secret: {caught}
+            {caught}
           </motion.p>
         )}
       </AnimatePresence>
@@ -336,100 +360,135 @@ function Chase({ a, state, send }) {
   )
 }
 
+// Two projects' forms approach and merge into a third that doesn't exist yet.
 function Hybrid({ a, b }) {
+  const ia = indexOf[a.id]
+  const ib = indexOf[b.id]
+  const start = useRef(null)
+  useFormation(
+    (t, w, h) => {
+      if (start.current === null) start.current = t
+      const k = Math.min(1, (t - start.current) / 3.2)
+      const e = 1 - (1 - k) ** 3
+      const cx = w < 1024 ? w / 2 : w * 0.7
+      const cy = w < 1024 ? h * 0.3 : h * 0.48
+      const R = Math.min(w, h) * 0.13
+      const gap = R * 2.6 * (1 - e)
+      return Array.from({ length: FORM_COUNT }, (_, i) => {
+        if (i === ia) return { x: cx - gap, y: cy, r: R, c: projectColor(i) }
+        if (i === ib) return { x: cx + gap, y: cy, r: R, c: projectColor(i) }
+        if (i === 9) return { x: cx, y: cy, r: R * 1.2 * e, c: COLORS[1] }
+        return hidden(cx, cy, i)
+      })
+    },
+    [],
+    { stiffness: 0.07, soft: 0.07 },
+  )
   const name = `${a.title.split(' ')[0]} ${b.title.split(' ').slice(-1)[0]}`
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center px-5 pb-16 text-center">
-      <div className="relative mb-4 h-[34vh] w-[min(80vw,30rem)]">
-        <motion.div
-          className="absolute left-0 top-0"
-          initial={{ x: -200, rotate: -30 }}
-          animate={{ x: 0, rotate: -10 }}
-          transition={{ type: 'spring', stiffness: 70, damping: 10 }}
-        >
-          <Sticker id={a.id} size={Math.min(window.innerHeight * 0.3, 240)} />
-        </motion.div>
-        <motion.div
-          className="absolute bottom-0 right-0"
-          initial={{ x: 200, rotate: 30 }}
-          animate={{ x: 0, rotate: 12 }}
-          transition={{ type: 'spring', stiffness: 70, damping: 10 }}
-        >
-          <Sticker id={b.id} size={Math.min(window.innerHeight * 0.3, 240)} />
-        </motion.div>
-      </div>
-      <p className={`w-wide text-[clamp(2.4rem,8vw,7rem)] leading-[0.85] ${big}`}>{name}</p>
-      <p className="mt-3 max-w-md text-lg font-bold">
-        {a.kind} meets {b.kind.toLowerCase()}. A project that doesn’t exist yet.
+    <div className="absolute inset-0 flex flex-col justify-end px-4 pb-32 sm:px-8 lg:max-w-[50vw] lg:justify-center lg:pb-24">
+      <p className="text-[15px] text-quiet">
+        {a.title} + {b.title}
+      </p>
+      <h2 className={`mt-3 text-[clamp(2.8rem,6.5vw,6rem)] ${display}`}>{name}</h2>
+      <p className="mt-5 max-w-md text-[17px] leading-snug text-ink/75">
+        {a.kind} meets {b.kind.toLowerCase()}. A project that doesn’t exist yet, assembled from two that do.
       </p>
     </div>
   )
 }
 
 function Count({ a }) {
+  const lead = indexOf[a.id]
+  useFormation(
+    (t, w, h) => mass(w < 1024 ? w * 0.7 : w * 0.72, h * (w < 1024 ? 0.3 : 0.5), Math.min(w, h) * 0.18, t, lead, 0.5),
+    [],
+    { stiffness: 0.05, soft: 0.06 },
+  )
   return (
-    <div className="absolute inset-0 flex flex-col items-start justify-center px-5 pb-16 sm:px-16">
+    <div className="absolute inset-0 flex flex-col justify-end px-4 pb-32 sm:px-8 lg:justify-center lg:pb-24">
       <motion.p
-        className={`tnum text-[clamp(5rem,24vw,22rem)] leading-[0.8] ${big}`}
-        initial={{ fontStretch: '50%', opacity: 0 }}
-        animate={{ fontStretch: '150%', opacity: 1 }}
-        transition={{ duration: 1.6, ease: [0.2, 0.7, 0.1, 1] }}
+        className="tnum text-[clamp(5rem,16vw,14rem)] font-light leading-[0.85] tracking-display"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.1, ease: [0.2, 0.7, 0.1, 1] }}
       >
         {a.stat[0]}
       </motion.p>
-      <p className="mt-4 max-w-lg text-2xl font-bold sm:text-3xl">{a.stat[1]}</p>
-      <p className="mt-2 text-lg font-semibold opacity-70">from {a.title}</p>
+      <p className="mt-4 max-w-md text-[21px] leading-snug">{a.stat[1]}</p>
+      <p className="mt-2 text-[14px] text-quiet">{a.title}</p>
     </div>
   )
 }
 
+// Nine seats; the forms keep swapping places around the one being highlighted.
 function Grid({ a }) {
-  // Nine seats; the stickers keep swapping. Positions are explicit so the
-  // shuffle stays legible even while the scene itself is mid-transition.
   const [order, setOrder] = useState(() => PROJECTS.map((_, i) => i))
+  const cells = useRef({})
   useEffect(() => {
-    const t = setInterval(() => setOrder((o) => [...o].sort(() => Math.random() - 0.5)), 1300)
+    const t = setInterval(() => setOrder((o) => [...o].sort(() => Math.random() - 0.5)), 1400)
     return () => clearInterval(t)
   }, [])
-  const small = window.innerWidth < 640
-  const size = small ? 90 : 150
-  const gap = small ? 110 : 180
+  useFormation(
+    (t, w, h) => {
+      const out = PROJECTS.map((p, i) => {
+        const c = center(cells.current[p.id]) ?? { x: w / 2, y: h / 2, w: 60 }
+        return { x: c.x, y: c.y, r: c.w * (p.id === a.id ? 0.42 : 0.26), c: projectColor(i) }
+      })
+      for (let i = 9; i < FORM_COUNT; i++) out.push(hidden(w / 2, h / 2, i))
+      return out
+    },
+    [],
+    { stiffness: 0.08, soft: 0.06 },
+  )
+  const gap = Math.min(window.innerWidth * 0.26, window.innerHeight * 0.18, 170)
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center pb-10">
+    <div className="absolute inset-0 flex flex-col items-center justify-center pb-24">
       <div className="relative" style={{ width: gap * 3, height: gap * 3 }}>
         {PROJECTS.map((p, i) => {
           const slot = order[i]
           return (
             <motion.div
               key={p.id}
-              className="absolute left-0 top-0 flex flex-col items-center"
-              style={{ width: gap, zIndex: p.id === a.id ? 2 : 1 }}
+              className="absolute left-0 top-0"
+              style={{ width: gap, height: gap }}
               initial={false}
-              animate={{ x: (slot % 3) * gap, y: Math.floor(slot / 3) * gap, scale: p.id === a.id ? 1.15 : 0.85 }}
-              transition={{ type: 'spring', stiffness: 120, damping: 14 }}
+              animate={{ x: (slot % 3) * gap, y: Math.floor(slot / 3) * gap }}
+              transition={{ type: 'spring', stiffness: 90, damping: 16 }}
             >
-              <Sticker id={p.id} size={size} tilt={(i % 3) * 8 - 8} />
+              <div ref={(el) => (cells.current[p.id] = el)} className="h-full w-full" />
             </motion.div>
           )
         })}
       </div>
-      <p className={`w-wide mt-2 text-[clamp(1.4rem,4vw,2.6rem)] ${big}`}>{a.title}</p>
+      <p className="mt-6 text-[19px]">{a.title}</p>
+      <p className="mt-1 text-[14px] text-quiet">{a.kind}</p>
     </div>
   )
 }
 
+// A single line from the work, with the forms orbiting it.
 function Quote({ a }) {
+  useFormation(
+    (t, w, h) => {
+      const R = Math.min(w, h) * 0.42
+      return Array.from({ length: FORM_COUNT }, (_, i) => {
+        const ang = (i / FORM_COUNT) * Math.PI * 2 + t * 0.12
+        return {
+          x: w / 2 + Math.cos(ang) * R * (w > h ? 1.5 : 1),
+          y: h / 2 + Math.sin(ang) * R,
+          r: Math.min(w, h) * 0.035,
+          c: i < 9 ? projectColor(i) : COLORS[0],
+        }
+      })
+    },
+    [],
+    { stiffness: 0.04, soft: 0.06 },
+  )
   return (
-    <div className="absolute inset-0 flex items-center justify-center px-5 pb-16">
-      <motion.blockquote
-        className="max-w-4xl rounded-[40px] rounded-bl-lg bg-white px-7 py-8 text-ink ring-[3px] ring-ink sm:px-12 sm:py-10"
-        initial={{ scale: 0.4, rotate: -6 }}
-        animate={{ scale: 1, rotate: -2 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 11 }}
-      >
-        <p className={`w-cond text-[clamp(2.6rem,8vw,7rem)] leading-[0.88] ${big}`}>“{a.quote}”</p>
-        <footer className="mt-4 text-lg font-bold text-mute">from {a.title}</footer>
-      </motion.blockquote>
+    <div className="absolute inset-0 flex flex-col items-center justify-center px-6 pb-24 text-center">
+      <blockquote className={`max-w-4xl text-[clamp(2.2rem,5vw,4.6rem)] italic ${display}`}>“{a.quote}”</blockquote>
+      <p className="mt-6 text-[14px] text-quiet">{a.title}</p>
     </div>
   )
 }

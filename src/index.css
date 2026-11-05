@@ -6,44 +6,31 @@
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #E4E4DF;
-  color: #151515;
+  background: #F2F2F0;
+  color: #0D0D10;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
-  font-family: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  font-family: Geist, ui-sans-serif, system-ui, 'Helvetica Neue', Arial, sans-serif;
+  font-feature-settings: 'ss01';
 }
-::selection { background: #C6F24A; color: #151515; }
+::selection { background: #CCF54A; color: #0D0D10; }
 button { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 3px solid #2B4BFF; outline-offset: 4px; border-radius: 6px; }
+:focus-visible { outline: 2px solid #3640FF; outline-offset: 3px; border-radius: 4px; }
 
 @layer utilities {
-  /* Anybody is variable in width: width is used as behaviour, not decoration. */
-  .w-cond { font-stretch: 62%; }
-  .w-norm { font-stretch: 100%; }
-  .w-wide { font-stretch: 140%; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
   .tnum { font-variant-numeric: tabular-nums; }
+  .balance { text-wrap: balance; }
 }
-
-/* Die-cut sticker: the art is drawn twice, first as a fat white silhouette. */
-.sticker .sil * { fill: #fff !important; stroke: #fff !important; stroke-width: 18px; stroke-linejoin: round; }
-.sticker { filter: drop-shadow(0 6px 0 rgba(21, 21, 21, 0.16)); overflow: visible; }
-
-@keyframes float {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-  33% { transform: translate3d(6px, -10px, 0) rotate(1.4deg); }
-  66% { transform: translate3d(-5px, 6px, 0) rotate(-1.2deg); }
-}
-.float { animation: float var(--dur, 9s) ease-in-out var(--delay, 0s) infinite; }
 
 @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .grow { transform-origin: left; animation: grow var(--dur, 6s) linear forwards; }
 
-@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
-.blink { transform-box: fill-box; transform-origin: center; animation: blink 4.2s infinite; }
+@keyframes pulse-dot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.8); opacity: 0.35; } }
+.pulse-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .float, .blink { animation: none; }
+  .pulse-dot { animation: none; }
 }

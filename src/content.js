@@ -5,6 +5,7 @@
 export const PROJECTS = [
   {
     id: 'tidal',
+    themes: ['time', 'chance', 'archives'],
     title: 'Tidal Archive',
     kind: 'Interactive installation',
     year: 2025,
@@ -17,6 +18,7 @@ export const PROJECTS = [
   },
   {
     id: 'slowmail',
+    themes: ['time', 'restraint', 'letters'],
     title: 'Slow Mail',
     kind: 'Service design',
     year: 2024,
@@ -29,6 +31,7 @@ export const PROJECTS = [
   },
   {
     id: 'orchard',
+    themes: ['time', 'attention', 'growth'],
     title: 'Glass Orchard',
     kind: 'Spatial web',
     year: 2025,
@@ -41,6 +44,7 @@ export const PROJECTS = [
   },
   {
     id: 'weather',
+    themes: ['chance', 'systems', 'identity'],
     title: 'Untitled Weather',
     kind: 'Generative identity',
     year: 2023,
@@ -53,6 +57,7 @@ export const PROJECTS = [
   },
   {
     id: 'fieldnotes',
+    themes: ['machines', 'letters', 'publishing'],
     title: 'Field Notes for Machines',
     kind: 'Editorial',
     year: 2024,
@@ -65,6 +70,7 @@ export const PROJECTS = [
   },
   {
     id: 'smallhours',
+    themes: ['time', 'attention', 'radio'],
     title: 'Small Hours',
     kind: 'Radio / App',
     year: 2022,
@@ -77,6 +83,7 @@ export const PROJECTS = [
   },
   {
     id: 'paperbodies',
+    themes: ['restraint', 'objects', 'publishing'],
     title: 'Paper Bodies',
     kind: 'Exhibition',
     year: 2023,
@@ -89,6 +96,7 @@ export const PROJECTS = [
   },
   {
     id: 'commonground',
+    themes: ['public', 'chance', 'growth'],
     title: 'Common Ground',
     kind: 'Civic platform',
     year: 2025,
@@ -101,6 +109,7 @@ export const PROJECTS = [
   },
   {
     id: 'echo',
+    themes: ['archives', 'attention', 'sound'],
     title: 'Echo Index',
     kind: 'Sound research',
     year: 2024,
@@ -128,21 +137,31 @@ export const MODES = {
   explore: {
     word: 'Explore',
     verb: 'exploring',
-    promise: 'Playful, spatial, unpredictable. Wander a field of work; things drift, hide and react.',
-    rules: [['navigation', 'spatial, free'], ['order', 'none'], ['content', 'breadth + hidden things'], ['you', 'in control']],
+    promise: 'The interface opens up. Work spreads out in space and connections appear as you move.',
+    rules: [['Navigation', 'Spatial and free'], ['Order', 'None. Connections appear as you move'], ['Priority', 'Breadth and hidden notes'], ['Control', 'Yours']],
   },
   focus: {
     word: 'Focus',
     verb: 'focusing',
-    promise: 'Everything unnecessary disappears. One project, one clear action, no noise.',
-    rules: [['navigation', 'linear, one at a time'], ['order', 'ranked by your attention'], ['content', 'depth'], ['you', 'in control, quietly']],
+    promise: 'The interface reduces to one composition: one project, one clear action.',
+    rules: [['Navigation', 'Linear, one at a time'], ['Order', 'Ranked by what you opened'], ['Priority', 'Depth and one action'], ['Control', 'Yours, quietly']],
   },
   surprise: {
     word: 'Surprise me',
     verb: 'being surprised',
-    promise: 'The site takes creative control. You can interrupt it, but you can’t steer it.',
-    rules: [['navigation', 'none'], ['order', 'the site decides'], ['content', 'remixed, invented, about you'], ['you', 'along for the ride']],
+    promise: 'The site curates a sequence of recombined work. You can skip or pause, not steer.',
+    rules: [['Navigation', 'None. Scenes play in sequence'], ['Order', 'Curated by the site'], ['Priority', 'Recombined work and your own history'], ['Control', 'Skip or pause']],
   },
 }
 
 export const byId = Object.fromEntries(PROJECTS.map((p) => [p.id, p]))
+
+// Projects that share a theme with `id`, strongest first. Explore draws these as connections.
+export function related(id) {
+  const a = byId[id]
+  return PROJECTS.filter((p) => p.id !== id)
+    .map((p) => ({ p, shared: p.themes.filter((t) => a.themes.includes(t)) }))
+    .filter((r) => r.shared.length)
+    .sort((x, y) => y.shared.length - x.shared.length)
+    .slice(0, 3)
+}

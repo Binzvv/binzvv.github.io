@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PROJECTS } from '../content.js'
-import Sticker from '../components/Sticker.jsx'
+import { center, indexOf, mass, useFormation } from '../formation.js'
 
 // FOCUS — navigation is linear and singular. One project, one action.
 // The order is decided by behaviour: what you lingered on in Explore comes
@@ -25,6 +25,21 @@ export default function Focus({ state, send }) {
   const shownAt = useRef(Date.now())
   const readBefore = useRef(state.memory.read).current
   const p = order[i]
+  const anchor = useRef(null)
+  const live = useRef({})
+  live.current = { lead: indexOf[p.id], reading }
+
+  // Every form gathers into one calm mass. The current project's form leads it;
+  // moving to the next project visibly re-sorts the mass around a new lead.
+  useFormation(
+    (t, w, h) => {
+      const a = center(anchor.current) ?? { x: w * 0.27, y: h * 0.5, w: 400, h: 400 }
+      const R = Math.min(a.w, a.h) * (live.current.reading ? 0.22 : 0.27)
+      return mass(a.x, a.y, R, t, live.current.lead, 0.35)
+    },
+    [],
+    { stiffness: 0.035, soft: 0.05 },
+  )
 
   useEffect(() => {
     send({ type: 'SHOW', id: p.id })
@@ -62,20 +77,20 @@ export default function Focus({ state, send }) {
   const why = readBefore.includes(p.id)
     ? 'You have read this before.'
     : opened > 0
-      ? `Here because you opened it ${opened === 1 ? 'once' : opened + ' times'} while wandering.`
+      ? `Ranked up: you opened it ${opened === 1 ? 'once' : opened + ' times'}.`
       : i === 0
-        ? 'Start here.'
+        ? 'Default order. Open projects in Explore to change it.'
         : null
 
   return (
     <motion.section
-      className="absolute inset-0 flex flex-col overflow-y-auto no-scrollbar"
+      className="absolute inset-0 overflow-y-auto no-scrollbar"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { duration: 0.6 } }}
-      exit={{ opacity: 0, y: -40, transition: { duration: 0.45, ease: 'easeIn' } }}
+      animate={{ opacity: 1, transition: { duration: 0.6, delay: 0.4 } }}
+      exit={{ opacity: 0, transition: { duration: 0.35 } }}
     >
-      {/* progress: the only chrome */}
-      <div className="fixed left-0 right-0 top-0 z-20 h-1.5 bg-ink/10">
+      {/* progress: the only chrome besides the switch */}
+      <div className="fixed left-0 right-0 top-0 z-20 h-px bg-hair">
         <motion.div
           className="h-full origin-left bg-ink"
           animate={{ scaleX: (i + 1) / order.length }}
@@ -84,78 +99,72 @@ export default function Focus({ state, send }) {
       </div>
 
       <motion.div
-        className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center px-5 pb-28 pt-14 sm:px-10"
+        className="mx-auto grid min-h-full w-full max-w-7xl items-center gap-2 px-5 pb-28 pt-20 sm:px-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10"
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.18}
+        dragElastic={0.15}
         onDragEnd={(_, info) => {
           if (info.offset.x < -70) go(1)
           else if (info.offset.x > 70) go(-1)
         }}
       >
+        <div ref={anchor} className="h-[24vh] lg:h-[60vh]" aria-hidden="true" />
+
         <AnimatePresence mode="popLayout" initial={false} custom={dir}>
           <motion.div
             key={p.id}
             custom={dir}
-            initial={{ opacity: 0, x: 80 * dir }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -80 * dir, transition: { duration: 0.25 } }}
-            transition={{ type: 'spring', stiffness: 120, damping: 22 }}
-            className="grid items-center gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-12"
+            initial={{ opacity: 0, y: 24 * dir, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -24 * dir, filter: 'blur(8px)', transition: { duration: 0.25 } }}
+            transition={{ duration: 0.6, ease: [0.2, 0.7, 0.1, 1] }}
+            className="min-w-0"
           >
-            <motion.div layoutId={`art-${p.id}`} className="w-fit">
-              <Sticker id={p.id} size={reading ? 150 : 230} tilt={0} className="transition-[width,height] duration-500" />
-            </motion.div>
+            <p className="tnum text-[13px] text-quiet">
+              {String(i + 1).padStart(2, '0')} / {String(order.length).padStart(2, '0')}
+            </p>
+            <motion.h1
+              layoutId={`title-${p.id}`}
+              className="balance mt-3 text-[clamp(2.8rem,6.5vw,6.2rem)] font-light leading-[0.98] tracking-display"
+            >
+              {p.title}
+            </motion.h1>
+            <p className="mt-5 max-w-2xl text-[clamp(1.2rem,1.8vw,1.55rem)] leading-snug text-ink/80">{p.line}</p>
 
-            <div className="min-w-0">
-              <p className="tnum text-[15px] font-bold text-mute">
-                {i + 1} of {order.length}
-              </p>
-              <motion.h1
-                layoutId={`title-${p.id}`}
-                className="w-cond mt-2 font-display text-[clamp(3.4rem,11vw,9.5rem)] font-black uppercase leading-[0.82] [text-wrap:balance]"
-              >
-                {p.title}
-              </motion.h1>
-              <p className="mt-4 max-w-2xl text-2xl font-bold leading-snug sm:text-[1.7rem]">{p.line}</p>
-
-              <AnimatePresence initial={false}>
-                {reading && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="max-w-[60ch] pt-5">
-                      <p className="text-[15px] font-bold text-mute">
-                        {p.kind}, {p.year}
-                      </p>
-                      <p className="mt-2 text-lg leading-relaxed">{p.body}</p>
-                      <p className="mt-4 inline-block rounded-2xl rounded-tl-sm bg-white px-4 py-2 text-lg font-bold ring-2 ring-ink">
-                        “{p.quote}”
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <div className="mt-7 flex flex-wrap items-center gap-4">
-                <button
-                  onClick={primary}
-                  className="group inline-flex items-center gap-3 rounded-full bg-ink px-7 py-4 font-display text-xl font-extrabold text-white shadow-[0_5px_0_rgba(21,21,21,0.2)] hover:bg-cobalt sm:text-2xl"
+            <AnimatePresence initial={false}>
+              {reading && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
                 >
-                  {reading ? 'Next project' : 'Read it'}
-                  <span className="transition-transform group-hover:translate-x-1">{reading ? '→' : '↓'}</span>
-                </button>
-                {why && <p className="text-[15px] font-semibold text-mute">{why}</p>}
-              </div>
+                  <div className="max-w-[60ch] border-l border-hair pl-5 pt-1">
+                    <p className="mt-6 text-[13px] text-quiet">
+                      {p.kind} · {p.year}
+                    </p>
+                    <p className="mt-2 text-[17px] leading-relaxed text-ink/75">{p.body}</p>
+                    <p className="mt-4 text-[17px] italic text-ink">“{p.quote}”</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="mt-9 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <button
+                onClick={primary}
+                className="group inline-flex items-center gap-3 rounded-full bg-ink px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-ultra"
+              >
+                {reading ? 'Next project' : 'Read it'}
+                <span className="transition-transform group-hover:translate-x-0.5">{reading ? '→' : '↓'}</span>
+              </button>
+              {why && <p className="text-[13px] text-quiet">{why}</p>}
             </div>
           </motion.div>
         </AnimatePresence>
       </motion.div>
 
-      <p className="pointer-events-none fixed bottom-6 right-6 hidden text-sm font-semibold text-mute sm:block">← → to move · Enter to read</p>
+      <p className="pointer-events-none fixed bottom-7 right-8 hidden text-[13px] text-quiet lg:block">← → to move · Enter to read</p>
     </motion.section>
   )
 }

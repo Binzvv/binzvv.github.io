@@ -4,19 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        ground: '#E4E4DF', // concrete, not paper
-        ink: '#151515',
-        mute: '#5E5E59',
-        cobalt: '#2B4BFF',
-        tomato: '#FF5A36',
-        lime: '#C6F24A',
-        pink: '#FFA3D7',
-        sun: '#FFD23F',
+        ground: '#F2F2F0',
+        ink: '#0D0D10',
+        quiet: '#6B6B72',
+        hair: 'rgba(13,13,16,0.1)',
+        ultra: '#3640FF',
+        lime: '#CCF54A',
+        coral: '#FF8466',
       },
       fontFamily: {
-        display: ['Anybody', 'Arial Black', 'Impact', 'sans-serif'],
-        sans: ['"Hanken Grotesk"', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['Geist', 'ui-sans-serif', 'system-ui', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
+      letterSpacing: { display: '-0.04em', snug: '-0.02em' },
     },
   },
   plugins: [],

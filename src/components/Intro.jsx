@@ -1,35 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MODES, byId } from '../content.js'
+import { COLORS, FORM_COUNT, center, mass, projectColor, useFormation } from '../formation.js'
 
 const ORDER = ['explore', 'focus', 'surprise']
-
-// The three intents are physical objects: drag them about, tap one to commit.
-// Each one's shape and type already behaves like the mode it stands for.
-const CHOICE = {
-  explore: {
-    cls: 'bg-lime w-[15.5rem] h-[11rem] sm:w-[19rem] sm:h-[13rem]',
-    radius: '58% 42% 55% 45% / 48% 60% 40% 52%',
-    tilt: -7,
-    word: 'w-wide text-[2.1rem] sm:text-[2.6rem]',
-    sub: 'wander around',
-  },
-  focus: {
-    cls: 'bg-white w-[12rem] h-[9.5rem] sm:w-[14rem] sm:h-[11rem] ring-[3px] ring-ink',
-    radius: '14px',
-    tilt: 3,
-    word: 'w-cond text-[3.2rem] sm:text-[4rem]',
-    sub: 'one thing at a time',
-  },
-  surprise: {
-    cls: 'bg-tomato w-[14rem] h-[14rem] sm:w-[17rem] sm:h-[17rem]',
-    radius: '0',
-    tilt: 9,
-    clip: 'polygon(50% 0%,61% 18%,82% 8%,80% 30%,100% 36%,86% 52%,100% 68%,79% 72%,80% 94%,61% 84%,50% 100%,39% 84%,18% 93%,20% 72%,0% 66%,14% 50%,0% 34%,21% 30%,18% 7%,39% 18%)',
-    word: 'w-norm whitespace-pre-line text-[1.9rem] sm:text-[2.3rem]',
-    sub: 'let the site drive',
-  },
-}
+const INTENT = { explore: 9, focus: 10, surprise: 11 }
+const INTENT_COLOR = { explore: COLORS[1], focus: COLORS[0], surprise: COLORS[2] }
 
 function ago(ts) {
   if (!ts) return ''
@@ -40,18 +16,57 @@ function ago(ts) {
   return `${Math.round(s / 86400)} days ago`
 }
 
-const Hi = ({ children }) => <span className="rounded-md bg-lime px-1.5 font-bold text-ink">{children}</span>
+// Formations for the question. At rest: three forms, one per intent, each
+// holding a share of the work. Hovering an intent previews how the same forms
+// would behave in it.
+function introFormation(anchor, previewRef) {
+  return (t, w, h) => {
+    const a = center(anchor.current) ?? { x: w * 0.72, y: h * 0.45, w: 400, h: 400 }
+    const R = Math.min(a.w, a.h) * 0.2
+    const m = previewRef.current
+    const out = []
+    if (m === 'explore') {
+      // opens up: everything separates and spreads out
+      for (let i = 0; i < FORM_COUNT; i++) {
+        const ang = i * 2.39996 + t * 0.12
+        const d = R * (0.9 + (i % 4) * 0.45)
+        out.push({ x: a.x + Math.cos(ang) * d * 1.2, y: a.y + Math.sin(ang) * d, r: R * (i < 9 ? 0.36 : 0.18), c: i < 9 ? projectColor(i) : COLORS[1] })
+      }
+      return out
+    }
+    if (m === 'focus') return mass(a.x, a.y, R * 1.35, t, INTENT.focus, 0.4).map((f, i) => (i === INTENT.focus ? { ...f, c: COLORS[0] } : f))
+    if (m === 'surprise') {
+      // a curated ring that rotates as one
+      for (let i = 0; i < FORM_COUNT; i++) {
+        const ang = (i / FORM_COUNT) * Math.PI * 2 + t * 0.6
+        const d = R * 1.6
+        out.push({ x: a.x + Math.cos(ang) * d, y: a.y + Math.sin(ang) * d * 0.8, r: R * (0.26 + 0.14 * Math.sin(t * 2 + i)), c: i % 2 ? COLORS[2] : COLORS[0] })
+      }
+      return out
+    }
+    // rest: three intent forms, each carrying three projects inside it
+    const spots = ORDER.map((k, j) => {
+      const ang = -Math.PI / 2 + (j * Math.PI * 2) / 3 + Math.sin(t * 0.2) * 0.2
+      return { k, x: a.x + Math.cos(ang) * R * 1.15, y: a.y + Math.sin(ang) * R * 1.0 }
+    })
+    for (let i = 0; i < 9; i++) {
+      const s = spots[i % 3]
+      const ang = t * 0.3 + i
+      out.push({ x: s.x + Math.cos(ang) * R * 0.3, y: s.y + Math.sin(ang) * R * 0.3, r: R * 0.42, c: projectColor(i) })
+    }
+    spots.forEach((s) => out.push({ x: s.x, y: s.y, r: R * 0.66, c: INTENT_COLOR[s.k] }))
+    return out
+  }
+}
 
-export default function Intro({ state, send, onPreview }) {
+export default function Intro({ state, send, preview, onPreview }) {
   const { memory, returning } = state
   const [asking, setAsking] = useState(!returning)
-  const [hover, setHover] = useState(null)
-  const dragged = useRef(false)
+  const anchor = useRef(null)
+  const previewRef = useRef(null)
+  previewRef.current = preview
 
-  const preview = (m) => {
-    setHover(m)
-    onPreview(m)
-  }
+  useFormation(introFormation(anchor, previewRef), [], { stiffness: 0.05, soft: 0.07 })
 
   useEffect(() => {
     const onKey = (e) => {
@@ -68,139 +83,114 @@ export default function Intro({ state, send, onPreview }) {
 
   return (
     <motion.section
-      className="absolute inset-0 flex flex-col overflow-y-auto overflow-x-hidden px-4 pb-24 pt-4 no-scrollbar sm:px-8 sm:pt-6"
-      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.45 } }}
+      className="absolute inset-0 overflow-y-auto overflow-x-hidden no-scrollbar"
+      exit={{ opacity: 0, transition: { duration: 0.4 } }}
     >
-      <header className="flex items-start justify-between gap-6">
-        <motion.p layoutId="wordmark" className="w-wide font-display text-base font-extrabold">
-          The site that changes its mind
-        </motion.p>
-        <p className="hidden max-w-[19rem] text-right text-sm font-semibold leading-snug text-mute sm:block">
-          Experiment 01. No homepage, no menu, no fixed journey.
-        </p>
-      </header>
+      {/* where the forms live on this screen */}
+      <div
+        ref={anchor}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-[22%] h-[26vh] w-[90vw] -translate-x-1/2 -translate-y-1/2 lg:left-auto lg:right-[2vw] lg:top-1/2 lg:h-[70vh] lg:w-[44vw] lg:translate-x-0"
+      />
 
-      {asking ? (
-        <div className="flex flex-1 flex-col">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, type: 'spring', stiffness: 80, damping: 16 }}
-            className="mt-8 font-display font-black uppercase leading-[0.86] tracking-[-0.02em] sm:mt-10"
-          >
-            <span className="w-cond block text-[clamp(3.4rem,10vw,9.5rem)]">What do you</span>
-            <span className="w-wide block text-[clamp(1.9rem,6.4vw,6.4rem)]">need right now?</span>
-          </motion.h1>
+      <div className="relative flex min-h-full flex-col justify-end px-4 pb-10 pt-[38vh] sm:px-8 lg:max-w-[56vw] lg:justify-center lg:pb-16 lg:pt-24">
+        {asking ? (
+          <>
+            <motion.h1
+              initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.9, ease: [0.2, 0.7, 0.1, 1] }}
+              className="balance text-[clamp(2.6rem,6vw,5.8rem)] font-light leading-[0.98] tracking-display"
+            >
+              What do you need right now?
+            </motion.h1>
+            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-quiet">
+              One site, three behaviours. Choose how it should work for you. You can change it at any time.
+            </p>
 
-          <ul
-            className="relative mt-6 flex flex-1 flex-wrap items-center justify-center gap-y-2 sm:mt-2 lg:justify-start lg:pl-[6vw]"
-            onMouseLeave={() => preview(null)}
-          >
-            {ORDER.map((m, i) => {
-              const c = CHOICE[m]
-              return (
+            <ul className="mt-10 border-t border-hair" onMouseLeave={() => onPreview(null)}>
+              {ORDER.map((m, i) => (
                 <motion.li
                   key={m}
-                  className="-mx-3 sm:mx-1"
-                  style={{ zIndex: hover === m ? 5 : 1 }}
-                  initial={{ opacity: 0, scale: 0.4, rotate: c.tilt * 3 }}
-                  animate={{ opacity: hover && hover !== m ? 0.55 : 1, scale: hover === m ? 1.06 : 1, rotate: hover === m ? 0 : c.tilt }}
-                  transition={{ delay: hover === null ? 0.35 + i * 0.12 : 0, type: 'spring', stiffness: 200, damping: 14 }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: preview && preview !== m ? 0.4 : 1, y: 0 }}
+                  transition={{ delay: preview === null ? 0.3 + i * 0.08 : 0, duration: 0.4 }}
+                  className="border-b border-hair"
                 >
-                  <motion.button
-                    drag
-                    dragMomentum
-                    dragElastic={0.3}
-                    whileDrag={{ scale: 1.1, rotate: 0 }}
-                    onPointerDown={() => (dragged.current = false)}
-                    onDragStart={() => (dragged.current = true)}
-                    onMouseEnter={() => preview(m)}
-                    onFocus={() => preview(m)}
-                    onClick={() => !dragged.current && send({ type: 'CHOOSE', mode: m })}
-                    className={`flex cursor-grab touch-none flex-col items-center justify-center text-center shadow-[0_8px_0_rgba(21,21,21,0.16)] active:cursor-grabbing ${c.cls}`}
-                    style={{ borderRadius: c.radius, clipPath: c.clip }}
-                    aria-label={`${MODES[m].word}: ${c.sub}`}
+                  <button
+                    onMouseEnter={() => onPreview(m)}
+                    onFocus={() => onPreview(m)}
+                    onBlur={() => onPreview(null)}
+                    onClick={() => send({ type: 'CHOOSE', mode: m })}
+                    className="group flex w-full flex-wrap items-center gap-x-6 gap-y-1 py-4 text-left sm:flex-nowrap sm:py-5"
                   >
-                    <span className={`font-display font-black leading-[0.9] ${c.word}`}>{MODES[m].word.replace(' ', '\n')}</span>
-                    <span className="mt-1 text-sm font-bold">{c.sub}</span>
-                  </motion.button>
+                    <span className="flex w-auto shrink-0 items-center gap-3 whitespace-nowrap text-[clamp(1.6rem,2.6vw,2.2rem)] font-normal tracking-snug sm:w-[13rem]">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: `rgb(${INTENT_COLOR[m].map((v) => v * 255).join(',')})` }} />
+                      {MODES[m].word}
+                    </span>
+                    <span className="order-3 w-full text-[15px] leading-snug text-quiet sm:order-none sm:w-auto sm:flex-1">
+                      {MODES[m].promise}
+                    </span>
+                    <span className="ml-auto text-[13px] text-quiet transition-transform group-hover:translate-x-1">{i + 1} →</span>
+                  </button>
                 </motion.li>
-              )
-            })}
-          </ul>
+              ))}
+            </ul>
 
-          {/* What actually changes with each choice: the behaviour, not the paint. */}
-          <motion.div
-            key={hover ?? 'idle'}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="pointer-events-none mt-4 hidden self-end text-right lg:absolute lg:bottom-8 lg:right-8 lg:block lg:max-w-[24rem]"
-          >
-            {hover ? (
-              <>
-                <p className="text-lg font-bold leading-snug">{MODES[hover].promise}</p>
-                <ul className="mt-3 flex flex-wrap justify-end gap-1.5">
-                  {MODES[hover].rules.map(([k, v]) => (
-                    <li key={k} className="rounded-full bg-white px-3 py-1 text-sm font-semibold ring-2 ring-ink">
-                      <span className="text-mute">{k}:</span> {v}
-                    </li>
+            <div className="mt-6 hidden min-h-[4.5rem] lg:block">
+              {preview && (
+                <motion.dl
+                  key={preview}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="grid grid-cols-4 gap-6 text-[13px]"
+                >
+                  {MODES[preview].rules.map(([k, v]) => (
+                    <div key={k}>
+                      <dt className="text-quiet">{k}</dt>
+                      <dd className="mt-1 font-medium leading-snug">{v}</dd>
+                    </div>
                   ))}
-                </ul>
-              </>
-            ) : (
-              <p className="text-lg font-bold leading-snug">
-                Same site, three behaviours. Hover to preview one, drag them about, tap to choose. Or press 1, 2 or 3.
-              </p>
-            )}
-          </motion.div>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col justify-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 16 }}
-            className="font-display font-black uppercase leading-[0.86]"
-          >
-            <span className="w-cond block text-[clamp(3.6rem,11vw,10rem)]">Oh, it’s</span>
-            <span className="w-wide block text-[clamp(2.4rem,8vw,7.5rem)]">you again.</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-6 max-w-2xl text-xl font-semibold leading-relaxed sm:text-2xl"
-          >
-            Last time, {ago(memory.updatedAt)}, you were <Hi>{MODES[memory.lastMode].verb}</Hi>
-            {last ? <> and kept looking at <Hi>{last.title}</Hi></> : null}. You opened {opened}{' '}
-            {opened === 1 ? 'thing' : 'things'}, found {memory.discoveries.length} of my secrets and changed your mind{' '}
-            {memory.switches} {memory.switches === 1 ? 'time' : 'times'}.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mt-8 flex flex-wrap items-center gap-3"
-          >
-            <button
-              onClick={() => send({ type: 'RESUME' })}
-              className="rounded-full bg-ink px-6 py-3.5 font-display text-xl font-extrabold text-white shadow-[0_5px_0_rgba(21,21,21,0.2)] hover:bg-cobalt"
+                </motion.dl>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <motion.h1
+              initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.9, ease: [0.2, 0.7, 0.1, 1] }}
+              className="text-[clamp(2.6rem,6vw,5.8rem)] font-light leading-[0.98] tracking-display"
             >
-              Continue {MODES[memory.lastMode].verb} →
-            </button>
-            <button
-              onClick={() => setAsking(true)}
-              className="rounded-full bg-white px-6 py-3.5 font-display text-xl font-extrabold ring-[3px] ring-ink hover:bg-lime"
-            >
-              Ask me again
-            </button>
-            <button onClick={() => send({ type: 'RESET' })} className="px-3 py-3 text-base font-bold text-tomato hover:underline">
-              Forget me
-            </button>
-          </motion.div>
-          <p className="mt-6 text-sm font-semibold text-mute">I only remember this in your browser.</p>
-        </div>
-      )}
+              Welcome back.
+            </motion.h1>
+            <p className="mt-6 max-w-xl text-[19px] leading-relaxed text-ink/80">
+              Last visit, {ago(memory.updatedAt)}: you were {MODES[memory.lastMode].verb}
+              {last ? <>, most recently on {last.title}</> : null}. {opened} opened, {memory.discoveries.length} hidden notes
+              found, {memory.switches} {memory.switches === 1 ? 'change' : 'changes'} of intent.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => send({ type: 'RESUME' })}
+                className="rounded-full bg-ink px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-ultra"
+              >
+                Continue {MODES[memory.lastMode].verb}
+              </button>
+              <button
+                onClick={() => setAsking(true)}
+                className="rounded-full border border-hair bg-white/60 px-6 py-3.5 text-[15px] font-medium backdrop-blur hover:bg-white"
+              >
+                Choose again
+              </button>
+              <button onClick={() => send({ type: 'RESET' })} className="px-3 py-3.5 text-[15px] text-quiet hover:text-ink">
+                Forget me
+              </button>
+            </div>
+            <p className="mt-6 text-[13px] text-quiet">This memory is stored only in your browser.</p>
+          </>
+        )}
+      </div>
     </motion.section>
   )
 }

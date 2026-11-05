@@ -12,11 +12,15 @@ site asks *what do you need right now?* and then behaves like a different produc
 
 ## Visual system
 
-- **Ground**: flat concrete grey with five saturated cut-paper colours. No gradients, no grids.
-- **Imagery**: each project is a die-cut sticker illustration drawn in SVG (`src/components/Sticker.jsx`), so there are no image files.
-- **Type**: Anybody, a variable-width display face. Width carries behaviour: wide in Explore, condensed in Focus, stretching in Surprise. Hanken Grotesk for reading.
-- **The mind**: a small character (bottom-left) that is the only persistent control. Its body and eyes change with the mode, it says out loud when it changes behaviour, and its nudges arrive as message bubbles.
-- **Continuity**: five wobbling colour shapes on one persistent canvas. They peek in at the start, roam in Explore, leave the room in Focus and swell to take over in Surprise.
+One system, not three designs. Every state is built from the same parts:
+
+- **Forms** (`src/components/Field.jsx`, `src/formation.js`): twelve dimensional forms on one persistent WebGL canvas, rendered as a single implicit surface so they merge, stretch, separate and dissolve. One form per project plus three connective forms. Each state publishes a *formation* and the forms travel to it, so a change of intent is visible as the interface reorganising itself.
+  - Explore: forms spread across the field; hovering a project draws its shared themes and sends connective forms along the links.
+  - Focus: all forms merge into one calm mass led by the current project; moving on re-sorts the mass.
+  - Surprise: each scene is a curated formation (a sequence, a merge of two projects, a ring, data sized by what you opened).
+- **Status line**: while forms reorganise, the header narrates the real operation ("Ranking by the 2 you opened"), then settles into a live readout.
+- **Type**: Geist, light at display sizes, regular for reading. Neutral ground and ink; colour lives only in the forms (ultramarine, lime, coral).
+- **Control**: one segmented intent switch. A suggested intent is marked inside it, and suggestions are one-line observations of what you did, with an offer you can decline.
 
 ## Behaviour
 
