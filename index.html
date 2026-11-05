@@ -1,62 +1,18 @@
-<!DOCTYPE html>
-<html lang="en" >
-<head>
-  <meta charset="UTF-8">
-  <title>Test</title>
-  <link rel="stylesheet" href="./style.css">
-
-</head>
-<body>
-<!-- partial:index.partial.html -->
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GSAP Draggable Fan</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="wrap">
-    <main class="stage">
-      <div class="bounds" id="bounds">
-        <div class="cloud" id="cloud">
-          <!-- Replace these images anytime -->
-          <div class="drag"><img alt="Mountain lake" src="https://picsum.photos/id/1015/800/600"></div>
-          <div class="drag"><img alt="Dog portrait"    src="https://picsum.photos/id/1025/800/600"></div>
-          <div class="drag"><img alt="Desert dunes"    src="https://picsum.photos/id/1003/800/600"></div>
-          <div class="drag"><img alt="Forest road"     src="https://picsum.photos/id/1005/800/600"></div>
-          <div class="drag"><img alt="Cliff and sea"   src="https://picsum.photos/id/1035/800/600"></div>
-        </div>
-
-        <!-- Center hero text (optional) -->
-        <div class="hero">
-          <h1>WEBFLOW<br>+ GSAP</h1>
-          <a href="#" class="btn">Learn More</a>
-        </div>
-      </div>
-
-      <!-- custom cursor overlay -->
-      <div class="cursor" aria-hidden="true">
-        <div class="dot" id="dot">drag</div>
-      </div>
-    </main>
-
-    <footer>
-      <div>© <span id="year"></span></div>
-      <div>Inspired by a Webflow + GSAP demo.</div>
-    </footer>
-  </div>
-
-  <!-- GSAP + Draggable -->
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/Draggable.min.js"></script>
-
-  <script src="script.js"></script>
-</body>
-</html>
-<!-- partial -->
-  <script  src="./script.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a09" />
+    <meta name="description" content="A behavioural design experiment: one website, three ways of behaving." />
+    <title>The Site That Changes Its Mind</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a09'/><circle cx='16' cy='16' r='6' fill='none' stroke='%23e8e4da' stroke-width='2'/><circle cx='22' cy='10' r='2.5' fill='%23ff4a1c'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

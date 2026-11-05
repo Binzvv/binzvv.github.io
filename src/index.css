@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #0a0a09;
+  color: #e8e4da;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+::selection { background: #ff4a1c; color: #0a0a09; }
+button { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 1px solid #ff4a1c; outline-offset: 4px; }
+
+@layer utilities {
+  .text-display { font-size: clamp(3.2rem, 10vw, 10.5rem); line-height: 0.86; letter-spacing: -0.035em; }
+  .label { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  33% { transform: translate3d(6px, -10px, 0) rotate(0.6deg); }
+  66% { transform: translate3d(-5px, 6px, 0) rotate(-0.5deg); }
+}
+.float { animation: float var(--dur, 9s) ease-in-out var(--delay, 0s) infinite; }
+
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.grow { transform-origin: left; animation: grow var(--dur, 6s) linear forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .float { animation: none; }
+}
