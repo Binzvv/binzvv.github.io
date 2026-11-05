@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { COLORS, FORM_COUNT, formation, mass } from '../formation.js'
+import { live } from '../engine.js'
 
 // One persistent WebGL canvas behind every state. It renders the 12 forms as a
 // single implicit surface (metaballs), so forms that come close merge, pull
@@ -127,7 +128,8 @@ export default function Field() {
     const tick = (now) => {
       const dt = Math.min(0.05, (now - last) / 1000)
       last = now
-      if (!reduce) t += dt
+      // inactivity: the forms keep their places but drift far more slowly
+      if (!reduce) t += dt * (live.idle ? 0.12 : 1)
       let targets
       try {
         targets = formation.fn ? formation.fn(t, w, h) : null
@@ -135,7 +137,7 @@ export default function Field() {
         targets = null
       }
       if (!targets) targets = mass(w * 0.72, h * 0.5, Math.min(w, h) * 0.14, t)
-      const k = reduce ? 1 : formation.stiffness
+      const k = reduce ? 1 : formation.stiffness * (live.idle ? 0.5 : 1)
       soft += (formation.soft - soft) * 0.05
 
       forms.forEach((f, i) => {

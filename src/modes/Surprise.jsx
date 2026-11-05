@@ -74,9 +74,12 @@ export default function Surprise({ state, send }) {
   const hold = useRef(null)
   const held = useRef(false)
 
+  const current = useRef(scene)
+  current.current = scene
+  const idle = state.engine.idle
   const advance = useCallback(
     (manual) => {
-      if (manual) send({ type: 'INTERRUPT' })
+      if (manual) send({ type: 'INTERRUPT', scene: NAMES[current.current.type] })
       setScene((s) => direct(s.n + 1, base, s.type))
     },
     [base, send],
@@ -87,11 +90,12 @@ export default function Surprise({ state, send }) {
   }, [scene.n]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // The director's clock. Pausing stops time; resuming restarts the scene's clock.
+  // Inactivity also stops the clock: no new content arrives while nobody is interacting.
   useEffect(() => {
-    if (paused) return
+    if (paused || idle) return
     const t = setTimeout(() => advance(false), scene.dur)
     return () => clearTimeout(t)
-  }, [scene, paused, advance])
+  }, [scene, paused, idle, advance])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -105,8 +109,10 @@ export default function Surprise({ state, send }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [advance])
 
+  const wake = useRef(false) // a tap that only ends inactivity resumes, it doesn't skip
   const down = (e) => {
     if (e.target.closest('[data-own-click]')) return
+    wake.current = idle
     held.current = false
     hold.current = setTimeout(() => {
       held.current = true
@@ -117,7 +123,7 @@ export default function Surprise({ state, send }) {
     clearTimeout(hold.current)
     if (e.target.closest('[data-own-click]')) return
     if (held.current) setPaused(false)
-    else advance(true)
+    else if (!wake.current) advance(true)
   }
 
   const ent = ENTRANCES[scene.enter]
@@ -148,11 +154,11 @@ export default function Surprise({ state, send }) {
         <div
           key={scene.n}
           className="grow h-full bg-ink"
-          style={{ '--dur': `${scene.dur}ms`, animationPlayState: paused ? 'paused' : 'running' }}
+          style={{ '--dur': `${scene.dur}ms`, animationPlayState: paused || idle ? 'paused' : 'running' }}
         />
       </div>
       <p className="pointer-events-none fixed inset-x-0 bottom-[4.8rem] z-30 text-center text-[13px] text-quiet sm:bottom-[5.8rem]">
-        {paused ? 'Paused. Release to continue.' : 'Tap to skip · hold to pause'}
+        {paused ? 'Paused. Release to continue.' : idle ? 'Paused while idle. Tap to continue.' : 'Tap to skip · hold to pause'}
       </p>
     </motion.section>
   )

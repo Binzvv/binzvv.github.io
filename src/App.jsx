@@ -9,6 +9,8 @@ import Nudge from './components/Nudge.jsx'
 import Explore from './modes/Explore.jsx'
 import Focus from './modes/Focus.jsx'
 import Surprise from './modes/Surprise.jsx'
+import Debug from './components/Debug.jsx'
+import { useActivity } from './engine.js'
 
 // What the system says it is doing while it reorganises. Every line names a
 // real operation, with real counts from state, so the transition explains itself.
@@ -31,7 +33,8 @@ function reasoning(status, state) {
 }
 
 function steady(status, state) {
-  const { memory, session } = state
+  const { memory, session, engine } = state
+  if (engine.idle) return 'No input for 30s · motion reduced'
   if (status === 'explore') return `${session.opens} opened · ${memory.discoveries.length} of ${DISCOVERIES.length} notes found`
   if (status === 'focus') return 'One project at a time'
   if (status === 'surprise') return `Scene ${memory.scenes}`
@@ -67,6 +70,29 @@ function Status({ status, state }) {
   )
 }
 
+// Projects the visitor chose to keep within reach (from the revisiting rule).
+function Kept({ ids, status, send }) {
+  if (!ids.length) return null
+  return (
+    <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 text-[12px] sm:justify-end">
+      <span className="text-quiet">Kept</span>
+      {ids.slice(-3).map((id) => (
+        <span key={id} className="flex items-center rounded-full border border-hair bg-white/70 backdrop-blur">
+          <button
+            onClick={() => send(status === 'surprise' ? { type: 'CHOOSE', mode: 'focus', projectId: id } : { type: 'JUMP', id })}
+            className="py-1 pl-2.5 pr-1.5 font-medium hover:text-ultra"
+          >
+            {byId[id].title}
+          </button>
+          <button onClick={() => send({ type: 'UNKEEP', id })} className="py-1 pl-0.5 pr-2 text-quiet hover:text-ink" aria-label={`Remove ${byId[id].title}`}>
+            ×
+          </button>
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export default function App() {
   const [state, send] = useReducer(reducer, undefined, initialState)
   const [preview, setPreview] = useState(null)
@@ -74,11 +100,23 @@ export default function App() {
 
   useEffect(() => saveMemory(memory), [memory])
   useEffect(() => setPreview(null), [status])
+  useActivity(send)
+
+  // D toggles the behavioural debug overlay (testing only, hidden by default).
+  const [debug, setDebug] = useState(false)
+  useEffect(() => {
+    const on = (e) => {
+      if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key === 'd' || e.key === 'D') setDebug((d) => !d)
+    }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [])
 
   const nudge = suggestion(state)
 
   return (
-    <MotionConfig reducedMotion="user" transition={{ type: 'spring', stiffness: 120, damping: 22 }}>
+    <MotionConfig reducedMotion={state.engine.idle ? 'always' : 'user'} transition={{ type: 'spring', stiffness: 120, damping: 22 }}>
       <LayoutGroup>
         <Field />
 
@@ -99,7 +137,12 @@ export default function App() {
               )}
             </AnimatePresence>
           </motion.p>
-          {status !== 'intro' && <Status status={status} state={state} />}
+          {status !== 'intro' && (
+            <div className="flex flex-col gap-2 sm:items-end">
+              <Status status={status} state={state} />
+              <Kept ids={memory.kept} status={status} send={send} />
+            </div>
+          )}
         </header>
 
         <main className="relative z-10 h-full w-full">
@@ -111,8 +154,15 @@ export default function App() {
           </AnimatePresence>
         </main>
 
-        {status !== 'intro' && <IntentSwitch status={status} send={send} suggested={nudge?.event?.mode} />}
+        {status !== 'intro' && (
+          <IntentSwitch
+            status={status}
+            send={send}
+            suggested={nudge?.actions?.find((a) => a.event.type === 'CHOOSE')?.event.mode}
+          />
+        )}
         <Nudge nudge={nudge} send={send} />
+        {debug && <Debug state={state} onClose={() => setDebug(false)} />}
       </LayoutGroup>
     </MotionConfig>
   )

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PROJECTS } from '../content.js'
 import { center, indexOf, mass, useFormation } from '../formation.js'
+import { THRESHOLDS, useDwell } from '../engine.js'
+import { Deeper } from './Explore.jsx'
 
 // FOCUS — navigation is linear and singular. One project, one action.
 // The order is decided by behaviour: what you lingered on in Explore comes
@@ -26,6 +28,24 @@ export default function Focus({ state, send }) {
   const readBefore = useRef(state.memory.read).current
   const p = order[i]
   const anchor = useRef(null)
+  useDwell(p.id, send)
+  const deep = state.engine.deep === p.id
+
+  // "Continue with…", "See related…" and kept projects bring a project forward here.
+  const jumpN = state.engine.jump?.n
+  useEffect(() => {
+    const id = state.engine.jump?.id
+    const k = order.findIndex((x) => x.id === id)
+    if (k >= 0 && k !== i) {
+      setDir(k > i ? 1 : -1)
+      setReading(false)
+      setI(k)
+    }
+  }, [jumpN]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Asking for more opens the reading layer too.
+  useEffect(() => {
+    if (deep) setReading(true)
+  }, [deep])
   const live = useRef({})
   live.current = { lead: indexOf[p.id], reading }
 
@@ -47,7 +67,8 @@ export default function Focus({ state, send }) {
   }, [p.id, send])
 
   const go = (d) => {
-    if (d > 0 && !reading && Date.now() - shownAt.current < 4000) send({ type: 'SKIP' })
+    const ms = Date.now() - shownAt.current
+    if (d > 0 && !reading && ms < THRESHOLDS.skipWindow) send({ type: 'SKIP', id: p.id, ms })
     setDir(d)
     setReading(false)
     setI((n) => (n + d + order.length) % order.length)
@@ -145,6 +166,7 @@ export default function Focus({ state, send }) {
                     </p>
                     <p className="mt-2 text-[17px] leading-relaxed text-ink/75">{p.body}</p>
                     <p className="mt-4 text-[17px] italic text-ink">“{p.quote}”</p>
+                    <Deeper p={p} open={deep} />
                   </div>
                 </motion.div>
               )}

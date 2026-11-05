@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'framer-motion'
 import { DISCOVERIES, PROJECTS, related } from '../content.js'
 import { FORM_COUNT, center, projectColor, useFormation } from '../formation.js'
+import { THRESHOLDS, live as engineLive, useDwell } from '../engine.js'
 
 // EXPLORE — navigation is spatial and free. No order, no index, no "next".
 // Content priority: breadth and discovery. Each project is one form in a field
@@ -60,8 +61,12 @@ export default function Explore({ state, send }) {
   const openAnchor = useRef(null)
   const lines = useRef([])
   const labels = useRef([])
+  const [spot, setSpot] = useState(null) // a project whose connections the visitor asked to see
+  const [unseenOnly, setUnseenOnly] = useState(false)
+  const openedAt = useRef(0)
   const live = useRef({ hover: null, openId: null })
-  live.current = { hover, openId }
+  live.current = { hover: hover ?? spot, openId }
+  useDwell(openId, send)
 
   const clampX = (v) => Math.min(0, Math.max(w - W, v))
   const clampY = (v) => Math.min(0, Math.max(h - H, v))
@@ -145,7 +150,7 @@ export default function Explore({ state, send }) {
   // Unexpected: every so often, a project moves somewhere else.
   useEffect(() => {
     const id = setInterval(() => {
-      if (live.current.openId || live.current.hover) return
+      if (live.current.openId || live.current.hover || engineLive.idle) return
       const p = PROJECTS[Math.floor(Math.random() * PROJECTS.length)]
       setWander((wd) => ({ ...wd, [p.id]: { dx: (Math.random() - 0.5) * 360, dy: (Math.random() - 0.5) * 260 } }))
       setWhisper(`${p.title} moved`)
@@ -161,7 +166,7 @@ export default function Explore({ state, send }) {
   // Keyboard + wheel movement.
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') setOpenId(null)
+      if (e.key === 'Escape') close()
       if (openId) return
       const step = 160
       const k = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[e.key]
@@ -182,12 +187,62 @@ export default function Explore({ state, send }) {
     setHint(false)
   }
 
-  const open = (id) => {
-    if (moved.current) return
+  const open = (id, force) => {
+    if (moved.current && !force) return
     setHover(null)
+    setSpot(null)
+    setUnseenOnly(false)
     setOpenId(id)
+    openedAt.current = Date.now()
     send({ type: 'OPEN', id })
   }
+
+  // Closing tells the engine whether that was a skip or real attention.
+  const close = () => {
+    const id = openId
+    if (!id) return
+    const ms = Date.now() - openedAt.current
+    const title = PROJECTS.find((p) => p.id === id).title
+    if (ms < THRESHOLDS.skipWindow && state.engine.deep !== id) send({ type: 'SKIP_OPENED', observed: `${title} closed after ${(ms / 1000).toFixed(1)}s` })
+    else send({ type: 'ENGAGE', observed: `${title} kept open ${(ms / 1000).toFixed(0)}s` })
+    setOpenId(null)
+  }
+
+  const panTo = (id) => {
+    const el = anchors.current[id]
+    const c = center(el)
+    if (!c) return
+    animate(x, clampX(x.get() + w / 2 - c.x), { type: 'spring', stiffness: 70, damping: 20 })
+    animate(y, clampY(y.get() + h / 2 - c.y), { type: 'spring', stiffness: 70, damping: 20 })
+  }
+
+  // Responses the visitor accepted from a suggestion.
+  const jumpN = state.engine.jump?.n
+  useEffect(() => {
+    const j = state.engine.jump
+    if (j?.id) {
+      panTo(j.id)
+      open(j.id, true)
+    }
+  }, [jumpN]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!state.engine.unseen) return
+    if (openId) close()
+    setUnseenOnly(true)
+    const first = PROJECTS.find((p) => !state.memory.opened[p.id])
+    if (first) setTimeout(() => panTo(first.id), 50)
+    setWhisper(first ? 'Showing what you haven’t opened' : 'You’ve opened everything')
+  }, [state.engine.unseen]) // eslint-disable-line react-hooks/exhaustive-deps
+  const spotN = state.engine.spotlight?.n
+  useEffect(() => {
+    const sp = state.engine.spotlight
+    if (!sp) return
+    setOpenId(null)
+    setSpot(sp.id)
+    setTimeout(() => panTo(sp.id), 50)
+    const t = setTimeout(() => setSpot(null), 12000)
+    return () => clearTimeout(t)
+  }, [spotN]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const scatter = () => {
     setSeed((s) => s + 1)
@@ -198,7 +253,8 @@ export default function Explore({ state, send }) {
   const found = state.memory.discoveries
   const opened = state.memory.opened
   const active = world.projects.find((p) => p.id === openId)
-  const relatedIds = hover ? related(hover).map((r) => r.p.id) : []
+  const lit = hover ?? spot
+  const relatedIds = lit ? related(lit).map((r) => r.p.id) : []
 
   return (
     <motion.section
@@ -259,10 +315,13 @@ export default function Explore({ state, send }) {
             start={start}
             offset={wander[p.id]}
             seen={opened[p.id] ?? 0}
-            dim={Boolean(openId) || (hover && hover !== p.id && !relatedIds.includes(p.id))}
+            dim={Boolean(openId) || (lit && lit !== p.id && !relatedIds.includes(p.id)) || (unseenOnly && !lit && Boolean(opened[p.id]))}
             hidden={openId === p.id}
             anchorRef={(el) => (anchors.current[p.id] = el)}
-            onHover={(v) => setHover(v ? p.id : null)}
+            onHover={(v) => {
+              setHover(v ? p.id : null)
+              if (v) setSpot(null)
+            }}
             onOpen={() => open(p.id)}
           />
         ))}
@@ -302,7 +361,8 @@ export default function Explore({ state, send }) {
             p={active}
             anchorRef={openAnchor}
             links={related(active.id)}
-            onClose={() => setOpenId(null)}
+            deep={state.engine.deep === active.id}
+            onClose={close}
             onFocus={() => send({ type: 'CHOOSE', mode: 'focus', projectId: active.id })}
           />
         )}
@@ -393,7 +453,7 @@ function Secret({ note, found, onFind }) {
 
 // Opening a project is a reorganisation of the same field: its form travels
 // here and grows, every other form recedes.
-function Opened({ p, anchorRef, links, onClose, onFocus }) {
+function Opened({ p, anchorRef, links, deep, onClose, onFocus }) {
   return (
     <motion.div
       className="fixed inset-0 z-40 overflow-y-auto no-scrollbar"
@@ -414,6 +474,7 @@ function Opened({ p, anchorRef, links, onClose, onFocus }) {
             </p>
             <p className="mt-4 max-w-xl text-[21px] leading-snug">{p.line}</p>
             <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-ink/70">{p.body}</p>
+            <Deeper p={p} open={deep} />
             {links.length > 0 && (
               <p className="mt-5 text-[13px] text-quiet">
                 Connected to {links.map((l) => l.p.title).join(', ')}
@@ -431,5 +492,28 @@ function Opened({ p, anchorRef, links, onClose, onFocus }) {
         </div>
       </div>
     </motion.div>
+  )
+}
+
+// The optional deeper layer, revealed only when the visitor asks for it.
+export function Deeper({ p, open }) {
+  return (
+    <AnimatePresence initial={false}>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.5, ease: [0.2, 0.7, 0.1, 1] }}
+          className="overflow-hidden"
+        >
+          <div className="mt-5 max-w-xl space-y-2 border-l border-ultra/40 pl-4 text-[15px] leading-relaxed text-ink/75">
+            {p.deep.map((d) => (
+              <p key={d}>{d}</p>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }

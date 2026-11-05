@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MODES, byId } from '../content.js'
+import { describeAction } from '../machine.js'
 import { COLORS, FORM_COUNT, center, mass, projectColor, useFormation } from '../formation.js'
 
 const ORDER = ['explore', 'focus', 'surprise']
@@ -166,8 +167,18 @@ export default function Intro({ state, send, preview, onPreview }) {
               Welcome back.
             </motion.h1>
             <p className="mt-6 max-w-xl text-[19px] leading-relaxed text-ink/80">
-              Last visit, {ago(memory.updatedAt)}: you were {MODES[memory.lastMode].verb}
-              {last ? <>, most recently on {last.title}</> : null}. {opened} opened, {memory.discoveries.length} hidden notes
+              Last visit, {ago(memory.updatedAt)}:{' '}
+              {memory.lastAction ? (
+                <>
+                  you {describeAction(memory.lastAction)} while {MODES[memory.lastAction.mode]?.verb ?? MODES[memory.lastMode].verb}
+                </>
+              ) : (
+                <>
+                  you were {MODES[memory.lastMode].verb}
+                  {last ? <>, most recently on {last.title}</> : null}
+                </>
+              )}
+              . {opened} opened, {memory.discoveries.length} hidden notes
               found, {memory.switches} {memory.switches === 1 ? 'change' : 'changes'} of intent.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -175,7 +186,7 @@ export default function Intro({ state, send, preview, onPreview }) {
                 onClick={() => send({ type: 'RESUME' })}
                 className="rounded-full bg-ink px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-ultra"
               >
-                Continue {MODES[memory.lastMode].verb}
+                {memory.lastAction?.projectId ? `Continue with ${byId[memory.lastAction.projectId].title}` : `Continue ${MODES[memory.lastMode].verb}`}
               </button>
               <button
                 onClick={() => setAsking(true)}

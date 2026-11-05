@@ -34,3 +34,4 @@ button { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   .pulse-dot { animation: none; }
 }
+.is-idle .pulse-dot { animation: none; }

@@ -24,14 +24,24 @@ One system, not three designs. Every state is built from the same parts:
 
 ## Behaviour
 
-- `src/machine.js` — explicit state machine (`intro → explore | focus | surprise`),
-  each state accepting only its own events.
-- Rules that let the site propose a change: circling one project in Explore →
-  offers Focus; skipping 4 projects in Focus → offers Explore; interrupting
-  Surprise 6 times → offers Focus.
-- Memory (mode, last project, opens, reads, discoveries, scenes, changes of mind)
-  is kept in `localStorage`. Returning visitors are offered to continue; "Forget me"
-  clears it. Press **I** (or the dot bottom-left) to change intent at any time.
+- `src/machine.js`: explicit state machine (`intro → explore | focus | surprise`), each state accepting only its own events. It also holds the behavioural engine's state, rules and log.
+- `src/engine.js`: browser-side observers (input activity, active dwell time, tab visibility) and the thresholds.
+
+### Behavioural engine
+
+The site observes, suggests and responds. It never switches mode, changes content or interrupts on its own: every response needs a choice, every suggestion has "Not now", and a suggestion is offered at most once per visit (it quietly expires after 25s).
+
+| Observed | Rule | Suggestion | Choices |
+|---|---|---|---|
+| Skipping | 3 skips in a row. Explore: a project closed < 4s after opening. Focus: next < 4s without reading. Surprise: a scene tapped away | "You've skipped a few. Want a different direction?" | Explore: show what you haven't opened / one at a time. Focus: browse in space / surprise me. Surprise: show one properly / explore instead |
+| Dwelling | 15s of *active* time on one project (input in the last 5s, tab visible) | "Interested in this one? There's more to explore." | Show more (a deeper layer: how it works, what we learned) |
+| Revisiting | Same project opened 3 times (across visits) | "You keep coming back to …" | Keep it close (pinned under the status line) / see related work |
+| Returning | Reload with memory, or tab hidden ≥ 15s, with a remembered last interaction | "Welcome back. Continue where you left off?" | Continue with … (reopens it) / start fresh |
+| Inactivity | 30s without pointer, key, scroll or touch input | none; motion is reduced and Surprise stops auto-advancing | any input restores motion |
+
+The last meaningful interaction (opened, read, went deeper, kept) is stored in `localStorage`. "Forget me" clears everything.
+
+**Debug mode:** press **D** for an overlay with the current mode, live signals (skip streak, dwell timer, idle timer, last interaction, most opened), the triggered rule and the observation behind it, the suggested response, whether it was accepted, dismissed or expired, and a timestamped log. "Show rules" lists every rule.
 
 ## Develop
 
