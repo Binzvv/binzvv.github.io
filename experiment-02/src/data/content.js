@@ -122,6 +122,8 @@ export const STORIES = [
   // ───────────────────────── PUSH — technical performance stories
   {
     id: 'p-stair-repeats',
+    // Shot direction for real photography: documentary, available light, cropped hard.
+    shot: 'Low, tight, head out of frame. Calves and stone.',
     mode: 'push',
     title: 'Stair Repeats',
     place: 'Hillside city, 06:10',
@@ -138,10 +140,11 @@ export const STORIES = [
     ],
     deeper:
       'Fatigue shows up in your arms first. When they drop, the session is telling you something. Finish the rep, then decide like an adult whether to do another.',
-    plate: { sky: ['#6E6A64', '#A8A39A'], haze: '#B2ACA2', ground: ['#2A2725', '#121110'], horizon: 34, sun: [88, 12], seed: 41, ridge: 0.2, streak: true },
+    plate: { raw: true, sky: ['#8E9894', '#CFCDBF'], haze: '#DAD5C4', ground: ['#5E564C', '#141210'], horizon: 30, sun: [86, 8], seed: 41, ridge: 0.2, steps: true, runner: { x: 60, bottom: 3, h: 116, lean: -2 }, dust: null, tilt: 0 },
   },
   {
     id: 'p-headwind',
+    shot: 'Long lens, tiny figure, horizon tilted. Weather does the work.',
     mode: 'push',
     title: 'Headwind',
     place: 'Coastal road, force 6',
@@ -158,10 +161,11 @@ export const STORIES = [
     ],
     deeper:
       'A shell that packs to the size of a fist is the most underrated piece of kit you own. Zip it up at the turn, open it at the halfway home.',
-    plate: { sky: ['#8D9396', '#C7CACA'], haze: '#D2D4D2', ground: ['#3B3D3D', '#161818'], horizon: 50, sun: [10, 40], seed: 47, ridge: 0.15, streak: true },
+    plate: { raw: true, sky: ['#7F8C8C', '#C9CDC6'], haze: '#D6D8CF', ground: ['#4A4C48', '#151716'], horizon: 62, sun: [12, 40], seed: 47, ridge: 0.15, streak: true, runner: { x: 74, bottom: 31, h: 17, lean: -10 }, dust: null, tilt: -3 },
   },
   {
     id: 'p-night-tempo',
+    shot: 'Handheld, slow shutter, sodium light. Let it smear.',
     mode: 'push',
     title: 'Night Tempo',
     place: 'Ring road underpass, 22:40',
@@ -178,10 +182,11 @@ export const STORIES = [
     ],
     deeper:
       'Be seen: reflective detailing on the back and the ankles moves, which is what drivers notice. Run against the traffic where there is no path.',
-    plate: { sky: ['#1E1B18', '#3A2F24'], haze: '#6B4F33', ground: ['#1A1713', '#0A0908'], horizon: 56, sun: [62, 54], seed: 53, ridge: 0, streak: true },
+    plate: { raw: true, night: true, sky: ['#14110E', '#3A2A1A'], haze: '#8A5A2C', ground: ['#1E1813', '#070605'], horizon: 58, sun: [64, 50], seed: 53, ridge: 0, lights: true, runner: { x: 60, bottom: 12, h: 52, lean: -4, blur: 1.6 }, dust: null, tilt: 2 },
   },
   {
     id: 'p-heat',
+    shot: 'Dust, hard sun, off-centre. The runner leaving the cloud behind.',
     mode: 'push',
     title: 'Heat',
     place: 'Desert road, before sunrise',
@@ -198,10 +203,11 @@ export const STORIES = [
     ],
     deeper:
       'Fabric matters most where it touches you: open knits move air, a light cap shades the eyes. Pre-cool with cold water on the neck and wrists.',
-    plate: { sky: ['#C9A27E', '#EBD3B4'], haze: '#F1DEC3', ground: ['#7D5A3E', '#3D2A1D'], horizon: 62, sun: [50, 66], seed: 59, ridge: 0.45, streak: true },
+    plate: { raw: true, sky: ['#97ADA7', '#DCDCCB'], haze: '#E4DDC7', ground: ['#A1835F', '#33271C'], horizon: 50, sun: [70, 40], seed: 59, ridge: 0.55, runner: { x: 60, bottom: 10, h: 50, lean: -6 }, dust: [44, 72, 40], tilt: 0 },
   },
   {
     id: 'p-track-ladder',
+    shot: 'Hips down only. Lane lines, worn rubber, no faces.',
     mode: 'push',
     title: 'Ladder',
     place: 'Municipal track, lane 4',
@@ -218,7 +224,7 @@ export const STORIES = [
     ],
     deeper:
       'Run the bends tight and the straights tall. Recover by walking a full half lap — the quality of the next rep is the whole point.',
-    plate: { sky: ['#7C8589', '#B7BDBE'], haze: '#C4C8C7', ground: ['#7A3A2A', '#3C1D15'], horizon: 40, sun: [20, 18], seed: 61, ridge: 0.1, streak: true },
+    plate: { raw: true, sky: ['#7F8986', '#BFC3BC'], haze: '#CBCBC1', ground: ['#8C4531', '#2E140D'], horizon: 22, sun: [20, 10], seed: 61, ridge: 0.1, lanes: true, runner: { x: 66, bottom: 3, h: 150, lean: -3, blur: 0.5 }, dust: null, tilt: -4 },
   },
 
   // ───────────────────────── WANDER — cultural stories, threads

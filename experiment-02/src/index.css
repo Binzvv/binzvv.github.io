@@ -154,3 +154,63 @@ button {
 .underline-grow:focus-visible {
   background-size: 100% 1px;
 }
+
+/* ── PUSH: raw documentary texture ── */
+.grain-raw::after {
+  opacity: var(--grain, 0.62);
+  background-size: 140px 140px;
+  animation-duration: 0.5s;
+}
+.grain-raw::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='c'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='1' seed='9'/><feColorMatrix values='1.6 0 0 0 -0.3  0 1.4 0 0 -0.2  0 0 1.6 0 -0.3  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23c)'/></svg>");
+  mix-blend-mode: soft-light;
+  opacity: var(--grain, 0.7);
+}
+.raw-frame {
+  container: plate / size;
+}
+.raw-runner {
+  left: var(--x);
+  bottom: var(--b);
+  height: var(--h);
+  aspect-ratio: 100 / 140;
+  transform: translateX(-50%) rotate(var(--lean));
+  transform-origin: 50% 100%;
+}
+.raw-kick {
+  bottom: calc(var(--b) - 2%);
+}
+.raw-dust {
+  top: var(--dy);
+  transform: translate(-50%, -50%);
+  animation: dust 9s ease-in-out infinite alternate;
+}
+@container plate (aspect-ratio < 0.8) {
+  .raw-runner {
+    bottom: var(--pb);
+    height: var(--ph);
+  }
+  .raw-kick {
+    bottom: calc(var(--pb) - 1%);
+  }
+  .raw-dust {
+    top: var(--pdy);
+  }
+}
+@keyframes dust {
+  from { transform: translate(-50%, -50%) scale(1); }
+  to { transform: translate(-46%, -53%) scale(1.12); }
+}
+.calm .raw-dust {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .raw-dust {
+    animation: none !important;
+  }
+}

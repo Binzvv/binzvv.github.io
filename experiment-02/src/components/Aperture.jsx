@@ -22,7 +22,8 @@ export function apertureGeometry({ phase, mode, hover, mobile, goStage, W, H }) 
   if (phase === 'opening') return { ...shapes[hover || 'idle'], o: 1 }
   const world = {
     escape: full,
-    push: mobile ? { x: 0, y: 0, w: W, h: H * 0.4, r: SHARP, o: 1 } : { x: W * 0.5, y: 0, w: W * 0.5, h: H, r: SHARP, o: 1 },
+    // PUSH: hard crop that bleeds off the edge; full-bleed on phones, type sits on the image
+    push: mobile ? full : { x: W * 0.3, y: 0, w: W * 0.7, h: H, r: SHARP, o: 1 },
     wander: { ...shapes.wander, o: 0 },
   }
   if (phase === 'gone') {

@@ -7,7 +7,7 @@ import { useState } from 'react'
 export function GoRunButton({ mode, onClick, className = '', size = 'md' }) {
   const styles = {
     escape: 'border border-white/70 text-white hover:bg-white hover:text-ink',
-    push: 'bg-signal text-ink hover:bg-bone',
+    push: 'bg-signal text-ink hover:bg-bone tracking-[0.04em]',
     wander: 'bg-ink text-bone hover:bg-transparent hover:text-ink border border-ink',
   }
   const pad = size === 'lg' ? 'px-7 py-5 text-[15px]' : 'px-5 py-3.5 text-[13px]'
@@ -15,7 +15,7 @@ export function GoRunButton({ mode, onClick, className = '', size = 'md' }) {
     <button
       onClick={onClick}
       className={`vt tracking-[0.12em] transition-colors duration-300 ${pad} ${styles[mode] || styles.wander} ${className}`}
-      style={{ '--wdth': 112, '--wght': 760 }}
+      style={mode === 'push' ? { '--wdth': 70, '--wght': 900, fontSize: size === 'lg' ? 22 : 17 } : { '--wdth': 112, '--wght': 760 }}
     >
       GO RUN.
     </button>

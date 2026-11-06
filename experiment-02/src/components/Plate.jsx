@@ -1,4 +1,5 @@
 import { memo, useMemo, useState } from 'react'
+import { RawLayers } from './RawLayers'
 
 // Deterministic pseudo-random for ridge silhouettes
 function rng(seed) {
@@ -24,7 +25,8 @@ function ridgePath(seed, amp, base, layers = 5) {
 
 export const GRADES = {
   escape: 'saturate(0.75) contrast(0.94) brightness(1.03)',
-  push: 'grayscale(0.55) contrast(1.32) brightness(0.92)',
+  // documentary film: faded blacks, warm mids, hard contrast
+  push: 'contrast(1.14) saturate(0.86) sepia(0.12) brightness(0.98)',
   wander: 'sepia(0.12) saturate(0.95) contrast(1.02)',
 }
 
@@ -46,7 +48,7 @@ function PlateBase({ story, grade, drift = true, label = false, className = '', 
   const useImage = story.src && !failed
 
   return (
-    <div className={`absolute inset-0 overflow-hidden grain ${className}`} style={{ filter: grade ? GRADES[grade] : undefined, ...style }}>
+    <div className={`absolute inset-0 overflow-hidden grain ${p.raw ? 'grain-raw raw-frame' : ''} ${className}`} style={{ filter: grade ? GRADES[grade] : undefined, ...style }}>
       <div className={`absolute inset-0 ${drift ? 'plate-drift' : ''}`}>
         {useImage ? (
           <img src={story.src} alt={`${story.title} — ${story.place}`} onError={() => setFailed(true)} className="h-full w-full object-cover" />
@@ -56,6 +58,7 @@ function PlateBase({ story, grade, drift = true, label = false, className = '', 
             aria-label={`Placeholder plate: ${story.title}, ${story.place}`}
             className="absolute inset-0"
             style={{
+              transform: p.tilt ? `rotate(${p.tilt}deg) scale(1.12)` : undefined,
               background: `
                 radial-gradient(ellipse 38% 30% at ${p.sun[0]}% ${p.sun[1]}%, ${p.haze}ee 0%, ${p.haze}00 70%),
                 linear-gradient(180deg, ${p.sky[0]} 0%, ${p.sky[1]} ${p.horizon - 4}%, ${p.haze} ${p.horizon}%, ${p.ground[0]} ${p.horizon + 6}%, ${p.ground[1]} 100%)`,
@@ -81,6 +84,7 @@ function PlateBase({ story, grade, drift = true, label = false, className = '', 
                 filter: 'blur(8px)',
               }}
             />
+            {p.raw && <RawLayers story={story} />}
             {p.streak && (
               <div
                 className="absolute inset-0 mix-blend-soft-light"

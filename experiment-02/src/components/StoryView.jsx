@@ -11,6 +11,38 @@ const THEMES = {
   wander: { bg: '#DCD3C4', ink: '#24211C', t: { type: 'spring', stiffness: 80, damping: 20 }, wdth: 100, wght: 540 },
 }
 
+/* PUSH story opener: full-bleed frame, title set over the photograph. */
+function PushHero({ story, t }) {
+  const words = story.title.toUpperCase().split(' ')
+  return (
+    <div className="relative h-[72vh] min-h-[420px] overflow-hidden">
+      <motion.div className="absolute inset-0" initial={{ scale: 1.06 }} animate={{ scale: 1 }} transition={{ ...t, duration: 0.9 }}>
+        <Plate story={story} grade="push" />
+      </motion.div>
+      <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, #0E0E0C99 0%, #0E0E0C00 22%, #0E0E0C00 55%, #0E0E0C 100%)' }} />
+      <div className="absolute inset-x-0 bottom-0 px-5 sm:px-10">
+        <p className="label mb-3 flex gap-3">
+          <span className="text-signal">PUSH</span>
+          <span className="opacity-70">{story.place}</span>
+        </p>
+        <motion.h2
+          className="vt uppercase leading-[0.8] tracking-[-0.015em]"
+          style={{ fontSize: 'clamp(72px, min(16vw, 24vh), 300px)', '--wdth': 62, '--wght': 900 }}
+          initial={{ clipPath: 'inset(0 100% 0 0)', x: 60, skewX: -8 }}
+          animate={{ clipPath: 'inset(0 0% 0 0)', x: 0, skewX: 0 }}
+          transition={{ ...t, delay: 0.1 }}
+        >
+          {words.map((w, i) => (
+            <span key={i} className="block">
+              {w}
+            </span>
+          ))}
+        </motion.h2>
+      </div>
+    </div>
+  )
+}
+
 export default function StoryView({ story, deeper, onDeeper, onClose, onGoRun, onThread, fading }) {
   const { isActive, offer, toggleSave, memory } = useEngine()
   const th = THEMES[story.mode]
@@ -74,8 +106,10 @@ export default function StoryView({ story, deeper, onDeeper, onClose, onGoRun, o
       aria-label={story.title}
     >
       <div ref={scroller} onScroll={onScroll} className="no-scrollbar h-full overflow-y-auto">
-        <div className={`grid min-h-full gap-8 px-5 pb-28 pt-24 sm:px-10 sm:pt-28 ${push || wander ? 'lg:grid-cols-[1fr_1fr] lg:gap-16' : ''}`}>
+        {push && <PushHero story={story} t={th.t} />}
+        <div className={`grid min-h-full gap-8 px-5 pb-28 sm:px-10 ${push ? 'pt-8 sm:pt-12' : 'pt-24 sm:pt-28'} ${wander ? 'lg:grid-cols-[1fr_1fr] lg:gap-16' : ''}`}>
           {/* image */}
+          {!push && (
           <motion.div
             className={`relative overflow-hidden ${push ? 'h-[46vh] lg:sticky lg:top-28 lg:h-[calc(100vh-10rem)]' : wander ? 'morph h-[48vh] lg:sticky lg:top-28 lg:h-[70vh]' : 'h-[62vh] w-full'}`}
             initial={{ opacity: 0, scale: push ? 1.04 : 1 }}
@@ -84,19 +118,27 @@ export default function StoryView({ story, deeper, onDeeper, onClose, onGoRun, o
           >
             <Plate story={story} grade={story.mode} label />
           </motion.div>
+          )}
 
           {/* text */}
-          <div className={push || wander ? '' : 'mx-auto w-full max-w-xl'}>
-            <p className="label opacity-50">
-              {MODES[story.mode].word} — {story.place}
+          <div className={push ? 'lg:grid lg:grid-cols-[5fr_7fr] lg:items-start lg:gap-16' : wander ? '' : 'mx-auto w-full max-w-xl'}>
+            <div className={push ? 'lg:sticky lg:top-8' : 'contents'}>
+            {!push && (
+              <>
+                <p className="label opacity-50">
+                  {MODES[story.mode].word} — {story.place}
+                </p>
+                <h2 className="vt mt-3 leading-[0.88]" style={{ fontSize: 'clamp(38px, 5vw, 84px)', '--wdth': th.wdth, '--wght': th.wght }}>
+                  {story.title}
+                </h2>
+              </>
+            )}
+            <p className={push ? 'vt text-[24px] leading-[1.1] sm:text-[30px]' : 'mt-5 text-[18px] leading-snug opacity-80'} style={push ? { '--wdth': 78, '--wght': 600 } : undefined}>
+              {story.line}
             </p>
-            <h2 className="vt mt-3 leading-[0.88]" style={{ fontSize: push ? 'clamp(48px, 7vw, 120px)' : 'clamp(38px, 5vw, 84px)', '--wdth': th.wdth, '--wght': th.wght, textTransform: push ? 'uppercase' : 'none' }}>
-              {story.title}
-            </h2>
-            <p className="mt-5 text-[18px] leading-snug opacity-80">{story.line}</p>
 
             {story.specs && (
-              <dl className="mt-8 border-t border-current/20">
+              <dl className={`mt-8 border-t ${push ? 'border-signal' : 'border-current/20'}`}>
                 {story.specs.map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-4 border-b border-current/20 py-2.5 text-[14px]">
                     <dt className="label pt-0.5 opacity-50">{k}</dt>
@@ -106,7 +148,16 @@ export default function StoryView({ story, deeper, onDeeper, onClose, onGoRun, o
               </dl>
             )}
 
-            <div className="mt-8 space-y-5 text-[16px] leading-relaxed sm:text-[17px]">
+            {push && story.shot && (
+              <p className="label mt-8 opacity-70">
+                <span className="mr-2 bg-signal px-1 py-px text-ink">Shot</span>
+                {story.shot}
+                {!story.src && <span className="mt-1 block opacity-60">Placeholder frame — replace with documentary photography.</span>}
+              </p>
+            )}
+            </div>
+            <div className={push ? 'mt-10 lg:mt-0' : 'contents'}>
+            <div className={`space-y-5 text-[16px] leading-relaxed sm:text-[17px] ${push ? 'max-w-2xl' : 'mt-8'}`}>
               {story.body.map((p, i) => (
                 <motion.p key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ ...th.t, delay: 0.4 + i * 0.15 }}>
                   {p}
@@ -146,6 +197,7 @@ export default function StoryView({ story, deeper, onDeeper, onClose, onGoRun, o
                 </ul>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
