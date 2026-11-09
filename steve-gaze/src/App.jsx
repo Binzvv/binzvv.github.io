@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FRAMES } from './frames.js'
 import { useGaze } from './useGaze.js'
+import Orbit from './Orbit.jsx'
 
 /** Preload and decode every frame so switching never waits on the network. */
 function usePreload(frames) {
@@ -26,12 +27,25 @@ function usePreload(frames) {
   return ready
 }
 
-function initialDebug() {
+function param(name) {
   try {
-    return new URLSearchParams(location.search).has('debug')
+    return new URLSearchParams(location.search).get(name)
   } catch {
-    return false
+    return null
   }
+}
+
+function useReducedMotion() {
+  const query = '(prefers-reduced-motion: reduce)'
+  const [reduced, setReduced] = useState(() => window.matchMedia?.(query).matches ?? false)
+  useEffect(() => {
+    const mq = window.matchMedia?.(query)
+    if (!mq) return
+    const on = () => setReduced(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return reduced
 }
 
 export default function App() {
@@ -39,11 +53,15 @@ export default function App() {
   const debugRef = useRef(null)
   const ready = usePreload(FRAMES)
   const { active, prev } = useGaze(headRef, debugRef)
-  const [debug, setDebug] = useState(initialDebug)
+  const [debug, setDebug] = useState(() => param('debug') !== null)
+  const [effects, setEffects] = useState(() => param('effects') !== '0')
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'd' && !e.metaKey && !e.ctrlKey && !e.altKey) setDebug((d) => !d)
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key === 'd') setDebug((d) => !d)
+      if (e.key === 'e') setEffects((v) => !v)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -66,14 +84,16 @@ export default function App() {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="debug-toggle"
-        aria-pressed={debug}
-        onClick={() => setDebug((d) => !d)}
-      >
-        debug
-      </button>
+      {effects && <Orbit headRef={headRef} visible={ready} reducedMotion={reducedMotion} />}
+
+      <div className="toggles">
+        <button type="button" className="toggle" aria-pressed={effects} onClick={() => setEffects((v) => !v)}>
+          effects
+        </button>
+        <button type="button" className="toggle" aria-pressed={debug} onClick={() => setDebug((d) => !d)}>
+          debug
+        </button>
+      </div>
 
       {debug && <DebugPanel active={active} debugRef={debugRef} />}
     </main>

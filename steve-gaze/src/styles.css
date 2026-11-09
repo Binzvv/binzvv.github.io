@@ -7,6 +7,11 @@
   --head: min(96vw, 78svh, 860px);
 }
 
+@media (max-width: 600px) {
+  /* Leave room for the orbit at the sides. */
+  :root { --head: min(86vw, 70svh); }
+}
+
 * { box-sizing: border-box; }
 
 html,
@@ -38,6 +43,7 @@ body {
 /* Fixed-size box from the first paint: no layout shift when images arrive. */
 .head {
   position: relative;
+  z-index: 3; /* orbit items sit at 1 (behind) or 6 (in front) */
   width: var(--head);
   aspect-ratio: 1;
   opacity: 0;
@@ -77,10 +83,17 @@ body {
   -webkit-user-drag: none;
 }
 
-/* Previous frame stays fully opaque underneath... */
+/* Previous frame stays opaque underneath while the new one dissolves in,
+   then clears so its outline never shows around the new frame. */
 .frame.is-prev {
-  opacity: 1;
+  opacity: 0;
   z-index: 1;
+  animation: hold-then-clear calc(var(--fade) * 2) linear;
+}
+
+@keyframes hold-then-clear {
+  0%, 50% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* ...while the new frame dissolves in over it. */
@@ -94,11 +107,51 @@ body {
   from { opacity: 0; }
 }
 
-/* Debug ------------------------------------------------------------------ */
-.debug-toggle {
+/* Orbit ------------------------------------------------------------------ */
+.orbit {
   position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: contents; /* items share the stage's stacking context with the head */
+}
+
+.device {
+  position: fixed;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  will-change: transform;
+  /* Far side of the ring is a touch hazier, near side casts a soft shadow. */
+  filter: drop-shadow(0 calc(4px + 8px * var(--depth, 0.5)) calc(6px + 8px * var(--depth, 0.5)) rgba(91, 74, 58, calc(0.08 + 0.14 * var(--depth, 0.5))))
+    saturate(calc(0.75 + 0.25 * var(--depth, 0.5)));
+}
+
+.device svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.orbit.is-visible .device {
+  animation: device-in 900ms cubic-bezier(0.2, 0.7, 0.1, 1) forwards;
+  animation-delay: calc(700ms + var(--i) * 120ms);
+}
+
+@keyframes device-in {
+  to { opacity: 1; }
+}
+
+/* Toggles ---------------------------------------------------------------- */
+.toggles {
+  position: fixed;
+  z-index: 20;
   right: max(16px, env(safe-area-inset-right));
   bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 4px;
+}
+
+.toggle {
   padding: 6px 8px;
   border: 0;
   background: none;
@@ -110,9 +163,10 @@ body {
   opacity: 0.6;
   transition: opacity 200ms;
 }
-.debug-toggle:hover,
-.debug-toggle:focus-visible,
-.debug-toggle[aria-pressed='true'] { opacity: 1; }
+.toggle:hover,
+.toggle:focus-visible,
+.toggle[aria-pressed='true'] { opacity: 1; }
+.toggle:focus-visible { outline: 1.5px solid var(--ink-soft); outline-offset: 2px; border-radius: 4px; }
 
 .debug-panel {
   position: fixed;
@@ -160,5 +214,7 @@ body {
   .head { opacity: 1; transform: none; }
   .head.is-ready { animation: none; }
   .float { animation: none; }
-  .frame.is-active { animation: none; }
+  .frame.is-active,
+  .frame.is-prev { animation: none; }
+  .orbit.is-visible .device { animation: none; opacity: 1; }
 }

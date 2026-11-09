@@ -6,8 +6,8 @@ Each frame is:
   * cut from its grid cell (separator lines excluded)
   * cleaned of the "01 Up Left"-style caption
   * aligned so the head's silhouette centroid sits at the same point
-  * composited onto the flat cream background with a soft feather around the
-    head, so the frame has no visible edge or border
+  * given a transparent background with a short feather around the head, so
+    the frame has no visible edge and other elements can pass behind the head
   * upscaled 2x (Lanczos + light unsharp) and saved as WebP at identical size
 """
 import sys, os, json
@@ -60,23 +60,28 @@ for r, (y0, y1) in enumerate(YS):
         ys, xs = np.nonzero(head)
         cy, cx = ys.mean(), xs.mean()
 
-        # --- soft alpha: opaque on the head, fading to flat background
+        # --- soft alpha: opaque on the head, feathering out over a few pixels.
+        # Frames are transparent outside the head so things can pass behind it.
         dist = ndi.distance_transform_edt(~head)
-        alpha = np.clip(1 - (dist - 5) / 16, 0, 1)[..., None]
-        comp = cell * alpha + BG * (1 - alpha)
+        alpha = np.clip(1 - (dist - 1.5) / 6, 0, 1)
 
-        # --- place on aligned canvas
-        canvas = np.tile(BG, (CANVAS, CANVAS, 1))
+        # --- place on aligned canvas (RGB keeps the cream so edges stay clean)
+        rgb = np.tile(BG, (CANVAS, CANVAS, 1))
+        a = np.zeros((CANVAS, CANVAS))
         ox, oy = int(round(ANCHOR[0] - cx)), int(round(ANCHOR[1] - cy))
         sx0, sy0_ = max(0, -ox), max(0, -oy)
         sx1, sy1 = min(w, CANVAS - ox), min(h, CANVAS - oy)
-        canvas[sy0_ + oy:sy1 + oy, sx0 + ox:sx1 + ox] = comp[sy0_:sy1, sx0:sx1]
+        rgb[sy0_ + oy:sy1 + oy, sx0 + ox:sx1 + ox] = cell[sy0_:sy1, sx0:sx1]
+        a[sy0_ + oy:sy1 + oy, sx0 + ox:sx1 + ox] = alpha[sy0_:sy1, sx0:sx1]
 
-        img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
-        img = img.resize((CANVAS * SCALE, CANVAS * SCALE), Image.LANCZOS)
-        img = img.filter(ImageFilter.UnsharpMask(radius=1.6, percent=55, threshold=2))
+        size = (CANVAS * SCALE, CANVAS * SCALE)
+        col = Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8)).resize(size, Image.LANCZOS)
+        col = col.filter(ImageFilter.UnsharpMask(radius=1.6, percent=55, threshold=2))
+        mask = Image.fromarray((a * 255).astype(np.uint8)).resize(size, Image.LANCZOS)
+        img = col.convert("RGBA")
+        img.putalpha(mask)
         name = f"{idx + 1:02d}-{NAMES[idx]}.webp"
-        img.save(os.path.join(OUT, name), quality=90, method=6)
+        img.save(os.path.join(OUT, name), quality=90, alpha_quality=95, method=6)
         meta[NAMES[idx]] = {"file": name, "centroid": [round(cx, 1), round(cy, 1)],
                             "bbox": [int(xs.min() + ox), int(ys.min() + oy),
                                      int(xs.max() + ox), int(ys.max() + oy)]}
@@ -87,7 +92,7 @@ for r, (y0, y1) in enumerate(YS):
 # Frames are centred on the head centroid, so a mirror keeps the alignment.
 from PIL import ImageOps
 ur = Image.open(os.path.join(OUT, "03-up-right.webp"))
-ImageOps.mirror(ur).save(os.path.join(OUT, "01-up-left.webp"), quality=90, method=6)
+ImageOps.mirror(ur).save(os.path.join(OUT, "01-up-left.webp"), quality=90, alpha_quality=95, method=6)
 meta["up-left"] = {"file": "01-up-left.webp", "mirrored_from": "03-up-right.webp"}
 print("01-up-left.webp <- mirrored 03-up-right.webp")
 
