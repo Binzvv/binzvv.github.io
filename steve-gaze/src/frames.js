@@ -11,7 +11,11 @@ export const FRAMES = [
   { name: 'Down left', file: '07-down-left.webp' },
   { name: 'Down', file: '08-down.webp' },
   { name: 'Down right', file: '09-down-right.webp' },
-].map((f) => ({ ...f, src: `${base}frames/${f.file}` }))
+].map((f) => ({
+  ...f,
+  // A standalone single-file build can supply inlined frames via window.__GAZE_FRAMES__.
+  src: (typeof window !== 'undefined' && window.__GAZE_FRAMES__?.[f.file]) || `${base}frames/${f.file}`,
+}))
 
 export const CENTRE = 4
 
