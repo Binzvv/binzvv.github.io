@@ -82,5 +82,14 @@ for r, (y0, y1) in enumerate(YS):
                                      int(xs.max() + ox), int(ys.max() + oy)]}
         print(name, meta[NAMES[idx]])
 
+# The sheet's "01 Up Left" cell actually looks up and to the RIGHT (near-duplicate
+# of "03 Up Right"), so the true up-left frame is the up-right frame mirrored.
+# Frames are centred on the head centroid, so a mirror keeps the alignment.
+from PIL import ImageOps
+ur = Image.open(os.path.join(OUT, "03-up-right.webp"))
+ImageOps.mirror(ur).save(os.path.join(OUT, "01-up-left.webp"), quality=90, method=6)
+meta["up-left"] = {"file": "01-up-left.webp", "mirrored_from": "03-up-right.webp"}
+print("01-up-left.webp <- mirrored 03-up-right.webp")
+
 with open(os.path.join(os.path.dirname(__file__), "frames.json"), "w") as f:
     json.dump(meta, f, indent=2)

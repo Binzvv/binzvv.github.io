@@ -1,16 +1,7 @@
 {
   "up-left": {
     "file": "01-up-left.webp",
-    "centroid": [
-      258.1,
-      178.8
-    ],
-    "bbox": [
-      82,
-      56,
-      350,
-      380
-    ]
+    "mirrored_from": "03-up-right.webp"
   },
   "up": {
     "file": "02-up.webp",
