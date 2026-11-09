@@ -43,7 +43,7 @@ body {
 /* Fixed-size box from the first paint: no layout shift when images arrive. */
 .head {
   position: relative;
-  z-index: 3; /* orbit items sit at 1 (behind) or 6 (in front) */
+  z-index: 100; /* orbit devices are depth-sorted around this: <100 behind, >100 in front */
   width: var(--head);
   aspect-ratio: 1;
   opacity: 0;
@@ -121,9 +121,13 @@ body {
   top: 0;
   opacity: 0;
   will-change: transform;
-  /* Far side of the ring is a touch hazier, near side casts a soft shadow. */
-  filter: drop-shadow(0 calc(4px + 8px * var(--depth, 0.5)) calc(6px + 8px * var(--depth, 0.5)) rgba(91, 74, 58, calc(0.08 + 0.14 * var(--depth, 0.5))))
-    saturate(calc(0.75 + 0.25 * var(--depth, 0.5)));
+  /* Depth cues: the far side is smaller (set in JS), softer, slightly hazier
+     and less saturated; the near side is crisp with a deeper contact shadow. */
+  --d: var(--depth, 0.5);
+  filter: drop-shadow(0 calc(3px + 12px * var(--d)) calc(5px + 13px * var(--d)) rgba(91, 74, 58, calc(0.05 + 0.17 * var(--d))))
+    blur(calc((1 - var(--d)) * 0.9px))
+    saturate(calc(0.7 + 0.3 * var(--d)))
+    brightness(calc(0.96 + 0.04 * var(--d)));
 }
 
 .device svg {
@@ -144,7 +148,7 @@ body {
 /* Toggles ---------------------------------------------------------------- */
 .toggles {
   position: fixed;
-  z-index: 20;
+  z-index: 300;
   right: max(16px, env(safe-area-inset-right));
   bottom: max(14px, env(safe-area-inset-bottom));
   display: flex;
@@ -170,6 +174,7 @@ body {
 
 .debug-panel {
   position: fixed;
+  z-index: 300;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(16px, env(safe-area-inset-bottom));
   display: flex;
@@ -207,7 +212,7 @@ body {
   border-radius: 50%;
   border: 1.5px solid var(--ink);
   pointer-events: none;
-  z-index: 10;
+  z-index: 300;
 }
 
 @media (prefers-reduced-motion: reduce) {

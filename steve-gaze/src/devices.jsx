@@ -20,7 +20,7 @@ export const DEVICES = [
   {
     key: 'imac',
     label: 'iMac',
-    w: 0.17,
+    w: 0.255, // 1.5x
     svg: (
       <svg viewBox="0 0 120 108">
         <defs>
@@ -43,7 +43,7 @@ export const DEVICES = [
   {
     key: 'ipad',
     label: 'iPad',
-    w: 0.115,
+    w: 0.138, // 1.2x
     svg: (
       <svg viewBox="0 0 80 106">
         <defs>
@@ -61,7 +61,7 @@ export const DEVICES = [
   {
     key: 'ipod',
     label: 'iPod',
-    w: 0.07,
+    w: 0.098, // 1.4x
     svg: (
       <svg viewBox="0 0 60 100">
         <defs>
@@ -109,7 +109,7 @@ export const DEVICES = [
   {
     key: 'macbook-air',
     label: 'MacBook Air',
-    w: 0.19,
+    w: 0.247, // 1.3x
     svg: (
       <svg viewBox="0 0 140 90">
         <defs>
