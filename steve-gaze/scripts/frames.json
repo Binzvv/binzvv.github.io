@@ -1,0 +1,119 @@
+{
+  "up-left": {
+    "file": "01-up-left.webp",
+    "centroid": [
+      258.1,
+      178.8
+    ],
+    "bbox": [
+      82,
+      56,
+      350,
+      380
+    ]
+  },
+  "up": {
+    "file": "02-up.webp",
+    "centroid": [
+      246.9,
+      178.0
+    ],
+    "bbox": [
+      89,
+      57,
+      352,
+      381
+    ]
+  },
+  "up-right": {
+    "file": "03-up-right.webp",
+    "centroid": [
+      256.4,
+      180.9
+    ],
+    "bbox": [
+      71,
+      53,
+      361,
+      378
+    ]
+  },
+  "left": {
+    "file": "04-left.webp",
+    "centroid": [
+      253.4,
+      162.3
+    ],
+    "bbox": [
+      99,
+      60,
+      350,
+      390
+    ]
+  },
+  "centre": {
+    "file": "05-centre.webp",
+    "centroid": [
+      250.2,
+      161.9
+    ],
+    "bbox": [
+      93,
+      60,
+      347,
+      390
+    ]
+  },
+  "right": {
+    "file": "06-right.webp",
+    "centroid": [
+      253.5,
+      162.1
+    ],
+    "bbox": [
+      84,
+      60,
+      352,
+      390
+    ]
+  },
+  "down-left": {
+    "file": "07-down-left.webp",
+    "centroid": [
+      256.6,
+      161.5
+    ],
+    "bbox": [
+      92,
+      61,
+      346,
+      403
+    ]
+  },
+  "down": {
+    "file": "08-down.webp",
+    "centroid": [
+      255.9,
+      160.5
+    ],
+    "bbox": [
+      91,
+      62,
+      346,
+      404
+    ]
+  },
+  "down-right": {
+    "file": "09-down-right.webp",
+    "centroid": [
+      257.3,
+      163.2
+    ],
+    "bbox": [
+      91,
+      59,
+      345,
+      403
+    ]
+  }
+}
