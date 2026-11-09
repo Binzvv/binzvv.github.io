@@ -52,10 +52,16 @@ export default function App() {
   const headRef = useRef(null)
   const debugRef = useRef(null)
   const ready = usePreload(FRAMES)
-  const { active, prev } = useGaze(headRef, debugRef)
+  const motionRef = useRef(null)
+  const motionEl = useRef(null)
+  const blurEl = useRef(null)
   const [debug, setDebug] = useState(() => param('debug') !== null)
   const [effects, setEffects] = useState(() => param('effects') !== '0')
   const reducedMotion = useReducedMotion()
+  useEffect(() => {
+    motionRef.current = { el: motionEl.current, blur: blurEl.current }
+  }, [])
+  const { active, prev } = useGaze(headRef, debugRef, motionRef, reducedMotion)
 
   useEffect(() => {
     const onKey = (e) => {
@@ -71,6 +77,7 @@ export default function App() {
     <main className="stage">
       <div className={`head ${ready ? 'is-ready' : ''}`} ref={headRef}>
         <div className="float" role="img" aria-label="Portrait character whose gaze follows your cursor">
+          <div className="motion" ref={motionEl}>
           {FRAMES.map((f, i) => (
             <img
               key={f.file}
@@ -81,8 +88,16 @@ export default function App() {
               className={i === active ? 'frame is-active' : i === prev ? 'frame is-prev' : 'frame'}
             />
           ))}
+          </div>
         </div>
       </div>
+
+      {/* Directional motion blur, applied to the head only while it changes gaze. */}
+      <svg className="defs" aria-hidden="true" focusable="false">
+        <filter id="gaze-motion-blur" x="-4%" y="-4%" width="108%" height="108%" colorInterpolationFilters="sRGB">
+          <feGaussianBlur ref={blurEl} stdDeviation="0 0" edgeMode="none" />
+        </filter>
+      </svg>
 
       {effects && <Orbit headRef={headRef} visible={ready} reducedMotion={reducedMotion} />}
 

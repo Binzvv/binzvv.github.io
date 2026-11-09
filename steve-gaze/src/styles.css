@@ -2,7 +2,7 @@
   --cream: #fef3e4; /* sampled from the frame background */
   --ink: #5b4a3a;
   --ink-soft: rgba(91, 74, 58, 0.45);
-  --fade: 110ms;
+  --fade: 90ms; /* very short crossfade between adjacent gaze frames */
   /* Square frame; the head fills ~72% of it. */
   --head: min(96vw, 78svh, 860px);
 }
@@ -72,6 +72,18 @@ body {
   50% { transform: translateY(-6px); }
 }
 
+.motion {
+  position: absolute;
+  inset: 0;
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 .frame {
   position: absolute;
   inset: 0;
@@ -88,11 +100,11 @@ body {
 .frame.is-prev {
   opacity: 0;
   z-index: 1;
-  animation: hold-then-clear calc(var(--fade) * 2) linear;
+  animation: hold-then-clear calc(var(--fade) * 1.5) linear;
 }
 
 @keyframes hold-then-clear {
-  0%, 50% { opacity: 1; }
+  0%, 66% { opacity: 1; }
   100% { opacity: 0; }
 }
 
@@ -100,7 +112,7 @@ body {
 .frame.is-active {
   opacity: 1;
   z-index: 2;
-  animation: dissolve var(--fade) ease-out;
+  animation: dissolve var(--fade) cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 @keyframes dissolve {

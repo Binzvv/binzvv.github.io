@@ -1,14 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
 import { CENTRE, frameIndex } from './frames.js'
 
-// Tuning ------------------------------------------------------------------
-const TAU_TRACK = 0.06 // s — smoothing time constant while the pointer is present
-const TAU_RETURN = 0.32 // s — slower, gentle drift back to neutral
+// Tracking ----------------------------------------------------------------
+// The pointer is followed by a damped spring rather than a plain lerp, so the
+// gaze eases off the mark and settles with a little weight (inertia).
+const SPRING_TRACK = { w: 15, zeta: 0.82 } // rad/s, damping ratio: lively, ~2% overshoot
+const SPRING_RETURN = { w: 6.5, zeta: 1 } // slower, no overshoot when drifting home
 const ENTER_X = 0.22 // normalised distance from head centre to enter a side zone
 const ENTER_Y = 0.24
 const HYST = 0.06 // hysteresis band: leave a zone only below ENTER - HYST
-const MIN_HOLD = 0.07 // s — minimum time a frame is held before switching again
+const MIN_HOLD = 0.08 // s — minimum time a frame is held before switching again
 const TOUCH_RELEASE_DELAY = 700 // ms before a lifted finger lets the head return
+
+// Head motion -------------------------------------------------------------
+// Momentum lean: the head drifts a few pixels in the direction of travel while
+// the gaze is moving, and comes back to exactly zero (no transform) at rest.
+const LEAN_MAX = 0.006 // fraction of head size (~4px on desktop)
+const LEAN_GAIN = 0.0012 // per px/s of smoothed pointer speed
+// Directional motion blur, only during a frame change: rises and falls on a
+// half-sine over BLUR_TIME, along the axis of the gaze change.
+const BLUR_TIME = 0.17 // s
+const BLUR_PEAK = 0.0034 // fraction of head size (~2.4px std-dev on desktop)
 
 /**
  * Per-axis zone with hysteresis. Returns -1, 0 or 1.
@@ -25,18 +37,24 @@ function zone(current, n, enter) {
 
 /**
  * Tracks the pointer across the whole viewport with requestAnimationFrame,
- * smooths it, and maps it to one of nine gaze frames relative to `originRef`.
+ * smooths it with a spring, and maps it to one of nine gaze frames relative
+ * to `originRef`. Optionally drives a momentum lean and directional blur on
+ * `motion.current = { el, blur }` (blur is an <feGaussianBlur>).
  */
-export function useGaze(originRef, debugRef) {
+export function useGaze(originRef, debugRef, motion, reducedMotion = false) {
   const [frames, setFrames] = useState({ active: CENTRE, prev: CENTRE })
 
   const s = useRef({
     target: null, // {x, y} or null when the pointer is away
     pos: null, // smoothed position
+    vel: { x: 0, y: 0 },
     col: 0,
     row: 0,
     lastSwitch: 0,
-    origin: { x: 0, y: 0, rx: 1, ry: 1 },
+    blur: { t0: -1, x: 0, y: 0 },
+    lean: { x: 0, y: 0 },
+    styled: false, // whether the motion element currently has inline styles
+    origin: { x: 0, y: 0, rx: 1, ry: 1, size: 1 },
   })
 
   useEffect(() => {
@@ -51,13 +69,15 @@ export function useGaze(originRef, debugRef) {
       const h = window.innerHeight
       let x = w / 2
       let y = h / 2
+      let size = Math.min(w, h)
       if (el) {
         const r = el.getBoundingClientRect()
         x = r.left + r.width / 2
         y = r.top + r.height * 0.46 // roughly eye level within the frame
+        size = r.width
       }
       // Normalise so the far edge of the viewport on each side reads as |1|.
-      st.origin = { x, y, rx: Math.max(x, w - x, 1), ry: Math.max(y, h - y, 1) }
+      st.origin = { x, y, rx: Math.max(x, w - x, 1), ry: Math.max(y, h - y, 1), size }
     }
 
     const setTarget = (x, y) => {
@@ -82,25 +102,88 @@ export function useGaze(originRef, debugRef) {
     }
     const onVisibility = () => document.hidden && release()
 
+    /** Semi-implicit Euler spring step, sub-stepped for stability. */
+    const stepSpring = (dt, goal, { w, zeta }) => {
+      const k = w * w
+      const c = 2 * zeta * w
+      const n = Math.ceil(dt / (1 / 120))
+      const h = dt / n
+      for (let i = 0; i < n; i++) {
+        st.vel.x += (k * (goal.x - st.pos.x) - c * st.vel.x) * h
+        st.vel.y += (k * (goal.y - st.pos.y) - c * st.vel.y) * h
+        st.pos.x += st.vel.x * h
+        st.pos.y += st.vel.y * h
+      }
+    }
+
+    const applyMotion = (t, dt) => {
+      const m = motion?.current
+      if (!m?.el) return
+      const size = st.origin.size
+
+      // Momentum lean from the smoothed pointer velocity, eased toward its goal.
+      const clamp = (v) => Math.max(-1, Math.min(1, v))
+      const goalX = reducedMotion ? 0 : clamp(st.vel.x * LEAN_GAIN) * LEAN_MAX * size
+      const goalY = reducedMotion ? 0 : clamp(st.vel.y * LEAN_GAIN) * LEAN_MAX * size * 0.7
+      const k = 1 - Math.exp(-dt / 0.09)
+      st.lean.x += (goalX - st.lean.x) * k
+      st.lean.y += (goalY - st.lean.y) * k
+      if (Math.abs(st.lean.x) < 0.05 && Math.abs(goalX) < 0.05) st.lean.x = 0
+      if (Math.abs(st.lean.y) < 0.05 && Math.abs(goalY) < 0.05) st.lean.y = 0
+
+      // Directional blur envelope.
+      let bx = 0
+      let by = 0
+      const b = st.blur
+      if (b.t0 >= 0) {
+        const p = (t - b.t0) / BLUR_TIME
+        if (p >= 1) b.t0 = -1
+        else {
+          const env = Math.sin(Math.PI * p) * BLUR_PEAK * size
+          bx = env * b.x
+          by = env * b.y
+        }
+      }
+
+      const moving = st.lean.x !== 0 || st.lean.y !== 0 || bx > 0.02 || by > 0.02
+      if (moving) {
+        m.el.style.transform = `translate3d(${st.lean.x.toFixed(2)}px, ${st.lean.y.toFixed(2)}px, 0)`
+        if (bx > 0.02 || by > 0.02) {
+          m.blur?.setAttribute('stdDeviation', `${bx.toFixed(2)} ${by.toFixed(2)}`)
+          m.el.style.filter = 'url(#gaze-motion-blur)'
+        } else {
+          m.el.style.filter = ''
+        }
+        st.styled = true
+      } else if (st.styled) {
+        // At rest: no transform and no filter, so the face is pixel-sharp.
+        m.el.style.transform = ''
+        m.el.style.filter = ''
+        st.styled = false
+      }
+    }
+
     const tick = (now) => {
-      const dt = Math.min((now - last) / 1000, 0.1)
+      const dt = Math.min((now - last) / 1000, 0.05)
       last = now
+      const t = now / 1000
       const o = st.origin
       const goal = st.target ?? { x: o.x, y: o.y }
       if (!st.pos) st.pos = { x: o.x, y: o.y }
 
-      const tau = st.target ? TAU_TRACK : TAU_RETURN
-      const k = 1 - Math.exp(-dt / tau)
-      st.pos.x += (goal.x - st.pos.x) * k
-      st.pos.y += (goal.y - st.pos.y) * k
+      stepSpring(dt, goal, st.target ? SPRING_TRACK : SPRING_RETURN)
 
       const nx = (st.pos.x - o.x) / o.rx
       const ny = (st.pos.y - o.y) / o.ry
       const col = zone(st.col, nx, ENTER_X)
       const row = zone(st.row, ny, ENTER_Y)
 
-      const t = now / 1000
       if ((col !== st.col || row !== st.row) && t - st.lastSwitch >= MIN_HOLD) {
+        // Blur along the axis of the gaze change (diagonals share it evenly).
+        const dc = Math.abs(col - st.col)
+        const dr = Math.abs(row - st.row)
+        const diag = dc && dr ? Math.SQRT1_2 : 1
+        if (!reducedMotion) st.blur = { t0: t, x: dc * diag, y: dr * diag }
         st.col = col
         st.row = row
         st.lastSwitch = t
@@ -108,6 +191,8 @@ export function useGaze(originRef, debugRef) {
         // React only re-renders on an actual change; `prev` stays underneath while `active` fades in.
         setFrames((f) => (f.active === next ? f : { active: next, prev: f.active }))
       }
+
+      applyMotion(t, dt)
 
       const dbg = debugRef?.current
       if (dbg) {
@@ -144,7 +229,7 @@ export function useGaze(originRef, debugRef) {
       window.removeEventListener('blur', release)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [originRef, debugRef])
+  }, [originRef, debugRef, motion, reducedMotion])
 
   return frames
 }
