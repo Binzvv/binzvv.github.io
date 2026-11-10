@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { AnimatePresence, LayoutGroup, MotionConfig, motion } from 'framer-motion'
 import { reducer, initialState, saveMemory, suggestion } from './machine.js'
 import { DISCOVERIES, MODES, PROJECTS, byId } from './content.js'
@@ -104,6 +104,17 @@ export default function App() {
 
   // D toggles the behavioural debug overlay (testing only, hidden by default).
   const [debug, setDebug] = useState(false)
+  // On touch screens there is no D key: triple-tap the site name instead.
+  const taps = useRef([])
+  const tapName = () => {
+    const now = Date.now()
+    const last = taps.current[taps.current.length - 1]
+    taps.current = last && now - last < 600 ? [...taps.current, now] : [now]
+    if (taps.current.length >= 3) {
+      taps.current = []
+      setDebug((d) => !d)
+    }
+  }
   useEffect(() => {
     const on = (e) => {
       if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return
@@ -121,7 +132,7 @@ export default function App() {
         <Field />
 
         <header className="pointer-events-none fixed inset-x-0 top-0 z-40 flex flex-col gap-1.5 px-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-8 sm:pt-6">
-          <motion.p layout className="whitespace-nowrap text-[14px] font-medium tracking-snug sm:text-[15px]">
+          <motion.p layout onPointerUp={tapName} className="pointer-events-auto w-fit touch-manipulation select-none whitespace-nowrap text-[14px] font-medium tracking-snug sm:text-[15px]">
             The Site That Changes Its Mind
             <AnimatePresence>
               {status !== 'intro' && (

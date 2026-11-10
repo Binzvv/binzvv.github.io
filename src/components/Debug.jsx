@@ -43,7 +43,7 @@ export default function Debug({ state, onClose }) {
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[13px] font-medium">Behaviour debug</p>
         <button onClick={onClose} className="text-quiet hover:text-ink">
-          Close · D
+          Close · D or triple-tap the name
         </button>
       </div>
       <dl className="divide-y divide-hair">

@@ -41,7 +41,7 @@ The site observes, suggests and responds. It never switches mode, changes conten
 
 The last meaningful interaction (opened, read, went deeper, kept) is stored in `localStorage`. "Forget me" clears everything.
 
-**Debug mode:** press **D** for an overlay with the current mode, live signals (skip streak, dwell timer, idle timer, last interaction, most opened), the triggered rule and the observation behind it, the suggested response, whether it was accepted, dismissed or expired, and a timestamped log. "Show rules" lists every rule.
+**Debug mode:** press **D** (or triple-tap the site name on a phone) for an overlay with the current mode, live signals (skip streak, dwell timer, idle timer, last interaction, most opened), the triggered rule and the observation behind it, the suggested response, whether it was accepted, dismissed or expired, and a timestamped log. "Show rules" lists every rule.
 
 ## Develop
 
