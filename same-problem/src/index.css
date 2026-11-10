@@ -1,27 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --font-serif: "Fraunces", Georgia, serif;
-  --color-paper: #F5F4F0;
-  --color-ink: #0A0A0A;
-  --color-mute: #6E6E68;
-  --color-line: rgba(10, 10, 10, 0.12);
+  --color-paper: #F5F5F7;
+  --color-ink: #1D1D1F;
+  --color-mute: #6E6E73;
+  --color-line: rgba(0, 0, 0, 0.1);
+  --color-card: #FFFFFF;
+  --color-link: #0071E3;
 }
 
 html { background: var(--color-paper); color: var(--color-ink); -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
 body { font-family: var(--font-sans); background: var(--color-paper); }
-::selection { background: #0A0A0A; color: #F5F4F0; }
+::selection { background: #1D1D1F; color: #F5F5F7; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
-:focus-visible { outline: 2px solid #0A0A0A; outline-offset: 3px; }
+:focus-visible { outline: 2px solid #0071E3; outline-offset: 3px; }
 
-.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.label { font-size: 12px; font-weight: 600; letter-spacing: -0.01em; }
+.eyebrow { font-size: clamp(15px, 1.6vw, 21px); font-weight: 600; letter-spacing: -0.01em; }
 
 /* -------- Fictional shop themes -------- */
 .shop {
@@ -51,7 +54,7 @@ body { font-family: var(--font-sans); background: var(--color-paper); }
 
 .shop-scroll { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.2) transparent; }
 
-.hot { outline: 1.5px solid #0A0A0A; outline-offset: 4px; transition: outline-color .3s; }
+.hot { outline: 2px solid #0071E3; outline-offset: 4px; transition: outline-color .3s; }
 .hot-dim { outline: 1.5px solid transparent; outline-offset: 4px; }
 
 .no-scrollbar { scrollbar-width: none; }

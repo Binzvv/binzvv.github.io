@@ -142,7 +142,7 @@ function Zone({ id, hot, on, n, children, className = '' }: { id: Region; hot: R
   return (
     <section data-region={id} className={`relative ${on ? (hot === id ? 'hot' : 'hot-dim') : ''} ${className}`}>
       {on && (
-        <span data-a className="pointer-events-none absolute -right-1 -top-2 z-10 grid h-5 w-5 place-items-center rounded-full bg-[#0A0A0A] font-mono text-[10px] text-white" aria-hidden="true">{n}</span>
+        <span data-a className="pointer-events-none absolute -right-1 -top-2 z-10 grid h-5 w-5 place-items-center rounded-full bg-[#0071E3] text-[10px] font-semibold text-white" aria-hidden="true">{n}</span>
       )}
       {children}
     </section>

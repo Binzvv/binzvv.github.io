@@ -6,7 +6,6 @@ import { Shop } from './components/Shop'
 import type { Freq, Region, Size } from './components/Shop'
 import { Thread } from './components/Thread'
 import { Reveal } from './components/Reveal'
-import { Proof } from './components/Proof'
 import { Share } from './components/Share'
 import { prefersReducedMotion } from './motion'
 
@@ -59,6 +58,8 @@ export default function App() {
   const frame = useRef<HTMLDivElement>(null)
   const panel = useRef<HTMLDivElement>(null)
   const experiment = useRef<HTMLElement>(null)
+  const seg = useRef<HTMLDivElement>(null)
+  const pill = useRef<HTMLSpanElement>(null)
 
   const allSeen = seen.size === 3
   const state = { mode, seen, brew, intent, freq, size }
@@ -67,6 +68,26 @@ export default function App() {
     try { window.history.replaceState(null, '', window.location.pathname + buildQuery(state) + window.location.hash) } catch { /* sandboxed preview */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, seen, brew, intent, freq, size])
+
+  // Segmented control: slide the active pill under the current lens.
+  const placePill = useCallback((animate: boolean) => {
+    const wrap = seg.current
+    const p = pill.current
+    if (!wrap || !p) return
+    const btn = wrap.querySelector<HTMLButtonElement>(`[data-lens="${mode}"]`)
+    if (!btn) { gsap.to(p, { opacity: 0, duration: 0.3 }); return }
+    const vars = { x: btn.offsetLeft, width: btn.offsetWidth, opacity: 1 }
+    if (!animate || prefersReducedMotion()) gsap.set(p, vars)
+    else gsap.to(p, { ...vars, duration: 0.55, ease: 'expo.out' })
+  }, [mode])
+
+  useLayoutEffect(() => { placePill(true) }, [placePill])
+  useEffect(() => {
+    const onResize = () => placePill(false)
+    window.addEventListener('resize', onResize)
+    document.fonts?.ready.then(() => placePill(false))
+    return () => window.removeEventListener('resize', onResize)
+  }, [placePill])
 
   const choose = (m: Mode) => {
     if (busy || m === mode) return
@@ -127,97 +148,76 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-5 sm:px-8">
-        <p className="label">Experiment 01</p>
-        <p className="label hidden text-mute sm:block">Brand · Product · Systems</p>
-        <button onClick={reset} className="label underline-offset-4 hover:underline">Reset</button>
+      <header className="sticky top-0 z-50 border-b border-line bg-paper">
+        <div className="mx-auto flex h-12 max-w-[1080px] items-center justify-between px-4 sm:px-6">
+          <p className="text-[13px] font-semibold tracking-tight">Same problem.</p>
+          <p className="hidden text-[12px] text-mute sm:block">An experiment in connected design</p>
+          <button onClick={reset} className="text-[12px] text-link hover:underline">Reset</button>
+        </div>
       </header>
 
-      {/* 01 — Arrival */}
-      <section className="mx-auto max-w-[1440px] px-4 pb-16 pt-16 sm:px-8 sm:pb-24 sm:pt-28">
-        <h1 className="text-[clamp(3rem,10.5vw,10rem)] font-extrabold leading-[0.88] tracking-[-0.055em]">
-          Same problem.<br /><span className="text-mute">Different thinking.</span>
+      {/* Arrival */}
+      <section className="mx-auto max-w-[1080px] px-4 pb-20 pt-20 text-center sm:px-6 sm:pb-28 sm:pt-32">
+        <p className="eyebrow text-mute">Brand. Product. Systems.</p>
+        <h1 className="mx-auto mt-3 max-w-[12ch] text-[clamp(3rem,9vw,6.5rem)] font-semibold leading-[1.02] tracking-[-0.045em] [text-wrap:balance]">
+          Same problem. Different thinking.
         </h1>
-        <div className="mt-10 grid gap-8 border-t border-line pt-6 sm:mt-14 md:grid-cols-12">
-          <p className="text-lg leading-snug md:col-span-5 md:text-xl">One business challenge. Three ways to see it. One connected solution.</p>
-          <div className="md:col-span-6 md:col-start-7">
-            <p className="label text-mute">The brief</p>
-            <p className="mt-2 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">“People are visiting our website, but they’re not taking action.”</p>
-          </div>
+        <p className="mx-auto mt-6 max-w-xl text-[clamp(1.1rem,2vw,1.5rem)] leading-snug text-mute">
+          One business challenge. Three ways to see it. One connected solution.
+        </p>
+        <div className="mx-auto mt-14 max-w-2xl rounded-[28px] bg-card px-6 py-8 sm:px-10 sm:py-10">
+          <p className="label text-mute">The brief</p>
+          <p className="mt-3 text-[clamp(1.4rem,3vw,2rem)] font-semibold leading-tight tracking-[-0.02em] [text-wrap:balance]">
+            “People are visiting our website, but they’re not taking action.”
+          </p>
         </div>
       </section>
 
-      {/* 02–05 — The experiment */}
-      <section ref={experiment} id="experiment" className="mx-auto max-w-[1440px] scroll-mt-4 px-4 sm:px-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-10">
-          <aside className="min-w-0 lg:col-span-4 xl:col-span-3">
-            <div className="lg:sticky lg:top-6">
-              <p className="label text-mute">Choose a lens</p>
-              <div className="no-scrollbar -mx-4 mt-3 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:block lg:overflow-visible lg:px-0" role="group" aria-label="Design lenses">
+      {/* Experiment */}
+      <section ref={experiment} id="experiment" className="scroll-mt-12 bg-card pb-24 pt-20 sm:pb-32 sm:pt-28">
+        <div className="mx-auto max-w-[1080px] px-4 sm:px-6">
+          <div className="text-center">
+            <p className="eyebrow text-mute">Choose a lens.</p>
+            <h2 className="mt-2 text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.05] tracking-[-0.035em]">See the same website change.</h2>
+          </div>
+
+          <div className="sticky top-14 z-40 mt-10 flex justify-center">
+            <div className="no-scrollbar max-w-full overflow-x-auto rounded-full">
+              <div ref={seg} className="relative flex rounded-full bg-paper p-1" role="group" aria-label="Design lenses">
+                <span ref={pill} aria-hidden="true" className="absolute bottom-1 left-0 top-1 rounded-full bg-ink opacity-0" />
                 {LENSES.map((l) => {
                   const active = mode === l.id
                   const visited = l.id !== 'original' && seen.has(l.id as Lens)
                   return (
                     <button
                       key={l.id}
+                      data-lens={l.id}
                       onClick={() => choose(l.id)}
                       aria-pressed={active}
                       disabled={busy}
-                      className={`group shrink-0 border-t border-line py-3 pr-5 text-left transition-colors lg:flex lg:w-full lg:items-baseline lg:gap-4 lg:pr-0 ${active ? 'text-ink' : 'text-mute hover:text-ink'}`}
+                      className={`relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-medium transition-colors duration-300 sm:px-6 sm:text-[15px] ${active ? 'text-paper' : 'text-ink hover:text-mute'}`}
                     >
-                      <span className="label block lg:w-6">{l.index}</span>
-                      <span className="block">
-                        <span className="flex items-center gap-2 text-xl font-bold tracking-tight lg:text-2xl">
-                          {l.label}
-                          {active && <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />}
-                          {visited && !active && <span className="label text-[9px] text-mute">Seen</span>}
-                        </span>
-                        <span className="mt-0.5 hidden text-[13px] lg:block">{l.question}</span>
-                      </span>
+                      {l.label}
+                      {visited && !active && <span className="h-1 w-1 rounded-full bg-link" aria-label="seen" />}
                     </button>
                   )
                 })}
               </div>
-
-              <div className="mt-4 border-t border-line pt-4">
-                <button
-                  onClick={connect}
-                  disabled={!allSeen || busy}
-                  aria-disabled={!allSeen}
-                  aria-describedby="connect-hint"
-                  className={`flex w-full items-center justify-between px-5 py-4 text-left text-[15px] font-semibold transition-colors ${
-                    mode === 'connected' ? 'border border-ink bg-paper text-ink' : allSeen ? 'bg-ink text-paper hover:bg-ink/85' : 'cursor-not-allowed bg-ink/10 text-mute'
-                  }`}
-                >
-                  <span>{mode === 'connected' ? 'Thinking connected' : 'Connect the thinking'}</span>
-                  <span aria-hidden="true">{mode === 'connected' ? '●' : '→'}</span>
-                </button>
-                <p id="connect-hint" className="label mt-2 text-mute">
-                  {mode === 'connected' ? 'All three lenses, one experience' : allSeen ? 'Ready — combine all three' : `Explore all three lenses · ${seen.size}/3`}
-                </p>
-              </div>
-
-              <div ref={panel} className="mt-8 hidden lg:block" aria-live="polite">
-                <p className="label text-mute">{info.index} — {info.label}</p>
-                <p className="mt-2 text-3xl font-bold leading-[1.05] tracking-tight">{info.question}</p>
-                <p className="mt-4 text-[15px] leading-relaxed">{info.intervention}</p>
-                {info.limit && <p className="mt-3 text-[13px] leading-relaxed text-mute">{info.limit}</p>}
-              </div>
             </div>
-          </aside>
+          </div>
 
-          <div className="min-w-0 lg:col-span-8 xl:col-span-9">
-            {/* Mobile explanation */}
-            <div className="lg:hidden" aria-live="polite">
-              <p className="text-2xl font-bold leading-tight tracking-tight">{info.question}</p>
-              <p className="mt-2 text-[15px] leading-relaxed">{info.intervention}</p>
-              {info.limit && <p className="mt-2 text-[13px] text-mute">{info.limit}</p>}
-            </div>
+          <div ref={panel} className="mx-auto mt-12 min-h-[150px] max-w-2xl text-center" aria-live="polite">
+            <p className="text-[clamp(1.6rem,3.4vw,2.5rem)] font-semibold leading-tight tracking-[-0.03em]">{info.question}</p>
+            <p className="mt-3 text-[17px] leading-relaxed text-ink">{info.intervention}</p>
+            {info.limit && <p className="mt-2 text-[15px] leading-relaxed text-mute">{info.limit}</p>}
+          </div>
 
-            <div ref={frame} className="relative mt-6 border border-ink/80 bg-white lg:mt-0">
-              <div className="flex items-center justify-between border-b border-ink/80 px-3 py-2">
-                <span className="label text-mute">northfield.coffee</span>
-                <span className="label">{info.label}</span>
+          <div ref={frame} className="relative mt-8 rounded-[32px] bg-ink p-2 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.35)] sm:p-3">
+            <div className="overflow-hidden rounded-[24px] bg-white">
+              <div className="flex items-center justify-between bg-[#F2F2F4] px-4 py-2.5">
+                <span className="flex gap-1.5" aria-hidden="true"><i className="h-2.5 w-2.5 rounded-full bg-black/15" /><i className="h-2.5 w-2.5 rounded-full bg-black/15" /><i className="h-2.5 w-2.5 rounded-full bg-black/15" /></span>
+                <span className="rounded-md bg-white px-6 py-0.5 text-[11px] text-mute">northfield.coffee</span>
+                <span className="w-16 text-right text-[11px] font-medium text-mute">{info.label}</span>
               </div>
               <div className="relative h-[620px] sm:h-[700px]">
                 <Shop
@@ -229,35 +229,53 @@ export default function App() {
                   hot={hot}
                   entranceDelay={delay}
                 />
-                <div ref={overlay} className="absolute inset-0 z-40 hidden flex-col items-center justify-center bg-paper" aria-hidden="true">
+                <div ref={overlay} className="absolute inset-0 z-40 hidden flex-col items-center justify-center bg-card" aria-hidden="true">
                   <div className="relative grid h-48 w-full place-items-center">
                     {['Brand', 'Product', 'Systems'].map((w) => (
-                      <span key={w} data-word className="absolute text-4xl font-extrabold tracking-[-0.04em] sm:text-6xl">{w}</span>
+                      <span key={w} data-word className="absolute text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">{w}</span>
                     ))}
-                    <span data-final className="absolute text-4xl font-extrabold tracking-[-0.04em] sm:text-6xl">One experience.</span>
+                    <span data-final className="absolute text-4xl font-semibold tracking-[-0.04em] sm:text-6xl">One experience.</span>
                   </div>
-                  <span data-rule className="block h-[1.5px] w-40 origin-center bg-ink" />
+                  <span data-rule className="block h-[2px] w-40 origin-center rounded-full bg-link" />
                 </div>
               </div>
             </div>
+          </div>
 
-            {showThread ? (
-              <Thread mode={mode} brew={brew} intent={intent} freq={freq} size={size} setHot={setHot} />
-            ) : (
-              <p className="label mt-5 text-mute">The fictional shop is fully interactive — browse, choose, add to basket.</p>
-            )}
+          {showThread ? (
+            <Thread mode={mode} brew={brew} intent={intent} freq={freq} size={size} setHot={setHot} />
+          ) : (
+            <p className="mt-6 text-center text-[13px] text-mute">The shop is fully interactive. Browse, choose and add to basket.</p>
+          )}
+
+          <div className="mt-16 flex flex-col items-center gap-3 text-center">
+            <button
+              onClick={connect}
+              disabled={!allSeen || busy}
+              aria-disabled={!allSeen}
+              aria-describedby="connect-hint"
+              className={`rounded-full px-8 py-4 text-[17px] font-medium transition-all duration-300 ${
+                mode === 'connected' ? 'bg-paper text-ink' : allSeen ? 'bg-link text-white hover:scale-[1.02] hover:bg-[#0077ED]' : 'cursor-not-allowed bg-paper text-mute'
+              }`}
+            >
+              {mode === 'connected' ? 'Thinking connected' : 'Connect the thinking'}
+            </button>
+            <p id="connect-hint" className="text-[13px] text-mute">
+              {mode === 'connected' ? 'All three lenses, one experience.' : allSeen ? 'Ready. Combine all three.' : `Explore all three lenses first. ${seen.size} of 3 seen.`}
+            </p>
           </div>
         </div>
       </section>
 
       {mode === 'connected' && <Reveal />}
 
-      <Proof />
       <Share state={state} buildQuery={buildQuery} />
 
-      <footer className="mx-auto flex max-w-[1440px] items-center justify-between border-t border-line px-4 py-6 sm:px-8">
-        <p className="label text-mute">Same problem. Different thinking.</p>
-        <button onClick={reset} className="label hover:underline">Start again</button>
+      <footer className="border-t border-line">
+        <div className="mx-auto flex max-w-[1080px] items-center justify-between px-4 py-5 text-[12px] text-mute sm:px-6">
+          <p>Same problem. Different thinking.</p>
+          <button onClick={reset} className="text-link hover:underline">Start again</button>
+        </div>
       </footer>
     </div>
   )

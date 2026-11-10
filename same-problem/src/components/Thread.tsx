@@ -39,7 +39,7 @@ export function Thread({ mode, brew, intent, freq, size, setHot }: Props) {
   }, [mode, connected])
 
   return (
-    <div ref={root} className="mt-8" aria-label="How the experience connects">
+    <div ref={root} className="mt-10 rounded-[28px] bg-paper p-6 sm:p-8" aria-label="How the experience connects">
       <div className="flex items-baseline justify-between gap-4">
         <p className="label text-mute">The thread — {connected ? 'fully connected' : 'connected, carrying weak signals'}</p>
         <p className="label hidden text-mute sm:block">Hover a step to find it on the page</p>
@@ -60,19 +60,19 @@ export function Thread({ mode, brew, intent, freq, size, setHot }: Props) {
               onBlur={() => setHot(null)}
             >
               <div className="relative flex h-3 items-center">
-                <span className={`relative z-10 h-3 w-3 rounded-full border-[1.5px] border-ink ${n.strong ? 'bg-ink' : 'bg-paper'}`} />
+                <span className={`relative z-10 h-3 w-3 rounded-full border-[1.5px] border-link ${n.strong ? 'bg-link' : 'bg-paper'}`} />
                 {next && (
                   <span
                     data-seg
                     aria-hidden="true"
-                    className={`absolute left-3 right-0 top-1/2 hidden -translate-y-1/2 border-t-[1.5px] lg:block ${linked ? 'border-ink' : 'border-dashed border-ink/35'}`}
+                    className={`absolute left-3 right-0 top-1/2 hidden -translate-y-1/2 border-t-[1.5px] lg:block ${linked ? 'border-link' : 'border-dashed border-ink/25'}`}
                   />
                 )}
               </div>
-              <p className="label mt-4 text-mute">{String(i + 1).padStart(2, '0')} — {n.label}</p>
+              <p className="label mt-4 text-mute">{n.label}</p>
               <p className="mt-1.5 text-[17px] font-semibold leading-snug tracking-tight">{n.value}</p>
               <p className="mt-1 text-[13px] leading-snug text-mute">{n.note}</p>
-              <p className={`label mt-2 ${n.strong ? 'text-ink' : 'text-mute'}`}>{n.strong ? 'Carried' : 'Weak signal'}</p>
+              <p className={`label mt-2 ${n.strong ? 'text-link' : 'text-mute'}`}>{n.strong ? 'Carried' : 'Weak signal'}</p>
             </li>
           )
         })}

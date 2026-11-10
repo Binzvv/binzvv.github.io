@@ -99,10 +99,5 @@ export const INTENTS: { id: Intent; label: string }[] = [
   { id: 'gift', label: 'A gift' },
 ]
 
-export const PROJECTS = [
-  { id: 'sky-glass', title: 'Sky Glass', line: 'Simplifying complex purchase decisions.' },
-  { id: 'sky-smart-home', title: 'Sky Smart Home', line: 'Connecting brand storytelling with product discovery.' },
-  { id: 'lab', title: 'Experimental Lab', line: 'Exploring adaptive, behaviour-led experiences.' },
-]
 
 export const money = (n: number) => `£${n % 1 === 0 ? n.toFixed(0) : n.toFixed(2)}`

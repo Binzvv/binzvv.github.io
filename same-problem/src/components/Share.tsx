@@ -32,24 +32,24 @@ export function Share({ state, buildQuery }: { state: State; buildQuery: (s: Sta
   ]
 
   return (
-    <section id="summary" className="mx-auto max-w-[1440px] scroll-mt-6 px-4 py-28 sm:px-8 sm:py-40" aria-labelledby="summary-title">
-      <div className="border border-ink p-5 sm:p-10">
+    <section id="summary" className="mx-auto max-w-[1080px] scroll-mt-16 px-4 py-28 sm:px-6 sm:py-40" aria-labelledby="summary-title">
+      <div className="rounded-[32px] bg-card p-6 sm:p-12">
         <p className="label text-mute">Summary to share</p>
-        <h2 id="summary-title" className="mt-3 text-4xl font-extrabold leading-[0.95] tracking-[-0.045em] sm:text-6xl">Same problem.<br />Different thinking.</h2>
+        <h2 id="summary-title" className="mt-2 text-4xl font-semibold leading-[1.02] tracking-[-0.04em] sm:text-6xl">Same problem.<br />Different thinking.</h2>
         <dl className="mt-10 border-t border-line">
           {rows.map(([k, v]) => (
             <div key={k} className="grid gap-1 border-b border-line py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
               <dt className="label pt-1 text-mute">{k}</dt>
-              <dd className={`text-[17px] leading-snug ${k === 'Connected' ? 'font-semibold' : ''}`}>{v}</dd>
+              <dd className={`text-[17px] leading-snug ${k === 'Connected' ? 'font-semibold' : 'text-ink/85'}`}>{v}</dd>
             </div>
           ))}
         </dl>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <label className="sr-only" htmlFor="share-url">Shareable link</label>
-          <input id="share-url" ref={input} readOnly value={url} className="min-w-0 flex-1 border border-line bg-transparent px-3 py-3 font-mono text-[12px] text-mute" onFocus={(e) => e.target.select()} />
-          <button onClick={copy} className="bg-ink px-6 py-3 text-[15px] font-semibold text-paper hover:bg-ink/85">Copy link</button>
+          <input id="share-url" ref={input} readOnly value={url} className="min-w-0 flex-1 rounded-full bg-paper px-5 py-3 text-[13px] text-mute" onFocus={(e) => e.target.select()} />
+          <button onClick={copy} className="rounded-full bg-link px-7 py-3 text-[15px] font-medium text-white hover:bg-[#0077ED]">Copy link</button>
         </div>
-        <p className="label mt-2 h-4 text-ink" role="status" aria-live="polite">{msg}</p>
+        <p className="label mt-3 h-4 text-ink" role="status" aria-live="polite">{msg}</p>
       </div>
     </section>
   )

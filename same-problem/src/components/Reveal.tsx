@@ -26,22 +26,22 @@ export function Reveal() {
   }, [])
 
   return (
-    <section ref={root} className="mx-auto max-w-[1440px] px-4 pt-24 sm:px-8 sm:pt-36" aria-labelledby="reveal-title">
-      <h2 id="reveal-title" className="max-w-[14ch] text-[clamp(2.5rem,7vw,6.5rem)] font-extrabold leading-[0.92] tracking-[-0.05em]">
+    <section ref={root} className="mx-auto max-w-[1080px] px-4 pt-28 text-center sm:px-6 sm:pt-40" aria-labelledby="reveal-title">
+      <h2 id="reveal-title" className="mx-auto max-w-[16ch] text-[clamp(2.5rem,7vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.045em]">
         {LINE.split(' ').map((w, i) => (
-          <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-top">
+          <span key={i} className="inline-block overflow-hidden pb-[0.1em] align-top">
             <span data-w className="inline-block">{w}&nbsp;</span>
           </span>
         ))}
       </h2>
-      <p data-sub className="mt-10 max-w-2xl text-xl leading-snug sm:text-2xl">
+      <p data-sub className="mx-auto mt-8 max-w-2xl text-[clamp(1.15rem,2.2vw,1.6rem)] leading-snug text-mute">
         I connect brand, product and systems to create experiences that make sense for people and work harder for businesses.
       </p>
-      <dl className="mt-16 grid gap-px border-t border-line sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-16 grid gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">
         {COMPARE.map(([k, v], i) => (
-          <div key={k} data-cmp className={`border-b border-line py-5 sm:pr-6 ${i === 3 ? 'text-ink' : ''}`}>
-            <dt className={`label ${i === 3 ? 'text-ink' : 'text-mute'}`}>{k}</dt>
-            <dd className={`mt-2 text-[17px] leading-snug ${i === 3 ? 'font-semibold' : 'text-mute'}`}>{v}</dd>
+          <div key={k} data-cmp className={`rounded-[22px] p-6 ${i === 3 ? 'bg-ink text-paper' : 'bg-card'}`}>
+            <dt className={`label ${i === 3 ? 'text-paper/70' : 'text-mute'}`}>{k}</dt>
+            <dd className="mt-2 text-[17px] font-semibold leading-snug tracking-[-0.01em]">{v}</dd>
           </div>
         ))}
       </dl>
