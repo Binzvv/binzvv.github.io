@@ -142,7 +142,7 @@ function Zone({ id, hot, on, n, children, className = '' }: { id: Region; hot: R
   return (
     <section data-region={id} className={`relative ${on ? (hot === id ? 'hot' : 'hot-dim') : ''} ${className}`}>
       {on && (
-        <span data-a className="pointer-events-none absolute -left-1 -top-1 z-10 grid h-5 w-5 place-items-center rounded-full bg-[#0A0A0A] font-mono text-[10px] text-white" aria-hidden="true">{n}</span>
+        <span data-a className="pointer-events-none absolute -right-1 -top-2 z-10 grid h-5 w-5 place-items-center rounded-full bg-[#0A0A0A] font-mono text-[10px] text-white" aria-hidden="true">{n}</span>
       )}
       {children}
     </section>
@@ -362,7 +362,7 @@ function Grid(c: Ctx) {
       {systems && intent && (
         <p data-a className="mt-3 text-[12px] s-mute" aria-live="polite">Showing what fits “{INTENTS.find((i) => i.id === intent)?.label.toLowerCase()}” first. All {PRODUCTS.length} still available.</p>
       )}
-      <div ref={gridRef} className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div ref={gridRef} className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {list.map((p) => (
           <Card key={p.id} p={p} shown={shown} match={!!(systems && intent && p.intents.includes(intent))} dim={!!(systems && intent && !p.intents.includes(intent))} onAdd={add} />
         ))}
@@ -580,14 +580,16 @@ function Footer({ shown }: { shown: Mode }) {
 function Drawer(c: Ctx & { open: boolean; cart: Line[]; checkout: boolean; onClose: () => void; onCheckout: () => void; onAdd: Ctx['add'] }) {
   const { open, cart, shown, onClose, onCheckout, checkout, intent, hot, f, brew, freq } = c
   const panel = useRef<HTMLDivElement>(null)
+  const opened = useRef(false)
   const [extra, setExtra] = useState(false)
   const total = cart.reduce((n, l) => n + l.price * l.qty, 0)
   const brand = f.brand
 
   useLayoutEffect(() => {
     if (!panel.current) return
-    const d = prefersReducedMotion() ? 0 : 0.5
-    gsap.to(panel.current, { xPercent: open ? 0 : 105, duration: d, ease: 'expo.out' })
+    const d = prefersReducedMotion() || !opened.current ? 0 : 0.5
+    if (open) opened.current = true
+    gsap.to(panel.current, { xPercent: open ? 0 : 105, duration: open && d === 0 && !prefersReducedMotion() ? 0.5 : d, ease: 'expo.out' })
   }, [open])
   useEffect(() => { setExtra(false) }, [shown])
   const wrap = useRef<HTMLDivElement>(null)
@@ -688,7 +690,7 @@ function Drawer(c: Ctx & { open: boolean; cart: Line[]; checkout: boolean; onClo
   return (
     <div ref={wrap} className={`absolute inset-0 z-30 ${open ? '' : 'pointer-events-none'}`}>
       <div className={`absolute inset-0 bg-black/25 transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
-      <div ref={panel} className="absolute bottom-0 right-0 top-0 flex w-[88%] max-w-sm translate-x-[105%] flex-col overflow-y-auto bg-[var(--s-bg)] p-5 shadow-2xl" role="dialog" aria-label="Basket" aria-modal="false">
+      <div ref={panel} className="absolute bottom-0 right-0 top-0 flex w-[88%] max-w-sm flex-col overflow-y-auto bg-[var(--s-bg)] p-5 shadow-2xl" role="dialog" aria-label="Basket" aria-modal="false">
         <div className="flex items-center justify-between border-b s-line pb-3">
           <p className={brand ? 's-display text-xl italic' : 'text-[13px] font-bold'}>
             {checkout ? (brand ? 'Thank you.' : 'Checkout') : shown === 'connected' && cart.length ? 'Your mornings, sorted.' : brand ? (cart.length ? 'Lovely choice.' : 'Your basket') : shown === 'original' ? 'YOUR CART' : 'Basket'}
