@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-serif: "Fraunces", Georgia, serif;
+  --color-paper: #F5F4F0;
+  --color-ink: #0A0A0A;
+  --color-mute: #6E6E68;
+  --color-line: rgba(10, 10, 10, 0.12);
+}
+
+html { background: var(--color-paper); color: var(--color-ink); -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--color-paper); }
+::selection { background: #0A0A0A; color: #F5F4F0; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+:focus-visible { outline: 2px solid #0A0A0A; outline-offset: 3px; }
+
+.label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* -------- Fictional shop themes -------- */
+.shop {
+  --s-bg: #ffffff; --s-ink: #1f2937; --s-mute: #6b7280; --s-line: #e5e7eb;
+  --s-accent: #2563eb; --s-accent-ink: #fff; --s-soft: #f3f4f6; --s-font: Arial, Helvetica, sans-serif;
+  --s-display: Arial, Helvetica, sans-serif; --s-radius: 4px;
+  background: var(--s-bg); color: var(--s-ink); font-family: var(--s-font);
+  transition: background-color .7s ease, color .7s ease;
+}
+.shop[data-theme="product"], .shop[data-theme="systems"] {
+  --s-ink: #111827; --s-accent: #1d4ed8; --s-radius: 8px; --s-soft: #f6f7f9;
+  --s-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --s-display: var(--s-font);
+}
+.shop[data-theme="brand"], .shop[data-theme="connected"] {
+  --s-bg: #EFE8DC; --s-ink: #23180F; --s-mute: #7A6A58; --s-line: rgba(35,24,15,.16);
+  --s-accent: #B4462B; --s-accent-ink: #F6EFE4; --s-soft: #E6DCCB; --s-font: "Inter Tight", system-ui, sans-serif;
+  --s-display: "Fraunces", Georgia, serif; --s-radius: 2px;
+}
+.shop * { transition: background-color .6s ease, border-color .6s ease, color .6s ease; }
+.s-display { font-family: var(--s-display); }
+.s-btn { background: var(--s-accent); color: var(--s-accent-ink); border-radius: var(--s-radius); }
+.s-btn:hover { filter: brightness(1.08); }
+.s-ghost { border: 1px solid var(--s-line); border-radius: var(--s-radius); }
+.s-line { border-color: var(--s-line); }
+.s-mute { color: var(--s-mute); }
+.s-soft { background: var(--s-soft); }
+
+.shop-scroll { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,.2) transparent; }
+
+.hot { outline: 1.5px solid #0A0A0A; outline-offset: 4px; transition: outline-color .3s; }
+.hot-dim { outline: 1.5px solid transparent; outline-offset: 4px; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
