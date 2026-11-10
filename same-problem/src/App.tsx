@@ -99,7 +99,7 @@ export default function App() {
   // Explanation panel transition.
   useLayoutEffect(() => {
     if (!panel.current || prefersReducedMotion()) return
-    const t = gsap.fromTo(panel.current.children, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06, delay: mode === 'connected' ? 2.4 : 0.15 })
+    const t = gsap.fromTo(panel.current.children, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.06, delay: mode === 'connected' && delay > 0 ? 2.4 : 0.1 })
     return () => { t.kill() }
   }, [mode])
 
