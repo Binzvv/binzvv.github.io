@@ -64,7 +64,7 @@ export default function App() {
   const state = { mode, seen, brew, intent, freq, size }
 
   useEffect(() => {
-    window.history.replaceState(null, '', window.location.pathname + buildQuery(state) + window.location.hash)
+    try { window.history.replaceState(null, '', window.location.pathname + buildQuery(state) + window.location.hash) } catch { /* sandboxed preview */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, seen, brew, intent, freq, size])
 
