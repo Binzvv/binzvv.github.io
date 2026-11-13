@@ -6,6 +6,7 @@ import SuggestionStrip from './components/SuggestionStrip';
 import Keyboard from './components/Keyboard';
 import Reframe from './components/Reframe';
 import About from './components/About';
+import Signature from './components/Signature';
 import { predict } from './engine/predict';
 import { respond } from './engine/brain';
 import { useIsTouch } from './hooks/useMediaQuery';
@@ -227,6 +228,7 @@ export default function App() {
       style={{ '--kb-inset': `${inset}px` }}
     >
       <Atmosphere />
+      <Signature />
 
       {composeVisible && (
         <div className="compose">
