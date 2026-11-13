@@ -7,7 +7,7 @@ import Keyboard from './components/Keyboard';
 import Reframe from './components/Reframe';
 import About from './components/About';
 import { predict } from './engine/predict';
-import { reframe } from './engine/reframe';
+import { respond } from './engine/brain';
 import { useIsTouch } from './hooks/useMediaQuery';
 import { usePressedKeys } from './hooks/usePressedKeys';
 import { useKeyboardInset } from './hooks/useKeyboardInset';
@@ -68,7 +68,7 @@ export default function App() {
   const submit = useCallback(() => {
     const text = value.trim();
     if (!text || phase !== 'compose') return;
-    setResult({ input: text, ...reframe(text) });
+    setResult({ input: text, ...respond(text) });
     setPhase('leaving');
     inputRef.current?.blur();
 
@@ -268,7 +268,7 @@ export default function App() {
         </button>
       )}
 
-      {phase === 'reframe' && result && <Reframe input={result.input} lines={result.lines} onExit={onExitReframe} />}
+      {phase === 'reframe' && result && <Reframe input={result.input} lines={result.lines} note={result.note} register={result.register} onExit={onExitReframe} />}
 
       {phase === 'about' && <About onExit={() => setPhase('compose')} />}
     </main>

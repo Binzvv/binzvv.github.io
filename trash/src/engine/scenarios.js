@@ -76,8 +76,13 @@ const normalise = (s) => s.toLowerCase().replace(/[’']/g, "'");
 
 /** Returns the best matching scenario, or null. */
 export function detectScenario(input) {
+  return scoreScenario(input).scenario;
+}
+
+/** Best scenario plus its score, so callers can judge how strong the signal is. */
+export function scoreScenario(input) {
   const text = normalise(input);
-  if (!text.trim()) return null;
+  if (!text.trim()) return { scenario: null, score: 0 };
 
   const lastToken = text.match(/([a-z]+)$/)?.[1] ?? '';
   let best = null;
@@ -94,5 +99,5 @@ export function detectScenario(input) {
       bestScore = score;
     }
   }
-  return bestScore >= 1.5 ? best : null;
+  return bestScore >= 1.5 ? { scenario: best, score: bestScore } : { scenario: null, score: bestScore };
 }

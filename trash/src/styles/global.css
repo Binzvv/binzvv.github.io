@@ -564,6 +564,20 @@ button {
   will-change: transform, opacity, filter;
 }
 
+.reframe__note {
+  max-width: 46ch;
+  margin: clamp(32px, 6vh, 64px) 0 0;
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  color: var(--ink-2);
+}
+
+.reframe__note + .reframe__action {
+  margin-top: clamp(28px, 5vh, 56px);
+}
+
 .reframe__action {
   margin-top: clamp(48px, 10vh, 112px);
   padding: 10px 4px;
