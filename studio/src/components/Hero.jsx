@@ -22,19 +22,22 @@ export default function Hero() {
         .from('.hero__blob', { scale: 0, rotate: -40, duration: 1.3, ease: 'elastic.out(1, 0.5)' }, 0.55)
         .from('.hero__meta > *', { y: 24, autoAlpha: 0, stagger: 0.08, duration: 1 }, 0.9)
 
-      // 2 · Kinetic weight — letters near the pointer get lighter.
+      // 2 · Kinetic type — letters near the pointer stretch wider and lighter.
       let cleanupPointer
       if (hasFinePointer()) {
-        const setters = chars.map((c) => gsap.quickTo(c, '--w', { duration: 0.7, ease: 'power3' }))
+        const kinetic = chars.filter((c) => !c.closest('.is-serif'))
+        const weight = kinetic.map((c) => gsap.quickTo(c, '--w', { duration: 0.7, ease: 'power3' }))
+        const width = kinetic.map((c) => gsap.quickTo(c, '--wd', { duration: 0.9, ease: 'power3' }))
         const move = (e) => {
-          chars.forEach((c, i) => {
+          kinetic.forEach((c, i) => {
             const r = c.getBoundingClientRect()
             const d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2))
-            const t = Math.max(0, 1 - d / 280)
-            setters[i](820 - 680 * t * t)
+            const t = Math.max(0, 1 - d / 300) ** 2
+            weight[i](900 - 520 * t)
+            width[i](62 + 48 * t)
           })
         }
-        const reset = () => setters.forEach((s) => s(820))
+        const reset = () => { weight.forEach((s) => s(900)); width.forEach((s) => s(62)) }
         const el = root.current
         el.addEventListener('pointermove', move)
         el.addEventListener('pointerleave', reset)

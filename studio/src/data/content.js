@@ -42,8 +42,11 @@ export const manifesto = [
   { t: 'nerve.', em: true },
 ]
 
-// Projects. Set `image` to a URL to replace the generated placeholder art.
-// `art` options: 'orbit' | 'stack' | 'grid' | 'creature'
+// Projects. Each one is its own "world":
+//   layout   'cover' | 'split' | 'column' | 'poster'  (alternating editorial compositions)
+//   palette  'ink' | 'acid' | 'paper' | 'red'         (colour field for the spread)
+//   image    URL — drops a real photo into the frame; grain, crop and type layers stay on top
+//   brief    what the photo in this slot should be (shown on the placeholder)
 export const projects = [
   {
     id: '01',
@@ -51,7 +54,12 @@ export const projects = [
     client: 'Placeholder Records',
     tags: ['Identity', 'Motion'],
     year: 2026,
-    art: 'orbit',
+    layout: 'cover',
+    palette: 'ink',
+    kicker: 'A label that only releases after midnight.',
+    brief: 'Long exposure · figure in motion · sodium light',
+    ratio: '16:9',
+    cursor: 'Enter',
     image: null,
   },
   {
@@ -60,7 +68,12 @@ export const projects = [
     client: 'Placeholder Audio',
     tags: ['Product', 'Launch film'],
     year: 2026,
-    art: 'stack',
+    layout: 'split',
+    palette: 'acid',
+    kicker: 'Hardware with the manners of a houseplant.',
+    brief: 'Product macro · hard flash · cropped tight',
+    ratio: '4:5',
+    cursor: 'Listen',
     image: null,
   },
   {
@@ -69,7 +82,12 @@ export const projects = [
     client: 'Placeholder Museum',
     tags: ['Exhibition', 'Digital'],
     year: 2025,
-    art: 'grid',
+    layout: 'column',
+    palette: 'paper',
+    kicker: 'An archive you are allowed to touch.',
+    brief: 'Archive object · overhead · paper texture',
+    ratio: '3:4',
+    cursor: 'Read',
     image: null,
   },
   {
@@ -78,9 +96,20 @@ export const projects = [
     client: 'Placeholder Foods',
     tags: ['Campaign', 'Character'],
     year: 2025,
-    art: 'creature',
+    layout: 'poster',
+    palette: 'red',
+    kicker: 'Fast food, slow jokes.',
+    brief: 'Portrait cut-out · mid-bite · direct flash',
+    ratio: '4:5',
+    cursor: 'Taste',
     image: null,
   },
+]
+
+// Full-bleed typographic interruptions, inserted after the project with this index.
+export const interruptions = [
+  { after: 1, words: ['No safe', 'ideas'], tone: 'acid' },
+  { after: 3, words: ['Odd hours', 'only'], tone: 'red' },
 ]
 
 export const marquee = ['Brand worlds', 'Motion', 'Characters', 'Digital products', 'Campaigns', 'Type']
