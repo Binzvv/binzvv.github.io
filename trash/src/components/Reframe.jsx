@@ -1,14 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { prefersReducedMotion } from '../lib/motion';
-
-const Words = ({ text }) =>
-  text.split(' ').map((word, i, all) => (
-    <span key={i} className="w">
-      <span className="w__i">{word}</span>
-      {i < all.length - 1 ? ' ' : ''}
-    </span>
-  ));
+import Words from './Words';
 
 /**
  * The reframe: the original thought recedes to a whisper, then two

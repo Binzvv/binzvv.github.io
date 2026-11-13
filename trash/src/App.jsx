@@ -5,6 +5,7 @@ import Prompt, { MAX_LENGTH } from './components/Prompt';
 import SuggestionStrip from './components/SuggestionStrip';
 import Keyboard from './components/Keyboard';
 import Reframe from './components/Reframe';
+import About from './components/About';
 import { predict } from './engine/predict';
 import { reframe } from './engine/reframe';
 import { useIsTouch } from './hooks/useMediaQuery';
@@ -14,7 +15,7 @@ import { prefersReducedMotion } from './lib/motion';
 
 export default function App() {
   const [value, setValue] = useState('');
-  const [phase, setPhase] = useState('compose'); // compose → leaving → reframe → compose
+  const [phase, setPhase] = useState('compose'); // compose → leaving → reframe | about → compose
   const [result, setResult] = useState(null);
   const [layer, setLayer] = useState('alpha');
   const [shiftOnce, setShiftOnce] = useState(false);
@@ -89,6 +90,28 @@ export default function App() {
         );
     }
   }, [value, phase]);
+
+  /* ---------- about: the compose state recedes ---------- */
+
+  const openAbout = useCallback(() => {
+    if (phase !== 'compose') return;
+    setPhase('leaving');
+    inputRef.current?.blur();
+
+    const reduce = prefersReducedMotion();
+    const tl = gsap.timeline({ onComplete: () => setPhase('about') });
+    if (reduce) {
+      tl.to([dockRef.current, hintRef.current, promptRef.current], { autoAlpha: 0, duration: 0.35 });
+    } else {
+      tl.to(hintRef.current, { autoAlpha: 0, duration: 0.3, ease: 'power1.out' }, 0)
+        .to(dockRef.current, { yPercent: 60, scale: 0.96, autoAlpha: 0, duration: 0.9, ease: 'power3.in' }, 0)
+        .to(
+          promptRef.current,
+          { autoAlpha: 0, scale: 0.96, filter: 'blur(6px)', duration: 0.8, ease: 'power2.in' },
+          0.15,
+        );
+    }
+  }, [phase]);
 
   const onKey = (key) => {
     if (phase !== 'compose') return;
@@ -191,7 +214,7 @@ export default function App() {
     }
   };
 
-  const composeVisible = phase !== 'reframe';
+  const composeVisible = phase !== 'reframe' && phase !== 'about';
   const dockStyle = isTouch
     ? { bottom: inset ? `${inset + 10}px` : 'calc(14px + env(safe-area-inset-bottom, 0px))' }
     : undefined;
@@ -232,7 +255,22 @@ export default function App() {
         </div>
       )}
 
+      {phase === 'compose' && (
+        <button
+          type="button"
+          className="corner"
+          onClick={(e) => {
+            e.stopPropagation();
+            openAbout();
+          }}
+        >
+          About
+        </button>
+      )}
+
       {phase === 'reframe' && result && <Reframe input={result.input} lines={result.lines} onExit={onExitReframe} />}
+
+      {phase === 'about' && <About onExit={() => setPhase('compose')} />}
     </main>
   );
 }

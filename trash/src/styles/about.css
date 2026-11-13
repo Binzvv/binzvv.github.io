@@ -1,0 +1,240 @@
+/* ==========================================================
+   Experiment 002 — Connected thinking
+   Same tokens as Experiment 001; nothing new in the palette.
+   ========================================================== */
+
+.about {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* ---------- Statement ---------- */
+
+.about__head {
+  padding: clamp(84px, 15vh, 156px) 32px 0;
+  text-align: center;
+}
+
+.about__statement {
+  max-width: 22ch;
+  margin: 0 auto;
+  font-family: var(--font);
+  font-size: clamp(30px, 4vw, 54px);
+  font-weight: 500;
+  letter-spacing: -0.034em;
+  line-height: 1.06;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.about__secondary {
+  margin: clamp(16px, 2.4vh, 24px) 0 0;
+  font-family: var(--font-text);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+}
+
+.about__hint {
+  margin: 10px 0 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+}
+
+/* ---------- Field ---------- */
+
+.about__field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: clamp(24px, 5vh, 56px) clamp(24px, 7vw, 120px) clamp(84px, 13vh, 132px);
+}
+
+.node {
+  position: absolute;
+  will-change: transform, opacity;
+}
+
+.about__label {
+  display: block;
+  padding: 14px 6px 14px 20px; /* trailing tracking balanced optically */
+  border: 0;
+  background: transparent;
+  font-family: var(--font);
+  font-size: clamp(17px, 1.9vw, 26px);
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  transition: color 0.6s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.about__label:disabled {
+  cursor: default;
+}
+
+.node.is-selected .about__label {
+  color: var(--sand);
+}
+
+.about__label:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+  text-underline-offset: 10px;
+  text-decoration-color: var(--ink-3);
+}
+
+/* The quiet point where two disciplines meet. */
+.about__joiner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--sand);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Reveal ---------- */
+
+.about__reveal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(720px, 100%);
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.about__meaning {
+  margin: 0;
+  font-family: var(--font);
+  font-size: clamp(22px, 2.5vw, 32px);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  line-height: 1.22;
+  text-wrap: balance;
+  color: var(--ink);
+}
+
+.about__result {
+  margin: clamp(22px, 3.4vh, 34px) 0 0;
+  font-family: var(--font-text);
+  font-size: 15px;
+  letter-spacing: 0.005em;
+  color: var(--sand);
+}
+
+.about__explore,
+.person__toggle {
+  padding: 10px 4px;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-text);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  cursor: pointer;
+  outline: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 50% calc(100% - 6px);
+  background-size: 0% 0.5px;
+  transition:
+    color 0.4s var(--ease),
+    background-size 0.6s var(--ease);
+}
+
+.about__explore {
+  margin-top: clamp(24px, 4vh, 40px);
+}
+
+.about__explore:hover,
+.about__explore:focus-visible,
+.person__toggle:hover,
+.person__toggle:focus-visible,
+.person.is-open .person__toggle {
+  color: var(--ink);
+  background-size: 100% 0.5px;
+}
+
+/* ---------- The person behind this ---------- */
+
+.person {
+  position: absolute;
+  left: max(28px, calc(env(safe-area-inset-left, 0px) + 20px));
+  bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 12px));
+  max-width: min(46ch, calc(100vw - 56px));
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.person__toggle {
+  background-position: 0 calc(100% - 6px);
+}
+
+.person__body {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.person__body p {
+  margin: 0;
+  padding-bottom: 14px;
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 640px) {
+  .about__head {
+    padding: max(84px, 12vh) 22px 0;
+  }
+  .about__statement {
+    font-size: clamp(27px, 7.6vw, 36px);
+  }
+  .about__secondary {
+    font-size: 14px;
+  }
+  .about__field {
+    margin: 20px 16px 76px;
+  }
+  .about__label {
+    font-size: 17px;
+    letter-spacing: 0.22em;
+    padding: 16px 4px 16px 18px;
+  }
+  .about__meaning {
+    font-size: clamp(20px, 5.6vw, 24px);
+  }
+  .about__result {
+    font-size: 14px;
+  }
+  .person {
+    left: max(22px, calc(env(safe-area-inset-left, 0px) + 16px));
+    right: 22px;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 641px) {
+  .about__head {
+    padding-top: 64px;
+  }
+  .about__statement {
+    font-size: clamp(26px, 3.2vw, 40px);
+  }
+}
