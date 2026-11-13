@@ -1,6 +1,19 @@
 import { CURATED } from '../trash-dna/curated';
 import { SENSITIVE } from '../trash-dna/sensitive';
-import { NOISE, STRATEGIC_SIGNAL, UNKNOWN_QUESTION, UNKNOWN_STATEMENT } from '../trash-dna/fallbacks';
+import {
+  FACTUAL_SIGNAL,
+  INCOMPLETE,
+  INCOMPLETE_SIGNAL,
+  NOISE,
+  REQUEST_SIGNAL,
+  STRATEGIC_SIGNAL,
+  SUBJECTIVE_SIGNAL,
+  UNKNOWN_FACTUAL,
+  UNKNOWN_QUESTION,
+  UNKNOWN_REQUEST,
+  UNKNOWN_STATEMENT,
+  UNKNOWN_SUBJECTIVE,
+} from '../trash-dna/fallbacks';
 import { scoreScenario } from './scenarios';
 import { reframe } from './reframe';
 
@@ -32,7 +45,9 @@ const hash = (s) => [...s].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0))
 const pick = (list, key) => list[hash(key) % list.length];
 
 const matches = (entry, text) =>
-  entry.match.some((re) => re.test(text)) && (!entry.requires || entry.requires.test(text));
+  entry.match.some((re) => re.test(text)) &&
+  (!entry.requires || entry.requires.test(text)) &&
+  (!entry.exclude || !entry.exclude.test(text));
 
 const shape = (source, entry) => ({
   id: entry.id,
@@ -71,14 +86,19 @@ export function respond(rawInput) {
     return { id: r.id, register: 'strategic', source: scenario ? 'scenario' : 'template', lines: r.lines, note: null };
   }
 
+  const [id, pool] = classifyUnknown(text);
+  return { id, register: 'casual', source: 'fallback', lines: pick(pool, text), note: null };
+}
+
+/** Choose the kind of shrug. Order matters: facts first, then requests, taste, questions, fragments. */
+function classifyUnknown(text) {
   const question = looksLikeQuestion(text);
-  return {
-    id: question ? 'unknown-question' : 'unknown-statement',
-    register: 'casual',
-    source: 'fallback',
-    lines: pick(question ? UNKNOWN_QUESTION : UNKNOWN_STATEMENT, text),
-    note: null,
-  };
+  if (question && FACTUAL_SIGNAL.test(text)) return ['unknown-factual', UNKNOWN_FACTUAL];
+  if (REQUEST_SIGNAL.test(text)) return ['unknown-request', UNKNOWN_REQUEST];
+  if (question && SUBJECTIVE_SIGNAL.test(text)) return ['unknown-subjective', UNKNOWN_SUBJECTIVE];
+  if (question) return ['unknown-question', UNKNOWN_QUESTION];
+  if (INCOMPLETE_SIGNAL.test(text) || text.split(' ').length <= 2) return ['incomplete', INCOMPLETE];
+  return ['unknown-statement', UNKNOWN_STATEMENT];
 }
 
 /**
