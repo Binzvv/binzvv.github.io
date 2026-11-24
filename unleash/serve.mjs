@@ -28,10 +28,10 @@ createServer(async (req, res) => {
     res.writeHead(404).end('not found');
   }
 }).listen(PORT, '0.0.0.0', () => {
-  console.log('\n  UNLEASH · dev server\n');
+  console.log('\n  NRC · ENERGY IN MOTION · dev server\n');
   console.log(`  local   http://localhost:${PORT}`);
   for (const list of Object.values(networkInterfaces())) {
     for (const n of list || []) if (n.family === 'IPv4' && !n.internal) console.log(`  iPhone  http://${n.address}:${PORT}`);
   }
-  console.log('\n  Same Wi-Fi network required. Tap to cycle layers.\n');
+  console.log('\n  Same Wi-Fi network required. In Safari: Share → Add to Home Screen for full-screen.\n');
 });

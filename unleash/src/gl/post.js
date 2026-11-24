@@ -17,7 +17,12 @@ void main() {
   vec3 cur = texture(tCur, vUv).rgb;
   // small turbulent displacement so trails shimmer rather than ghost
   float n = vnoise(vec3(vUv * vec2(6.0, 3.0), uTime * 0.7)) - 0.5;
-  vec3 prev = texture(tPrev, vUv - uDrift + vec2(n * 0.0018, 0.0)).rgb;
+  // smear the history along its drift so persistence reads as continuous light, not copies
+  vec2 base = vUv - uDrift + vec2(n * 0.0018, 0.0);
+  vec2 sm = uDrift * 1.6 + vec2(0.0, -0.0015);
+  vec3 prev = texture(tPrev, base).rgb * 0.5
+            + texture(tPrev, base + sm).rgb * 0.3
+            + texture(tPrev, base + sm * 2.2).rgb * 0.2;
   fragColor = vec4(max(cur, prev * uDecay), 1.0);
 }
 `;

@@ -47,14 +47,9 @@ export class Pipeline {
     this.quad.frustumCulled = false;
     this.scene.add(this.quad);
 
+    // post / optics parameters (the field's own uniforms live on this.field)
     this.uniforms = {
       time: 0,
-      energy: 1,
-      rise: 1,
-      core: 1,
-      coreY: 0.55,
-      perim: 0,
-      mask: new THREE.Vector4(1, 1, 1, 1),
       bloom: 0.75,
       exposure: 0.9,
       ca: 0.02,
@@ -64,10 +59,20 @@ export class Pipeline {
       optics: true,
     };
 
+    const V2 = (x = 0, y = 0) => ({ value: new THREE.Vector2(x, y) });
+    const V3 = (x = 0, y = 0, z = 0) => ({ value: new THREE.Vector3(x, y, z) });
+    const V4 = (x = 0, y = 0, z = 0, w = 0) => ({ value: new THREE.Vector4(x, y, z, w) });
     this.fieldMat = rawMat(FIELD_FRAG, {
-      uTime: { value: 0 }, uAspect: { value: 1 }, uEnergy: { value: 1 }, uRise: { value: 1 },
-      uCore: { value: 1 }, uCoreY: { value: 0.55 }, uPerim: { value: 0 }, uMask: { value: this.uniforms.mask },
+      uTime: { value: 0 }, uFlowT: { value: 0 }, uAspect: { value: 1 },
+      uEnergy: { value: 0 }, uRise: { value: 0 }, uOrigin: V2(0, 0.1),
+      tSwoosh: { value: null }, uSwUvScale: V2(1, 1), uSwUvCenter: V2(0.5, 0.5), uSwUnits: V2(0.06, 0.5),
+      uSw: { value: 0 }, uSwForm: { value: 1 }, uSwX: V3(0, 0.5, 0.3), uSwVel: V2(),
+      uCharge: { value: 0 }, uCta: V4(), uTouch: V2(),
+      uRing: V4(), uFlash: V3(), uPerim: { value: 0 }, uPerimDrive: { value: 1 },
+      uShock: V4(), uShake: { value: 0 },
     });
+    /** Field uniforms, driven directly by the choreography layer. */
+    this.field = this.fieldMat.uniforms;
     this.trailMat = rawMat(TRAIL_FRAG, {
       tCur: { value: null }, tPrev: { value: null }, uDecay: { value: 0.88 },
       uDrift: { value: new THREE.Vector2() }, uTime: { value: 0 },
@@ -86,10 +91,33 @@ export class Pipeline {
       uExposure: { value: 1 }, uCAOrigin: { value: new THREE.Vector2(0.5, 0.4) },
     });
 
+    canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.lost = true; });
+    canvas.addEventListener('webglcontextrestored', () => { this.lost = false; this.rebuildTargets(); });
+
     this.scale = 0.5;           // field resolution relative to the canvas
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.targets = null;
     this.resize();
+  }
+
+  /** Loads the baked Swoosh distance field (exact geometry from the supplied asset). */
+  loadSwoosh(url, meta) {
+    return new Promise((resolve, reject) => {
+      new THREE.TextureLoader().load(url, (tex) => {
+        tex.colorSpace = THREE.NoColorSpace;
+        tex.generateMipmaps = false;
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+        const f = this.field;
+        f.tSwoosh.value = tex;
+        f.uSwUvScale.value.set(meta.uvScale[0], meta.uvScale[1]);
+        f.uSwUvCenter.value.set(meta.uvCenter[0], meta.uvCenter[1]);
+        f.uSwUnits.value.set(meta.fineUnits, meta.coarseUnits);
+        this.swooshAspect = meta.aspect;
+        resolve(tex);
+      }, undefined, reject);
+    });
   }
 
   makeRT(w, h) {
@@ -169,14 +197,10 @@ export class Pipeline {
     const T = this.targets;
 
     // 1. field
+    if (this.lost) return;
     const fu = this.fieldMat.uniforms;
     fu.uTime.value = U.time;
     fu.uAspect.value = this.aspect;
-    fu.uEnergy.value = U.energy;
-    fu.uRise.value = U.rise;
-    fu.uCore.value = U.core;
-    fu.uCoreY.value = U.coreY;
-    fu.uPerim.value = U.perim;
     this.pass(this.fieldMat, T.field);
 
     let src = T.field.texture;
@@ -230,7 +254,6 @@ export class Pipeline {
     cu.uCA.value = U.optics ? U.ca : 0;
     cu.uGrain.value = U.optics ? U.grain : 0;
     cu.uExposure.value = U.exposure;
-    this.renderer.setViewport(0, 0, this.width / this.dpr, this.height / this.dpr);
     this.pass(this.compMat, null);
   }
 }
