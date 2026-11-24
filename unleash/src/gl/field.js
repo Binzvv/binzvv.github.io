@@ -1,19 +1,17 @@
 import { HEADER, NOISE, SDF } from './chunks.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ENERGY FIELD: the HDR source pass, rendered at adaptive resolution.
-// Every layer sits behind a uniform branch, so inactive layers cost nothing.
+// ENERGY FIELD (v3): one interaction, five layers, all luminous on black.
 //
-//   L2  plasma body       3-level domain-warped fBm with a far atmospheric layer
-//   L3  hue depth         temperature channel: abyss → emerald → volt → acid
-//   L1  charge            energy converging on the touch point and the CTA rim
-//   SW  swoosh            the Swoosh rendered from a baked multi-channel distance field
-//                         (R fine distance · G wide distance · B contour arc-length);
-//                         travelling pulses, iso-contour filaments, turbulent
-//                         edges, velocity-sampled motion streaks
-//   L7  shock ring        noisy iridescent ring for every energy pulse
-//   FL  flash             volumetric light behind emerging typography
-//   L8  perimeter field   living inner-edge field, driven by run intensity
+//   GLOW   idle/touch: a quiet halo around the Start Run circle, tightening under the thumb
+//   CLOUD  the rising light body: soft, saturated, fades to black through its
+//          edges (never through murky dark tones)
+//   SWOOSH formed from the baked distance field of the supplied artwork;
+//          white-hot core, volt halo, light travelling along the contour,
+//          motion and growth streaks when it travels to the edges
+//   RING   thick, soft, iridescent band carrying the energy to the display edges
+//   FRAME  perimeter illumination: crisp rim, soft inner glow pooling at the
+//          base, slow hue drift, travelling light for the payoff
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const FIELD_FRAG = /* glsl */ `${HEADER}
@@ -21,56 +19,64 @@ in vec2 vUv;
 out vec4 fragColor;
 
 uniform float uTime;
-uniform float uFlowT;      // integrated flow time (speed changes never jump)
+uniform float uFlowT;
 uniform float uAspect;
 
 uniform float uEnergy;
 uniform float uRise;
-uniform vec2  uOrigin;     // plasma source (p space)
+uniform vec2  uOrigin;
 
 uniform sampler2D tSwoosh;
 uniform vec2  uSwUvScale;
 uniform vec2  uSwUvCenter;
-uniform vec2  uSwUnits;    // fine, coarse distance units (swoosh widths per encoded 1.0)
+uniform vec2  uSwUnits;
 uniform float uSw;
 uniform float uSwForm;
-uniform vec3  uSwX;        // centre xy, width (p space)
-uniform vec2  uSwVel;      // p units / second
+uniform vec3  uSwX;
+uniform vec2  uSwVel;
+uniform float uSwGrow;     // relative scale velocity → radial streaks
 
-uniform float uCharge;
-uniform vec4  uCta;        // centre xy, half-size xy
+uniform float uGlow;       // idle halo around the CTA
+uniform float uCharge;     // touch pressure
+uniform vec4  uCta;        // centre xy, radius, unused
 uniform vec2  uTouch;
 
 uniform vec4  uRing;       // centre xy, radius, amplitude
-uniform vec3  uFlash;      // centre xy, amplitude
+uniform float uRingV;      // radius velocity → analytic motion blur
 uniform float uPerim;
 uniform float uPerimDrive;
-uniform vec4  uShock;      // centre xy, radius, amplitude
-uniform float uShake;
+uniform float uPerimRich;  // payoff richness: travelling light, deeper hue
+uniform float uCorner;     // display corner radius (height units)
+uniform vec4  uShock;
 
 ${NOISE}
 ${SDF}
 
 const vec3 VOLT  = vec3(0.620, 1.000, 0.000);
-const vec3 ACID  = vec3(1.000, 0.940, 0.330);
-const vec3 EMER  = vec3(0.020, 0.400, 0.180);
-const vec3 WHITE = vec3(1.000, 1.000, 0.920);
+const vec3 ACID  = vec3(1.000, 0.950, 0.420);
+const vec3 COOL  = vec3(0.420, 0.700, 1.000);   // electric, cool side
+const vec3 WHITE = vec3(1.000, 1.000, 0.960);
+const vec3 DEEP  = vec3(0.030, 0.060, 0.140);   // dim light leans cool, never olive
 
-vec3 energyColor(float d, float temp) {
-  vec3 cool = mix(vec3(0.000, 0.018, 0.016), vec3(0.000, 0.150, 0.110), smoothstep(0.00, 0.45, d));
-  cool      = mix(cool, vec3(0.060, 0.480, 0.200), smoothstep(0.35, 0.85, d));
-  cool      = mix(cool, vec3(0.420, 0.950, 0.150), smoothstep(0.80, 1.25, d));
-  vec3 warm = mix(vec3(0.012, 0.030, 0.000), vec3(0.200, 0.420, 0.000), smoothstep(0.00, 0.45, d));
-  warm      = mix(warm, VOLT, smoothstep(0.35, 0.90, d));
-  warm      = mix(warm, ACID, smoothstep(0.85, 1.30, d));
-  vec3 c = mix(cool, warm, temp);
-  c = mix(c, WHITE, smoothstep(1.40, 1.95, d));
-  return c * (0.05 + d * d * 0.85);
+// light, not paint: pick a luminous hue first, then intensity
+vec3 lightColor(float d, float temp) {
+  vec3 hue = mix(COOL, VOLT, smoothstep(0.30, 0.80, temp));
+  hue = mix(hue, ACID, smoothstep(0.82, 1.0, temp) * 0.6);
+  vec3 c = mix(DEEP, hue, smoothstep(0.12, 0.75, d));
+  c = mix(c, WHITE, smoothstep(1.15, 1.80, d));
+  return c * (0.55 * d + 0.45 * d * d);
 }
 
-// Swoosh distance field lookup → (distance, coarse distance, arc-length), distances in p units.
-// The fine channel is precise but saturates ~24 texels out, so beyond that we hand
-// over to the coarse channel; everything fades to "far away" at the baked border.
+// palette cycle used by the ring's iridescence (volt → acid → white → cool → volt)
+vec3 irid(float h) {
+  h = fract(h) * 4.0;
+  vec3 a = VOLT, b = ACID, c = mix(WHITE, COOL, 0.45), d = COOL;
+  if (h < 1.0) return mix(a, b, smoothstep(0.0, 1.0, h));
+  if (h < 2.0) return mix(b, c, smoothstep(1.0, 2.0, h));
+  if (h < 3.0) return mix(c, d, smoothstep(2.0, 3.0, h));
+  return mix(d, a, smoothstep(3.0, 4.0, h));
+}
+
 vec3 swSample(vec2 p) {
   vec2 lp  = (p - uSwX.xy) / uSwX.z;
   vec2 tuv = uSwUvCenter + lp * uSwUvScale;
@@ -86,194 +92,162 @@ vec3 swSample(vec2 p) {
 
 void main() {
   vec2 uv = vUv;
-  float t = uTime;
-  if (uShake > 0.001) {
-    uv += (vec2(vnoise(vec3(t * 37.0, 0.0, 0.0)), vnoise(vec3(0.0, t * 41.0, 3.0))) - 0.5) * uShake * 0.007;
-  }
+  float t  = uTime;
+  float ft = uFlowT;
   vec2 p = vec2((uv.x - 0.5) * uAspect, uv.y);
 
-  // Shock: the environment physically recoils from a release
   vec2 sp = p;
   if (uShock.w > 0.001) {
     vec2 dv = p - uShock.xy;
     float dl = length(dv) + 1e-4;
-    float wave = exp(-pow((dl - uShock.z) * 6.0, 2.0));
-    sp -= dv / dl * wave * uShock.w * 0.07;
+    sp -= dv / dl * exp(-pow((dl - uShock.z) * 5.0, 2.0)) * uShock.w * 0.05;
   }
 
   vec3 col = vec3(0.0);
-  float ft = uFlowT;
 
-  // ── L2/L3 ─ plasma ───────────────────────────────────────────────────────
-  float top = mix(uOrigin.y - 0.10, 1.18, uRise);
-  if (uEnergy > 0.002 && sp.y < top + 0.45) {
-    vec2 fp   = (sp - vec2(uOrigin.x, 0.0)) * vec2(1.15, 0.95);
-    vec2 rise = vec2(0.0, ft * 0.17);
-    float z   = ft * 0.085;
-    vec2 q = vec2(fbm4(vec3(fp - rise, z)), fbm4(vec3(fp - rise + vec2(5.2, 1.3), z + 3.1)));
-    vec2 r = vec2(fbm4(vec3(fp + 1.9 * q - rise * 1.5 + vec2(1.7, 9.2), z * 1.4)),
-                  fbm4(vec3(fp + 1.9 * q - rise * 1.5 + vec2(8.3, 2.8), z * 1.4 + 7.0)));
-    float f = fbm3(vec3(fp * 0.9 + 1.7 * r - rise * 2.0, z * 0.8 + 11.0));
-
-    float edge = (r.x - 0.5) * 0.55 + (q.y - 0.5) * 0.30;
-    float env  = smoothstep(top + 0.10, top - 0.45, sp.y + edge * 0.65);
-    float dx   = sp.x - uOrigin.x;
-    float column = mix(0.42, 1.0, exp(-dx * dx * mix(12.0, 4.0, uRise)));
-    float base   = 0.30 + 0.80 * exp(-max(sp.y - uOrigin.y, 0.0) * 2.4);
-
-    float dens = smoothstep(0.34, 0.92, f) * 1.10 + 0.08 * q.x;
-    dens *= env * column * base * uEnergy;
-    float temp = smoothstep(0.25, 0.68, r.y + (q.x - 0.5) * 0.7);
-    col += energyColor(dens, temp);
-
-    // far atmospheric layer: slow, dim, cold. Gives the field parallax depth
-    float far = fbm3(vec3(sp * vec2(0.8, 0.6) - rise * 0.35 + 20.0, z * 0.6));
-    col += vec3(0.000, 0.090, 0.065) * smoothstep(0.35, 0.80, far) * env * uEnergy * 0.6;
-
-    // near layer: ridged filaments riding the dense regions
-    float fil = 1.0 - abs(2.0 * fbm3(vec3(fp * 2.4 + 2.2 * r - rise * 3.0, z * 2.0 + 5.0)) - 1.0);
-    fil = pow(fil, 12.0) * env * smoothstep(0.35, 0.95, dens);
-    col += mix(vec3(0.45, 0.95, 0.10), ACID, temp) * fil * 0.6;
-  }
-
-  // ── L1 ─ charge ─────────────────────────────────────────────────────────
-  if (uCharge > 0.002) {
+  // ── GLOW ─ idle halo + touch ──────────────────────────────────────────────
+  if (uGlow + uCharge > 0.002) {
     vec2 cp = p - uCta.xy;
-    float dB = max(sdRoundBox(cp, uCta.zw, uCta.w), 0.0);
-    float bn = fbm3(vec3(cp * 9.0 + vec2(0.0, -t * 0.9), t * 1.3));
-    float rim = exp(-dB / (0.003 + 0.022 * uCharge * bn)) * (0.35 + bn);
-    vec2 dv = p - uTouch;
-    float dist = length(dv) + 1e-3;
-    vec2 dir = dv / dist;
-    // log-polar noise sampled forward in time = streaks converging on the thumb
-    float conv = fbm3(vec3(dir * 2.6, log(dist) * 3.2 + t * (2.0 + 6.0 * uCharge)));
-    conv = pow(smoothstep(0.52, 0.92, conv), 2.0) * exp(-dist * 3.2) * smoothstep(0.0, 0.04, dist);
-    float hot = exp(-dist * 24.0);
-    vec3 cc = mix(vec3(0.20, 0.70, 0.05), VOLT, bn) * rim * 1.2
-            + mix(VOLT, ACID, conv) * conv * (0.8 + 1.4 * uCharge)
-            + vec3(0.85, 1.0, 0.55) * hot * uCharge * 0.6;
-    col += cc * uCharge;
+    float r = length(cp);
+    float edge = max(r - uCta.z, 0.0);
+    float a = atan(cp.y, cp.x);
+    float wob = fbm3(vec3(cos(a) * 1.4, sin(a) * 1.4, t * 0.35));
+    float halo = exp(-edge / (0.018 + 0.03 * wob)) * (0.55 + 0.6 * wob);
+    float rim  = exp(-edge / 0.004);
+    vec3 hc = mix(COOL, VOLT, 0.35 + 0.5 * wob);
+    col += hc * (halo * 0.22 + rim * 0.10) * uGlow;
+    // touch: light gathers to the thumb and the circle's edge tightens
+    float td = length(p - uTouch);
+    col += mix(VOLT, WHITE, 0.4) * (exp(-edge / (0.010 + 0.02 * uCharge)) * 0.45 + exp(-td * 18.0) * 0.25) * uCharge;
   }
 
-  // ── SW ─ swoosh made of energy ──────────────────────────────────────────
+  // ── CLOUD ─ rising light body ─────────────────────────────────────────────
+  float top = mix(uOrigin.y - 0.10, 1.20, uRise);
+  if (uEnergy > 0.002 && sp.y < top + 0.45) {
+    vec2 fp   = (sp - vec2(uOrigin.x, 0.0)) * vec2(1.05, 0.85);
+    vec2 rise = vec2(0.0, ft * 0.16);
+    float z   = ft * 0.08;
+    vec2 q = vec2(fbm4(vec3(fp - rise, z)), fbm4(vec3(fp - rise + vec2(5.2, 1.3), z + 3.1)));
+    vec2 r = vec2(fbm4(vec3(fp + 1.7 * q - rise * 1.4 + vec2(1.7, 9.2), z * 1.4)),
+                  fbm4(vec3(fp + 1.7 * q - rise * 1.4 + vec2(8.3, 2.8), z * 1.4 + 7.0)));
+    float f = fbm3(vec3(fp * 0.85 + 1.5 * r - rise * 1.8, z * 0.8 + 11.0));
+
+    float edge = (r.x - 0.5) * 0.50 + (q.y - 0.5) * 0.28;
+    float env  = smoothstep(top + 0.08, top - 0.40, sp.y + edge * 0.6);
+    float dx   = sp.x - uOrigin.x;
+    float column = mix(0.55, 1.0, exp(-dx * dx * mix(9.0, 3.0, uRise)));
+    float base   = 0.45 + 0.65 * exp(-max(sp.y - uOrigin.y, 0.0) * 2.0);
+    // luminous inside: low internal contrast, the envelope does the fading
+    float dens = (0.18 + 1.05 * smoothstep(0.28, 0.88, f)) * env * column * base * uEnergy;
+    float temp = smoothstep(0.32, 0.66, r.y + (q.x - 0.5) * 0.8);
+    col += lightColor(dens, temp);
+  }
+
+  // ── SWOOSH ───────────────────────────────────────────────────────────────
   if (uSw > 0.002) {
     float S   = uSwX.z;
     float spd = length(uSwVel);
-    // cheap bounds test: only shade inside the baked field (or along a motion streak)
     vec2 tb = uSwUvCenter + (sp - uSwX.xy) / S * uSwUvScale;
-    if ((tb.x > 0.0 && tb.x < 1.0 && tb.y > 0.0 && tb.y < 1.0) || spd > 0.02) {
+    bool moving = spd > 0.02 || uSwGrow > 0.02;
+    if ((tb.x > 0.0 && tb.x < 1.0 && tb.y > 0.0 && tb.y < 1.0) || moving) {
       vec2 lpn = (sp - uSwX.xy) / S;
-      float n1 = fbm3(vec3(lpn * 5.0 + vec2(-t * 0.35, 0.0), t * 0.45));
-      float n2 = fbm3(vec3(lpn * 5.0 + vec2(7.3, 2.1), t * 0.45 + 4.0));
-      vec2 tw  = (vec2(n1, n2) - 0.5) * S * (0.020 + 0.05 * min(spd, 2.0));
+      float n1 = fbm3(vec3(lpn * 4.0 + vec2(-t * 0.3, 0.0), t * 0.4));
+      float n2 = fbm3(vec3(lpn * 4.0 + vec2(7.3, 2.1), t * 0.4 + 4.0));
+      vec2 tw  = (vec2(n1, n2) - 0.5) * S * 0.018;
       vec3 s   = swSample(sp + tw);
       float dF = s.x, dC = s.y, al = s.z;
       float w  = S * 0.010;
 
-      // formation: energy pours in along the contour, hook → blade tip
       float form   = uSwForm * 1.15;
-      float formed = smoothstep(form, form - 0.14, al);
-      float head   = exp(-abs(al - form + 0.05) * 20.0) * step(0.001, uSwForm) * (1.0 - smoothstep(0.95, 1.12, uSwForm));
+      float formed = smoothstep(form, form - 0.16, al);
+      float head   = exp(-abs(al - form + 0.06) * 16.0) * step(0.001, uSwForm) * (1.0 - smoothstep(0.92, 1.12, uSwForm));
 
-      // light travelling along the contour, accumulating and dissipating
-      float travel = al * 7.0 - t * 1.25;
-      float pulse  = pow(0.5 + 0.5 * sin(travel * 6.2831), 5.0);
-      float acc    = fbm3(vec3(al * 4.5 - t * 0.55, dF / w * 0.12, t * 0.22));
-      float light  = 0.30 + 0.85 * smoothstep(0.35, 0.80, acc) + 0.55 * pulse * acc;
+      float travel = al * 5.0 - t * 0.9;
+      float pulse  = pow(0.5 + 0.5 * sin(travel * 6.2831), 6.0);
+      float acc    = fbm3(vec3(al * 4.0 - t * 0.5, 0.0, t * 0.2));
+      float light  = 0.55 + 0.45 * acc + 0.35 * pulse;
 
-      float ad      = abs(dF);
-      float rimCore = exp(-ad / (w * 0.32));
-      float rimGlow = exp(-ad / (w * 2.0));
-      float inside  = smoothstep(w * 0.4, -w * 0.4, dF);
-      float depth   = clamp(-dF / (S * 0.045), 0.0, 1.0);
-      float body    = inside * (0.06 + 0.50 * acc * acc) * (1.0 - 0.6 * depth);
-      // filaments: offset contours of the true geometry, broken by turbulence
-      float iso = dF / w * 0.55 + (n1 - 0.5) * 2.4 - t * 0.18;
-      float fil = pow(1.0 - abs(fract(iso) - 0.5) * 2.0, 16.0) * exp(-ad / (w * 4.5)) * (0.35 + pulse) * smoothstep(0.3, 0.7, n2)
-                * (1.0 - smoothstep(w * 4.0, w * 6.5, ad));   // stay inside the precise channel
-      // asymmetric atmosphere: swells toward the blade tip
-      float halo = exp(-max(dC, 0.0) / (S * 0.085)) * (0.30 + 0.70 * al) * (0.45 + acc);
+      float ad     = abs(dF);
+      float core   = exp(-ad / (w * 0.55));
+      float glow   = exp(-ad / (w * 2.8));
+      float inside = smoothstep(w * 0.5, -w * 0.5, dF);
+      float halo   = exp(-max(dC, 0.0) / (S * 0.06)) * (0.4 + 0.6 * al);
 
-      float tone = smoothstep(0.30, 0.75, n2 + (al - 0.5) * 0.4);
-      vec3 rimC  = mix(mix(VOLT, ACID, tone * 0.6), WHITE, 0.30 * pulse);
-      vec3 swc = rimC * rimCore * 1.05 * light
-               + mix(EMER, VOLT, 0.45 + 0.55 * tone) * rimGlow * 0.42 * light
-               + mix(EMER, VOLT, acc) * body
-               + mix(VOLT, ACID, tone) * fil * 0.55
-               + mix(EMER * 0.8, VOLT * 0.55, al) * halo * 0.20
-               + WHITE * head * (rimCore + rimGlow * 0.5) * 1.4;
-      // hard energy budget: the layer fades out well before the distance field saturates
+      float tone = smoothstep(0.35, 0.70, n2);
+      vec3 swc = WHITE * core * 1.25 * light
+               + mix(COOL, VOLT, 0.55 + 0.35 * tone) * glow * 0.55 * light
+               + mix(VOLT, WHITE, 0.35) * inside * (0.18 + 0.25 * acc)
+               + mix(COOL, VOLT, 0.6) * halo * 0.16
+               + WHITE * head * (core + glow) * 0.9;
       float near = 1.0 - smoothstep(0.08 * S, 0.19 * S, dC);
       swc *= formed * near;
 
-      // directional motion streaks: sample where the contour was
-      // continuous: per-pixel jittered taps along the velocity, so copies never stack
-      if (spd > 0.02) {
+      // streaks: translation and growth, sampled where the contour came from
+      if (moving) {
         float streak = 0.0;
-        vec2 span = uSwVel * min(0.11, 0.35 / max(spd, 1e-3)) ;
+        vec2 span = uSwVel * min(0.10, 0.30 / max(spd, 1e-3));
         float jit = hash12(gl_FragCoord.xy + fract(t) * 91.0);
         for (int i = 0; i < 10; i++) {
           float u = (float(i) + jit) / 10.0;
-          vec3 si = swSample(sp + tw + span * u);
-          streak += exp(-abs(si.x) / (w * (0.8 + 2.2 * u))) * (1.0 - u) * step(si.z, form);
+          vec2 qp = sp + tw + span * u;
+          qp = uSwX.xy + (qp - uSwX.xy) * (1.0 + uSwGrow * u);
+          vec3 si = swSample(qp);
+          streak += exp(-abs(si.x) / (w * (1.0 + 2.5 * u))) * (1.0 - u);
         }
-        streak *= 0.32 * min(spd * 0.8, 1.3);
-        swc += mix(VOLT, ACID, 0.25 + 0.5 * n2) * streak * 0.5;
+        swc += mix(WHITE, VOLT, 0.45) * streak * 0.16;
       }
       col += swc * uSw;
     }
   }
 
-  // ── L7 ─ shock ring ─────────────────────────────────────────────────────
+  // ── RING ─ carries the energy to the edges ────────────────────────────────
   if (uRing.w > 0.002) {
     vec2 rv = p - uRing.xy;
     float rd = length(rv);
-    float rn  = fbm3(vec3(rv * 3.2, t * 0.6));
-    float rn2 = fbm3(vec3(rv * 6.0 + 4.0, t * 0.9));
-    float R   = uRing.z * (1.0 + (rn - 0.5) * 0.30);
-    float th  = 0.030 + 0.075 * uRing.z;
-    float band  = exp(-pow((rd - R) / th, 2.0));
-    float inner = exp(-pow((rd - R + th * 0.55) / (th * 0.16), 2.0));
-    float tone = smoothstep(0.30, 0.75, rn2);
-    vec3 rc = mix(vec3(0.02, 0.42, 0.24), VOLT, smoothstep(0.0, 0.55, tone));
-    rc = mix(rc, ACID, smoothstep(0.55, 1.0, tone));
-    col += (rc * band * (0.55 + 0.8 * rn2) + WHITE * inner * 0.45 * rn) * uRing.w;
+    float ra = atan(rv.y, rv.x);
+    float rn = fbm3(vec3(cos(ra) * 1.3, sin(ra) * 1.3, t * 0.5));
+    float R  = uRing.z * (1.0 + (rn - 0.5) * 0.16);
+    float th = 0.030 + 0.055 * uRing.z + min(uRingV, 4.0) * 0.022;  // faster = softer, never stacked copies
+    float x  = (rd - R) / th;
+    float band = exp(-x * x);
+    vec3 rc = irid(ra / 6.2831 + x * 0.10 + rn * 0.35 + t * 0.04);
+    col += rc * band * (0.30 + 0.45 * rn) * uRing.w / (1.0 + min(uRingV, 4.0) * 0.5);
   }
 
-  // ── FL ─ flash: the light typography emerges from ───────────────────────
-  if (uFlash.z > 0.002) {
-    vec2 fv = (p - uFlash.xy) * vec2(1.0, 0.75);
-    float fd = length(fv);
-    float fn = fbm3(vec3(fv * 4.0 + vec2(0.0, -t * 0.4), t * 0.8));
-    float g = exp(-fd * 6.5) * (0.30 + fn) + exp(-fd * 16.0) * 0.40;
-    col += mix(vec3(0.05, 0.45, 0.14), vec3(0.72, 1.0, 0.22), smoothstep(0.15, 0.9, g)) * g * uFlash.z;
-  }
-
-  // ── L8 ─ perimeter field ────────────────────────────────────────────────
+  // ── FRAME ─ perimeter illumination ────────────────────────────────────────
   if (uPerim > 0.001) {
-    float drive = uPerimDrive;
     vec2 pc  = (uv - 0.5) * vec2(uAspect, 1.0);
-    float sdb = sdRoundBox(pc, vec2(uAspect * 0.5, 0.5), 0.075);
+    float sdb = sdRoundBox(pc, vec2(uAspect * 0.5, 0.5), uCorner);
     float bd  = max(-sdb, 0.0);
-    float outside = exp(-max(sdb, 0.0) * 400.0);
-    float zone = 1.0 - smoothstep(0.02 * drive, 0.085 * drive, bd);
-    float ca = cos(ft * 0.16), sa = sin(ft * 0.16);
-    vec2 rp = mat2(ca, -sa, sa, ca) * pc;
-    float a1 = fbm4(vec3(rp * 2.6, ft * 0.16));
-    float a2 = fbm3(vec3(rp.yx * 4.2 + 3.0, ft * 0.27 + 9.0));
-    float tend = fbm3(vec3(pc * 11.0 + vec2(a1, a2) * 2.5 + vec2(0.0, ft * 0.2), ft * 0.5));
+    float drive = uPerimDrive;
+    float cutoff = 1.0 - smoothstep(0.0, 0.0025, sdb);       // nothing outside the display's rounded corners
+    // hard spatial budget, independent of drive: the centre always stays black
+    float zone = (1.0 - smoothstep(0.03, 0.10, bd)) * cutoff;
+    if (zone > 0.0) {
+      float ang = atan(pc.y, pc.x / uAspect);
+      float flow = ft * 0.11;
+      // light pools at the base and lower corners, as in the reference
+      float weight = mix(1.0, 0.45, smoothstep(0.05, 0.95, uv.y));
+      float h1  = 0.5 + 0.5 * sin(ang - flow * 2.0 + 0.6);
+      float h2  = 0.5 + 0.5 * sin(2.0 * ang + flow * 1.3 + 2.1);
+      float wob = fbm3(vec3(cos(ang) * 1.1, sin(ang) * 1.1, ft * 0.14));
 
-    float thick = (0.003 + 0.013 * pow(a1, 1.8) + 0.004 * tend) * drive;
-    float line  = exp(-bd * 320.0);
-    float glow  = exp(-bd / thick);
-    float haze  = exp(-bd / (0.028 * drive)) * smoothstep(0.50, 0.85, a1) * 0.14 * tend * drive;
+      float thick = (0.007 + 0.013 * wob + 0.005 * h2) * (0.65 + 0.35 * drive) * weight + 0.002;
+      float band  = exp(-bd / thick);                     // bright inner band
+      float haze  = exp(-bd / (thick * 3.2));             // soft atmosphere
+      float rim   = exp(-bd / 0.0018);                    // crisp edge line
 
-    float ptemp = smoothstep(0.32, 0.72, a2 + (a1 - 0.5) * 0.6);
-    vec3 pcol = mix(vec3(0.01, 0.45, 0.26), VOLT, smoothstep(0.0, 0.5, ptemp));
-    pcol      = mix(pcol, vec3(0.95, 0.95, 0.35), smoothstep(0.55, 1.0, ptemp));
-    float pulse = 0.55 + 0.9 * smoothstep(0.3, 0.8, a1);
-    vec3 perim = pcol * (glow * 0.55 * pulse + haze) + vec3(0.95, 1.0, 0.85) * line * 0.45 * pulse;
-    col += perim * zone * outside * uPerim;
+      // Volt lives in the bright band; the wide haze leans cool so it stays rich, never olive
+      // hue travels along the edge: volt → acid → cool white → electric, as the reference's frame drifts
+      vec3 cb = mix(irid(ang / 6.2831 - flow * 0.35 + wob * 0.25), VOLT, 0.25);
+      vec3 ch = mix(COOL, mix(COOL, VOLT, 0.35), h1);
+
+      float pk = pow(0.5 + 0.5 * cos(ang - ft * 0.85), 22.0) + pow(0.5 + 0.5 * cos(ang + ft * 0.6 + 2.5), 28.0);
+      float bright = (0.70 + 0.50 * wob) * (0.55 + 0.45 * drive) * (1.0 + uPerimRich * (0.30 + 1.4 * pk));
+      vec3 frame = (cb * band * 0.95 + ch * haze * 0.28) * bright * weight
+                 + mix(WHITE, cb, 0.35) * rim * (0.45 + 0.55 * h1) * (0.6 + 0.4 * weight);
+      col += frame * zone * uPerim;
+    }
   }
 
   fragColor = vec4(col, 1.0);

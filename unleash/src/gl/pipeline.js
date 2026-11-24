@@ -66,10 +66,10 @@ export class Pipeline {
       uTime: { value: 0 }, uFlowT: { value: 0 }, uAspect: { value: 1 },
       uEnergy: { value: 0 }, uRise: { value: 0 }, uOrigin: V2(0, 0.1),
       tSwoosh: { value: null }, uSwUvScale: V2(1, 1), uSwUvCenter: V2(0.5, 0.5), uSwUnits: V2(0.06, 0.5),
-      uSw: { value: 0 }, uSwForm: { value: 1 }, uSwX: V3(0, 0.5, 0.3), uSwVel: V2(),
-      uCharge: { value: 0 }, uCta: V4(), uTouch: V2(),
-      uRing: V4(), uFlash: V3(), uPerim: { value: 0 }, uPerimDrive: { value: 1 },
-      uShock: V4(), uShake: { value: 0 },
+      uSw: { value: 0 }, uSwForm: { value: 1 }, uSwX: V3(0, 0.5, 0.3), uSwVel: V2(), uSwGrow: { value: 0 },
+      uGlow: { value: 0 }, uCharge: { value: 0 }, uCta: V4(), uTouch: V2(),
+      uRing: V4(), uRingV: { value: 0 }, uPerim: { value: 0 }, uPerimDrive: { value: 1 }, uPerimRich: { value: 0 }, uCorner: { value: 0.06 },
+      uShock: V4(),
     });
     /** Field uniforms, driven directly by the choreography layer. */
     this.field = this.fieldMat.uniforms;

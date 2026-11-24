@@ -1,8 +1,8 @@
 // Offline-first cache for the standalone (home-screen) experience.
-const VERSION = 'nrc-energy-v1';
+const VERSION = 'nrc-energy-v3';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
-  './src/main.js', './src/app.js', './src/energy.js', './src/run.js',
+  './src/main.js', './src/app.js', './src/energy.js',
   './src/gl/chunks.js', './src/gl/field.js', './src/gl/post.js', './src/gl/pipeline.js',
   './vendor/three.module.min.js', './vendor/gsap.min.js',
   './fonts/anton-latin.woff2', './fonts/barlow-cond-500.woff2', './fonts/barlow-cond-600.woff2', './fonts/barlow-cond-700.woff2',

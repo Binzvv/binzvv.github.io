@@ -18,20 +18,20 @@ Over plain-HTTP LAN the service worker doesn't register, because browsers only a
 - **Git deploy:** connect the repo in Netlify; the config is picked up automatically.
 - **Manual deploy:** drag the `unleash/` folder onto app.netlify.com/drop.
 
-## Flow
+## The interaction
 
-| State | Interaction | Energy |
-|---|---|---|
-| Anticipation | Home: Start Run, Set a goal | Swoosh breathes; plasma simmers under the CTA |
-| Activation | Press and hold Start Run | Charge converges on the thumb; typography dissolves |
-| Eruption | Release | Shock, plasma eruption; the Swoosh condenses, then tears up through the viewport |
-| Countdown | 3 · 2 · 1 · GO. | Each beat is a ring, flash and perimeter pulse |
-| Active run | Pause / Resume, hold End Run | Perimeter field tracks simulated intensity |
-| Completion | Done, Run Again | Energy builds, releases; the Swoosh emerges |
+1. **Anticipation:** a restrained NRC surface with the Swoosh, one line of copy and a Volt Start Run circle within thumb reach.
+2. **Tap Start Run:** light wells up from the button, and the Swoosh condenses inside it from the supplied geometry.
+3. **Travel:** the Swoosh travels outward to the edges of the display, and the frame catches the light.
+4. **Countdown:** 3 · 2 · 1 breathe through the frame while the centre stays dark.
+5. **GO:** the payoff, the richest light in the experience, flowing around the perimeter.
+6. **Afterglow:** a live elapsed timer, quiet moving light, and **Reset** to experience it again.
+
+The previous full-app build is preserved in `backup/nrc-app-v2/` and git tag `backup-nrc-app-v2`.
 
 ## Engine (`src/gl`)
 
-- `field.js` is the HDR energy field. It has the domain-warped plasma, touch charge, the Swoosh, the shock ring, the flash and the perimeter. Each layer sits behind a uniform branch, so idle layers cost nothing.
+- `field.js` is the HDR energy field: the touch glow, the rising light cloud, the Swoosh, the iridescent ring and the perimeter frame. Each layer sits behind a uniform branch, so idle layers cost nothing.
 - `post.js` holds the post-processing passes:
   - temporal trails (drift-smeared persistence)
   - a 6-level mip-chain bloom
@@ -47,10 +47,6 @@ The Swoosh is never redrawn:
   - G: coarse signed distance
   - B: arc-length from the hook to the blade tip, which drives the energy travelling along the contour
 - `assets/swoosh-sdf.json` maps between the two and keeps the exact proportions.
-
-## Brand assets
-
-Drop the official `nrc-logo.svg` into `assets/` and the header uses it automatically. Without it, the header falls back to a "Run Club" text wordmark.
 
 ## URL parameters
 
