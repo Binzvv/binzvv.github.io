@@ -22,13 +22,15 @@
   <canvas id="gl" aria-hidden="true"></canvas>
 
   <main id="app" data-state="boot">
+    <!-- the brand mark persists through the whole interaction -->
+    <header class="top brand" id="brand">
+      <img class="swoosh" src="assets/swoosh.png" width="1464" height="512" alt="Nike" />
+    </header>
+
     <!-- Anticipation -->
-    <section class="screen home" data-screen="home" aria-label="Run">
-      <header class="top fade">
-        <img class="swoosh" src="assets/swoosh.png" width="1464" height="512" alt="Nike" />
-      </header>
+    <section class="screen home" data-screen="home" aria-label="Start a run">
       <div class="intro">
-        <p class="eyebrow fade">Outdoor Run</p>
+        <p class="eyebrow fade">Nike Run Club</p>
         <h1 class="title fade">Ready when<br />you are.</h1>
       </div>
       <div class="start-wrap">
@@ -37,21 +39,12 @@
       <p class="note fade">Unofficial concept · Not affiliated with Nike</p>
     </section>
 
-    <!-- Countdown -->
-    <section class="screen count" data-screen="count" aria-live="assertive">
-      <div class="count-num" id="countNum"></div>
-    </section>
-
-    <!-- Payoff + afterglow -->
-    <section class="screen live" data-screen="live" aria-label="Run in progress">
-      <header class="top in">
-        <img class="swoosh" src="assets/swoosh.png" width="1464" height="512" alt="Nike" />
-      </header>
-      <div class="live-center">
-        <div class="timer in" id="timer" aria-label="Elapsed time">00:00</div>
-        <p class="timer-label in">Outdoor Run</p>
+    <!-- Payoff -->
+    <section class="screen done" data-screen="done" aria-live="polite">
+      <div class="done-center">
+        <h2 class="lets" id="lets">Let’s run.</h2>
       </div>
-      <button class="reset in" id="resetBtn" type="button">Reset</button>
+      <button class="reset" id="resetBtn" type="button">Reset</button>
     </section>
   </main>
 

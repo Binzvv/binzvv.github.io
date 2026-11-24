@@ -1,5 +1,5 @@
 // Offline-first cache for the standalone (home-screen) experience.
-const VERSION = 'nrc-energy-v3';
+const VERSION = 'nrc-energy-v4';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './styles/app.css',
   './src/main.js', './src/app.js', './src/energy.js',

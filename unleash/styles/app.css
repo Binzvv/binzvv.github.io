@@ -50,7 +50,7 @@ img { display: block; }
 .swoosh { height: 16px; width: auto; }
 
 /* home */
-.intro { margin-top: clamp(40px, 11dvh, 110px); display: flex; flex-direction: column; gap: 14px; }
+.intro { display: flex; flex-direction: column; gap: 14px; }
 .eyebrow { margin: 0; font: 700 13px/1 var(--text); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
 .title { margin: 0; font: 700 clamp(32px, 9.4vw, 40px)/1.06 var(--text); letter-spacing: -0.02em; }
 .start-wrap { flex: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: clamp(28px, 8dvh, 72px); }
@@ -65,27 +65,21 @@ img { display: block; }
   font: 400 10px/1 var(--text); letter-spacing: 0.03em; color: rgba(255, 255, 255, 0.26); pointer-events: none;
 }
 
-/* countdown */
-.count { align-items: center; justify-content: center; }
-.count-num {
-  font: 400 min(34dvh, 70vw)/0.82 var(--display); color: var(--white);
-  text-transform: uppercase; white-space: nowrap; will-change: transform, filter, opacity;
-  padding-top: 0.06em;
+/* payoff */
+.brand { position: absolute; top: calc(var(--safe-t) + 16px); left: var(--gl); z-index: 2; pointer-events: none; }
+.home .intro { margin-top: calc(28px + clamp(40px, 11dvh, 110px)); }
+.done-center { flex: 1; display: flex; align-items: center; justify-content: center; }
+.lets {
+  margin: 0; font: 400 clamp(56px, 17vw, 84px)/0.9 var(--display); text-transform: uppercase;
+  letter-spacing: 0.005em; white-space: nowrap; will-change: transform, filter, opacity, text-shadow;
 }
-
-/* payoff / afterglow */
-.live-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.timer { font: 400 clamp(76px, 25vw, 112px)/0.86 var(--display); display: flex; letter-spacing: 0.01em; }
-.timer .d { display: inline-block; width: 0.5em; text-align: center; }
-.timer .p { display: inline-block; width: 0.26em; text-align: center; }
-.timer-label { margin: 0; font: 700 13px/1 var(--text); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
 .reset {
   align-self: center; flex: none; height: 48px; min-width: 132px; padding: 0 26px; border-radius: 999px;
-  border: 1px solid var(--line); font: 500 16px/1 var(--text); margin-bottom: 12px;
+  border: 1px solid var(--line); font: 500 16px/1 var(--text); margin-bottom: 16px;
 }
 .reset:active { background: rgba(255, 255, 255, 0.08); }
 
 @media (max-height: 700px) {
-  .intro { margin-top: 28px; }
+  .home .intro { margin-top: 60px; }
   .start { width: 128px; }
 }

@@ -244,7 +244,7 @@ void main() {
 
       float pk = pow(0.5 + 0.5 * cos(ang - ft * 0.85), 22.0) + pow(0.5 + 0.5 * cos(ang + ft * 0.6 + 2.5), 28.0);
       float bright = (0.70 + 0.50 * wob) * (0.55 + 0.45 * drive) * (1.0 + uPerimRich * (0.30 + 1.4 * pk));
-      vec3 frame = (cb * band * 0.95 + ch * haze * 0.28) * bright * weight
+      vec3 frame = (cb * band * 0.95 + ch * haze * 0.16) * bright * weight
                  + mix(WHITE, cb, 0.35) * rim * (0.45 + 0.55 * h1) * (0.6 + 0.4 * weight);
       col += frame * zone * uPerim;
     }

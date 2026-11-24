@@ -1,37 +1,40 @@
 # NRC · Energy in Motion
 
-An unofficial, speculative Nike Run Club concept. It is not affiliated with Nike. A real-time WebGL energy engine drives a working run flow.
+An unofficial, non-commercial creative exploration for private design review. It is not affiliated with Nike. One touch-driven interaction, rendered live in WebGL.
 
-## Run it on your iPhone
+## Run it on your iPhone (private, on your Wi-Fi)
+
+You need Node 18 or newer. Everything is bundled locally (Three.js, GSAP, fonts, Nike assets), so no internet connection or CDN is required.
 
 ```bash
-node unleash/serve.mjs
+cd unleash
+npm start
 ```
 
-Open the printed `iPhone http://…:5173` URL in Safari. The iPhone must be on the same Wi-Fi as the computer running the server. For the full-screen experience, use Share → Add to Home Screen.
+The server prints:
 
-Over plain-HTTP LAN the service worker doesn't register, because browsers only allow service workers on HTTPS or localhost. Offline and home-screen caching therefore needs the Netlify deployment.
+```
+  local   http://localhost:5173
+  iPhone  http://192.168.x.x:5173
+```
 
-## Deploy
-
-`netlify.toml` (repo root) publishes `unleash/` as a static site. There's no build step:
-- **Git deploy:** connect the repo in Netlify; the config is picked up automatically.
-- **Manual deploy:** drag the `unleash/` folder onto app.netlify.com/drop.
+Open the `iPhone` address in Safari on an iPhone on the same Wi-Fi. If macOS asks whether to allow incoming connections for `node`, choose Allow. For full screen, use Share → Add to Home Screen.
 
 ## The interaction
 
-1. **Anticipation:** a restrained NRC surface with the Swoosh, one line of copy and a Volt Start Run circle within thumb reach.
-2. **Tap Start Run:** light wells up from the button, and the Swoosh condenses inside it from the supplied geometry.
-3. **Travel:** the Swoosh travels outward to the edges of the display, and the frame catches the light.
-4. **Countdown:** 3 · 2 · 1 breathe through the frame while the centre stays dark.
-5. **GO:** the payoff, the richest light in the experience, flowing around the perimeter.
-6. **Afterglow:** a live elapsed timer, quiet moving light, and **Reset** to experience it again.
+1. **Anticipation:** a restrained Nike interface with the Swoosh and a Volt Start Run circle within thumb reach. A quiet halo breathes around the circle.
+2. **Touch:** the circle tightens under your thumb and light gathers.
+3. **Release:** the interface melts into the light, and a soft, saturated body of energy wells up from the button.
+4. **Form:** energy pours along the supplied Swoosh's contour until it burns white.
+5. **Disperse:** the Swoosh breaks outward, and an iridescent ring carries the energy to the edges of the display.
+6. **Payoff:** the frame catches the light, and LET'S RUN. resolves out of a chromatic split. A living afterglow follows.
+7. **Reset** returns to the start, so you can repeat it.
 
-The previous full-app build is preserved in `backup/nrc-app-v2/` and git tag `backup-nrc-app-v2`.
+Previous builds are preserved in `../backup/nrc-app-v2/` and git tag `backup-nrc-app-v2`.
 
 ## Engine (`src/gl`)
 
-- `field.js` is the HDR energy field: the touch glow, the rising light cloud, the Swoosh, the iridescent ring and the perimeter frame. Each layer sits behind a uniform branch, so idle layers cost nothing.
+- `field.js` is the HDR energy field: the touch glow, the rising light, the Swoosh, the iridescent ring and the perimeter frame. Each layer sits behind a uniform branch, so idle layers cost nothing.
 - `post.js` holds the post-processing passes:
   - temporal trails (drift-smeared persistence)
   - a 6-level mip-chain bloom
